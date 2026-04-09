@@ -1,0 +1,8 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+echo "🔍 Running Pint..."
+npx lint-staged
+
+echo "🧪 Running tests..."
+php artisan test --compact || exit 1

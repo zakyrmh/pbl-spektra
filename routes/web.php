@@ -1,7 +1,60 @@
 <?php
 
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\PublicController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    return view('welcome');
+/*
+|--------------------------------------------------------------------------
+| Public Routes
+|--------------------------------------------------------------------------
+| Halaman yang bisa diakses oleh siapa saja (Warga) tanpa harus login.
+| Menggunakan sub-layout 'public'.
+*/
+Route::get('/', [PublicController::class, 'index'])->name('home');
+Route::get('/cek-antrean', [PublicController::class, 'checkQueue'])->name('public.check');
+
+/*
+|--------------------------------------------------------------------------
+| Guest Routes (Authentication)
+|--------------------------------------------------------------------------
+| Hanya bisa diakses oleh user yang BELUM login.
+| Jika sudah login dan mencoba akses ini, Laravel akan otomatis
+| melempar ke '/' atau dashboard (tergantung setting di Middleware).
+*/
+Route::middleware('guest')->group(function () {
+    // Halaman Login
+    Route::get('/login', [AuthController::class, 'index'])->name('login');
+    Route::post('/login', [AuthController::class, 'authenticate'])->name('login.process');
+
+    // Halaman Registrasi (Jika dibutuhkan untuk warga)
+    Route::get('/register', [AuthController::class, 'register'])->name('register');
+    Route::post('/register', [AuthController::class, 'store'])->name('register.process');
+
+    // Lupa Password
+    Route::get('/forgot-password', [AuthController::class, 'forgotPassword'])->name('password.request');
+    Route::post('/forgot-password', [AuthController::class, 'sendResetLink'])->name('password.email');
+});
+
+/*
+|--------------------------------------------------------------------------
+| Private / Authenticated Routes
+|--------------------------------------------------------------------------
+| Hanya bisa diakses setelah login.
+| Menggunakan sub-layout 'private'.
+*/
+Route::middleware('auth')->group(function () {
+
+    // Dashboard Utama
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+    // Fitur Antrean (Contoh: Manajemen Antrean oleh Petugas)
+    Route::prefix('antrean')->group(function () {
+        Route::get('/', [DashboardController::class, 'manageQueue'])->name('antrean.index');
+        Route::post('/panggil', [DashboardController::class, 'callNext'])->name('antrean.call');
+    });
+
+    // Proses Logout
+    Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 });

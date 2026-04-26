@@ -3,6 +3,8 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\PublicController;
+use App\Mail\TestEmail;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -57,4 +59,18 @@ Route::middleware('auth')->group(function () {
 
     // Proses Logout
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+});
+
+/*
+|--------------------------------------------------------------------------
+| Test Email Route (Hanya untuk testing, bisa dihapus nanti)
+|--------------------------------------------------------------------------
+| Route ini hanya untuk menguji pengiriman email menggunakan Mailable yang sudah dibuat.
+| Jika ingin menguji, pastikan untuk membuat view 'emails.test' terlebih dahulu.
+*/
+
+Route::get('/test-mail', function () {
+    Mail::to('zaxxyyramadhan@gmail.com')->send(new TestEmail);
+
+    return 'Email terkirim!';
 });

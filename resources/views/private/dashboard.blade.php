@@ -5,7 +5,6 @@
 @section('base_content')
     @php
         $role = Auth::user()->role ?? 'pengunjung';
-        // Map 'warga' to 'pengunjung' jika ada data lama
         if ($role === 'warga') $role = 'pengunjung';
     @endphp
 
@@ -48,7 +47,7 @@
                         </svg>
                         Layanan MPP
                     </a>
-                    
+
                     <p class="px-3 text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 mt-6">Akun</p>
                     <a href="#" class="flex items-center gap-3 px-3 py-3 rounded-xl text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/30 hover:text-gray-900 dark:hover:text-white font-medium transition-colors">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
@@ -92,7 +91,7 @@
                             </svg>
                             <span class="absolute top-2 right-2.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-gray-800"></span>
                         </button>
-                        
+
                         <div class="h-8 w-px bg-gray-200 dark:bg-gray-700 mx-2"></div>
 
                         <div class="flex items-center gap-3">
@@ -139,15 +138,15 @@
                     <!-- Main Content Grid for Desktop -->
                     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
                         <!-- Active Queue Card (Spans 2 cols on Desktop) -->
-                        <div class="lg:col-span-2 bg-gradient-to-br from-blue-600 to-blue-700 rounded-3xl p-6 md:p-8 text-white shadow-[0_10px_30px_rgba(37,99,235,0.3)] relative overflow-hidden group h-full flex flex-col justify-between">
+                        <div class="lg:col-span-2 bg-linear-to-br from-blue-600 to-blue-700 rounded-3xl p-6 md:p-8 text-white shadow-[0_10px_30px_rgba(37,99,235,0.3)] relative overflow-hidden group h-full flex flex-col justify-between">
                             <div class="flex justify-between items-start mb-6 relative z-10">
                                 <div>
                                     <span class="bg-white/20 px-3 py-1.5 rounded-full text-[10px] font-bold tracking-wider backdrop-blur-md border border-white/20 uppercase">Antrean Aktif</span>
-                                    <h2 class="mt-4 text-xl md:text-2xl font-medium leading-snug max-w-[250px] md:max-w-sm">Layanan Paspor - Kanim Kelas I</h2>
+                                    <h2 class="mt-4 text-xl md:text-2xl font-medium leading-snug max-w-62.5 md:max-w-sm">Layanan Paspor - Kanim Kelas I</h2>
                                 </div>
                                 <span class="bg-green-400/90 text-green-950 px-4 py-2 rounded-xl text-xs font-bold leading-tight text-center backdrop-blur-md shadow-sm">Sesuai<br>Jadwal</span>
                             </div>
-                            
+
                             <div class="flex justify-between items-end relative z-10 mt-auto">
                                 <div>
                                     <p class="text-[11px] text-blue-200 uppercase tracking-widest mb-1 font-semibold">Kode Booking</p>
@@ -174,7 +173,7 @@
                                     Lihat Detail Tiket
                                 </button>
                             </div>
-                            
+
                             <!-- Decorative background shapes -->
                             <div class="absolute top-0 right-0 -mr-10 -mt-10 w-64 h-64 bg-white/10 rounded-full blur-3xl group-hover:scale-110 transition-transform duration-700"></div>
                             <div class="absolute bottom-0 left-0 -ml-10 -mb-10 w-64 h-64 bg-blue-400/20 rounded-full blur-3xl group-hover:scale-110 transition-transform duration-700"></div>
@@ -192,7 +191,7 @@
                                 <p class="text-2xl font-extrabold text-gray-900 dark:text-white">Buka</p>
                                 <p class="text-sm text-green-600 dark:text-green-400 font-medium mt-1">Tutup pada 15:00 WIB</p>
                             </div>
-                            <div class="bg-gradient-to-br from-orange-500 to-red-500 rounded-3xl p-6 shadow-sm text-white flex-1 flex flex-col justify-center relative overflow-hidden group cursor-pointer">
+                            <div class="bg-linear-to-br from-orange-500 to-red-500 rounded-3xl p-6 shadow-sm text-white flex-1 flex flex-col justify-center relative overflow-hidden group cursor-pointer">
                                 <div class="absolute right-0 top-0 opacity-20 pointer-events-none group-hover:scale-110 transition-transform duration-500">
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-24 h-24 -mt-4 -mr-4">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M15.362 5.214A8.252 8.252 0 0112 21 8.25 8.25 0 016.038 7.048 8.287 8.287 0 009 9.6a8.983 8.983 0 013.361-6.866 8.21 8.21 0 003 2.48z" />
@@ -273,7 +272,7 @@
                                 </svg>
                             </a>
                         </div>
-                        
+
                         <!-- Mobile Cards List -->
                         <div class="lg:hidden space-y-3">
                             <!-- Item 1 -->
@@ -419,7 +418,7 @@
 
         <!-- Bottom Navigation Mobile -->
         <nav class="lg:hidden fixed bottom-0 left-0 w-full bg-white dark:bg-gray-900 border-t border-gray-100 dark:border-gray-800 flex justify-around items-center py-2 px-2 pb-safe shadow-[0_-10px_40px_rgba(0,0,0,0.05)] z-50">
-            <a href="#" class="flex flex-col items-center gap-1 min-w-[64px] py-1">
+            <a href="#" class="flex flex-col items-center gap-1 min-w-16 py-1">
                 <div class="bg-blue-50 dark:bg-blue-900/30 w-14 h-8 rounded-full flex items-center justify-center transition-all">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5 text-blue-600 dark:text-blue-400">
                         <path d="M11.47 3.841a.75.75 0 011.06 0l8.69 8.69a.75.75 0 101.06-1.061l-8.689-8.69a2.25 2.25 0 00-3.182 0l-8.69 8.69a.75.75 0 101.061 1.06l8.69-8.689z" />
@@ -428,7 +427,7 @@
                 </div>
                 <span class="text-[10px] font-bold text-blue-600 dark:text-blue-400">BERANDA</span>
             </a>
-            <a href="#" class="flex flex-col items-center gap-1 min-w-[64px] py-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
+            <a href="#" class="flex flex-col items-center gap-1 min-w-16 py-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
                 <div class="w-14 h-8 flex items-center justify-center">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 6v.75m0 3v.75m0 3v.75m0 3V18m-9-5.25h5.25M7.5 15h3M3.375 5.25c-.621 0-1.125.504-1.125 1.125v3.026a2.999 2.999 0 010 5.198v3.026c0 .621.504 1.125 1.125 1.125h17.25c.621 0 1.125-.504 1.125-1.125v-3.026a2.999 2.999 0 010-5.198V6.375c0-.621-.504-1.125-1.125-1.125H3.375z" />
@@ -436,7 +435,7 @@
                 </div>
                 <span class="text-[10px] font-medium">TIKET</span>
             </a>
-            <a href="#" class="flex flex-col items-center gap-1 min-w-[64px] py-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
+            <a href="#" class="flex flex-col items-center gap-1 min-w-16 py-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
                 <div class="w-14 h-8 flex items-center justify-center">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
@@ -444,7 +443,7 @@
                 </div>
                 <span class="text-[10px] font-medium">INFO</span>
             </a>
-            <a href="#" class="flex flex-col items-center gap-1 min-w-[64px] py-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
+            <a href="#" class="flex flex-col items-center gap-1 min-w-16 py-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
                 <div class="w-14 h-8 flex items-center justify-center">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
@@ -454,7 +453,7 @@
             </a>
         </nav>
 
-    @elseif ($role === 'admin fo')
+    @elseif ($role === 'admin_fo')
         {{-- Admin FO Dashboard --}}
         <div class="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 font-sans transition-colors duration-300">
             <div class="max-w-7xl mx-auto p-4 md:p-6 lg:p-8">
@@ -470,7 +469,7 @@
                         </button>
                     </form>
                 </div>
-                
+
                 <div class="bg-white dark:bg-gray-800 rounded-3xl p-8 shadow-sm border border-gray-100 dark:border-gray-700 text-center">
                     <div class="w-20 h-20 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-full flex items-center justify-center mx-auto mb-4">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-10 h-10">
@@ -483,7 +482,7 @@
             </div>
         </div>
 
-    @elseif ($role === 'admin gerai')
+    @elseif ($role === 'admin_gerai')
         {{-- Admin Gerai Dashboard --}}
         <div class="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 font-sans transition-colors duration-300">
             <div class="max-w-7xl mx-auto p-4 md:p-6 lg:p-8">
@@ -499,7 +498,7 @@
                         </button>
                     </form>
                 </div>
-                
+
                 <div class="bg-white dark:bg-gray-800 rounded-3xl p-8 shadow-sm border border-gray-100 dark:border-gray-700 text-center">
                     <div class="w-20 h-20 bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded-full flex items-center justify-center mx-auto mb-4">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-10 h-10">
@@ -512,7 +511,7 @@
             </div>
         </div>
 
-    @elseif ($role === 'super admin')
+    @elseif ($role === 'super_admin')
         {{-- Super Admin Dashboard --}}
         <div class="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 font-sans transition-colors duration-300">
             <div class="max-w-7xl mx-auto p-4 md:p-6 lg:p-8">
@@ -528,7 +527,7 @@
                         </button>
                     </form>
                 </div>
-                
+
                 <div class="bg-white dark:bg-gray-800 rounded-3xl p-8 shadow-sm border border-gray-100 dark:border-gray-700 text-center">
                     <div class="w-20 h-20 bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 rounded-full flex items-center justify-center mx-auto mb-4">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-10 h-10">
@@ -553,7 +552,7 @@
                 </div>
                 <h1 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">Role Tidak Dikenali</h1>
                 <p class="text-gray-600 dark:text-gray-400 mb-8">Silakan hubungi administrator untuk mengatur hak akses Anda.</p>
-                
+
                 <form action="{{ route('logout') }}" method="POST">
                     @csrf
                     <button type="submit" class="px-6 py-2.5 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-xl font-medium hover:bg-gray-800 dark:hover:bg-gray-100 transition-colors">

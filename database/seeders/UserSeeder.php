@@ -8,41 +8,62 @@ use Illuminate\Support\Facades\Hash;
 
 class UserSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
-        // Akun Admin
+        // Super Admin
         User::updateOrCreate(
-            ['email' => 'admin@mpp-sawahlunto.id'],
+            ['email' => 'superadmin@mpp-sawahlunto.id'],
             [
-                'name' => 'Administrator',
-                'username' => 'admin',
-                'email' => 'admin@mpp-sawahlunto.id',
+                'name' => 'Super Administrator',
+                'email' => 'superadmin@mpp-sawahlunto.id',
                 'password' => Hash::make('password'),
-                'role' => 'admin',
+                'role' => 'super_admin',
             ]
         );
 
-        // Akun Petugas
+        // Admin Front Office
         User::updateOrCreate(
-            ['email' => 'petugas@mpp-sawahlunto.id'],
+            ['email' => 'fo@mpp-sawahlunto.id'],
             [
-                'name' => 'Petugas Loket 1',
-                'username' => 'petugas1',
-                'email' => 'petugas@mpp-sawahlunto.id',
+                'name' => 'Petugas Front Office',
+                'email' => 'fo@mpp-sawahlunto.id',
                 'password' => Hash::make('password'),
-                'role' => 'petugas',
+                'role' => 'admin_fo',
+            ]
+        );
+
+        // Admin Gerai
+        User::updateOrCreate(
+            ['email' => 'gerai@mpp-sawahlunto.id'],
+            [
+                'name' => 'Petugas Gerai',
+                'email' => 'gerai@mpp-sawahlunto.id',
+                'password' => Hash::make('password'),
+                'role' => 'admin_gerai',
+            ]
+        );
+
+        // Pengunjung (NIK dan no_telp wajib diisi)
+        User::updateOrCreate(
+            ['email' => 'pengunjung@example.com'],
+            [
+                'name' => 'Budi Santoso',
+                'nik' => '1372010101900001',
+                'email' => 'pengunjung@example.com',
+                'no_telp' => '081234567890',
+                'password' => Hash::make('password'),
+                'role' => 'pengunjung',
             ]
         );
 
         $this->command->info('✅ User seeder berhasil! Akun tersedia:');
         $this->command->table(
-            ['Role', 'Username', 'Email', 'Password'],
+            ['Role', 'Email', 'Password'],
             [
-                ['Admin',   'admin',    'admin@mpp-sawahlunto.id',   'password'],
-                ['Petugas', 'petugas1', 'petugas@mpp-sawahlunto.id', 'password'],
+                ['super_admin', 'superadmin@mpp-sawahlunto.id', 'password'],
+                ['admin_fo',    'fo@mpp-sawahlunto.id',         'password'],
+                ['admin_gerai', 'gerai@mpp-sawahlunto.id',      'password'],
+                ['pengunjung',  'pengunjung@example.com',        'password'],
             ]
         );
     }

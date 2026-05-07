@@ -21,21 +21,22 @@ class AuthController extends Controller
     public function authenticate(Request $request)
     {
         $request->validate([
-            'identity' => ['required'],
+            'email' => ['required', 'email'],
             'password' => ['required'],
         ]);
 
-        $loginField = filter_var($request->identity, FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
-
-        if (Auth::attempt([$loginField => $request->identity, 'password' => $request->password], $request->boolean('remember'))) {
+        if (Auth::attempt([
+            'email' => $request->email,
+            'password' => $request->password,
+        ], $request->boolean('remember'))) {
             $request->session()->regenerate();
 
             return redirect()->intended('/dashboard');
         }
 
         return back()->withErrors([
-            'identity' => 'Email/username atau password salah.',
-        ])->onlyInput('identity');
+            'email' => 'Email atau password salah.',
+        ])->onlyInput('email');
     }
 
     // Tampilkan halaman registrasi
@@ -49,13 +50,17 @@ class AuthController extends Controller
     {
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
+            'nik' => ['required', 'string', 'size:16', 'unique:users,nik'],
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
+            'no_telp' => ['required', 'string', 'max:15'],
             'password' => ['required', 'confirmed', Password::min(8)],
         ]);
 
         $user = User::create([
             'name' => $validated['name'],
+            'nik' => $validated['nik'],
             'email' => $validated['email'],
+            'no_telp' => $validated['no_telp'],
             'password' => Hash::make($validated['password']),
             'role' => 'pengunjung',
         ]);

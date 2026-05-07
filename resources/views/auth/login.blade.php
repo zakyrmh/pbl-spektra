@@ -51,7 +51,7 @@
                     <input type="email" name="email" id="email" value="{{ old('email') }}"
                         placeholder="contoh@email.com" autofocus
                         @php $emailClass = $errors->has('email') ? 'border-red-400' : 'border-gray-200'; @endphp
-                        class="w-full pl-10 pr-4 py-3 text-sm bg-gray-50 border {{ $emailClass }} rounded-xl ...">
+                        class="w-full pl-10 pr-4 py-3 text-sm bg-gray-50 border {{ $emailClass }} rounded-xl text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
                     @error('email')
                         <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
                     @enderror

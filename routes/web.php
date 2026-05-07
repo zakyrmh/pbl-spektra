@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Route;
 | Halaman yang bisa diakses oleh siapa saja (Warga) tanpa harus login.
 | Menggunakan sub-layout 'public'.
 */
+
 Route::get('/', [PublicController::class, 'index'])->name('home');
 Route::get('/cek-antrean', [PublicController::class, 'checkQueue'])->name('public.check');
 
@@ -49,16 +50,30 @@ Route::middleware('guest')->group(function () {
 Route::middleware('auth')->group(function () {
 
     // Dashboard Utama
-    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/dashboard', [DashboardController::class, 'index'])
+        ->name('dashboard');
 
-    // Fitur Antrean (Contoh: Manajemen Antrean oleh Petugas)
-    Route::prefix('antrean')->group(function () {
-        Route::get('/', [DashboardController::class, 'manageQueue'])->name('antrean.index');
-        Route::post('/panggil', [DashboardController::class, 'callNext'])->name('antrean.call');
+    // Khusus Super Admin
+    // Route::middleware('role:super_admin')->group(function () {
+    //     Route::get('/manajemen-pengguna', [UserController::class, 'index'])
+    //         ->name('users.index');
+    // });
+
+    // Khusus Admin FO
+    // Route::middleware('role:admin_fo')->group(function () {
+    //     Route::get('/check-in', [CheckInController::class, 'index'])
+    //         ->name('checkin.index');
+    // });
+
+    // Khusus Admin Gerai
+    Route::middleware('role:admin_gerai')->group(function () {
+        Route::get('/antrean', [DashboardController::class, 'manageQueue'])
+            ->name('antrean.index');
     });
 
     // Proses Logout
-    Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+    Route::post('/logout', [AuthController::class, 'logout'])
+        ->name('logout');
 });
 
 /*

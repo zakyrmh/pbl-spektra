@@ -59,6 +59,29 @@
                 </div>
             </div>
 
+            {{-- NIK --}}
+            <div>
+                <label class="block text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-1.5">
+                    NIK
+                </label>
+                <div class="relative">
+                    <span class="absolute inset-y-0 left-3.5 flex items-center text-gray-400">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M15 9h3.75M15 12h3.75M15 15h3.75M4.5 19.5h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5zm6-10.125a1.875 1.875 0 11-3.75 0 1.875 1.875 0 013.75 0zm1.294 6.336a6.721 6.721 0 01-3.17.789 6.721 6.721 0 01-3.168-.789 3.376 3.376 0 016.338 0z" />
+                        </svg>
+                    </span>
+                    @php $nikClass = $errors->has('nik') ? 'border-red-400' : 'border-gray-200'; @endphp
+                    <input type="text" name="nik" id="nik" value="{{ old('nik') }}"
+                        placeholder="16 digit NIK sesuai KTP" maxlength="16"
+                        class="w-full pl-10 pr-4 py-3 text-sm bg-gray-50 border {{ $nikClass }} rounded-xl text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
+                    @error('nik')
+                        <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
+                    @enderror
+                </div>
+            </div>
+
             {{-- Email --}}
             <div>
                 <label class="block text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-1.5">
@@ -77,6 +100,29 @@
                         placeholder="contoh@email.com"
                         class="w-full pl-10 pr-4 py-3 text-sm bg-gray-50 border {{ $emailClass }} rounded-xl text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
                     @error('email')
+                        <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
+                    @enderror
+                </div>
+            </div>
+
+            {{-- Nomor HP --}}
+            <div>
+                <label class="block text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-1.5">
+                    Nomor HP
+                </label>
+                <div class="relative">
+                    <span class="absolute inset-y-0 left-3.5 flex items-center text-gray-400">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M10.5 1.5H8.25A2.25 2.25 0 006 3.75v16.5a2.25 2.25 0 002.25 2.25h7.5A2.25 2.25 0 0018 20.25V3.75a2.25 2.25 0 00-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 8.25h3" />
+                        </svg>
+                    </span>
+                    @php $noTelpClass = $errors->has('no_telp') ? 'border-red-400' : 'border-gray-200'; @endphp
+                    <input type="text" name="no_telp" id="no_telp" value="{{ old('no_telp') }}"
+                        placeholder="Contoh: 081234567890" maxlength="15"
+                        class="w-full pl-10 pr-4 py-3 text-sm bg-gray-50 border {{ $noTelpClass }} rounded-xl text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
+                    @error('no_telp')
                         <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
                     @enderror
                 </div>

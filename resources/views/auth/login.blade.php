@@ -38,21 +38,21 @@
             {{-- NIK / Email --}}
             <div>
                 <label class="block text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-1.5">
-                    NIK atau Email
+                    Alamat Email
                 </label>
                 <div class="relative">
                     <span class="absolute inset-y-0 left-3.5 flex items-center text-gray-400">
                         <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24"
                             stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round"
-                                d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                                d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
                         </svg>
                     </span>
-                    <input type="text" name="identity" id="identity" value="{{ old('identity') }}"
-                        placeholder="Masukkan NIK atau Email" autofocus
-                        @php $identityClass = $errors->has('identity') ? 'border-red-400' : 'border-gray-200'; @endphp
-                        class="w-full pl-10 pr-4 py-3 text-sm bg-gray-50 border {{ $identityClass }} rounded-xl text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
-                    @error('identity')
+                    <input type="email" name="email" id="email" value="{{ old('email') }}"
+                        placeholder="contoh@email.com" autofocus
+                        @php $emailClass = $errors->has('email') ? 'border-red-400' : 'border-gray-200'; @endphp
+                        class="w-full pl-10 pr-4 py-3 text-sm bg-gray-50 border {{ $emailClass }} rounded-xl ...">
+                    @error('email')
                         <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
                     @enderror
                 </div>

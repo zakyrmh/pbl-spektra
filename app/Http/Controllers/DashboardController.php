@@ -8,12 +8,12 @@ class DashboardController extends Controller
 {
     public function index()
     {
-        return view('private.dashboard');
+        return view('dashboard.dashboard');
     }
 
     public function manageQueue()
     {
-        return view('private.dashboard'); // Sementara redirect ke dashboard
+        return view('dashboard.dashboard'); // Sementara redirect ke dashboard
     }
 
     public function callNext(Request $request)

@@ -15,6 +15,9 @@
 
     <!-- Styles / Scripts -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+
+    {{-- Favicon --}}
+    <link rel="icon" href="{{ asset('favicon.ico') }}">
 </head>
 
 <body class="antialiased" style="font-family: 'Plus Jakarta Sans', sans-serif;">

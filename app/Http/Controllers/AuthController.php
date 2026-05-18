@@ -7,6 +7,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password as PasswordFacade;
+use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\Password;
 
 class AuthController extends Controller
@@ -17,7 +19,6 @@ class AuthController extends Controller
         return view('auth.login');
     }
 
-    // Proses login
     public function authenticate(Request $request)
     {
         $request->validate([
@@ -25,14 +26,27 @@ class AuthController extends Controller
             'password' => ['required'],
         ]);
 
+        $throttleKey = Str::transliterate(Str::lower($request->input('email')).'|'.$request->ip());
+
+        if (RateLimiter::tooManyAttempts($throttleKey, 5)) {
+            $seconds = RateLimiter::availableIn($throttleKey);
+
+            return back()->withErrors([
+                'email' => 'Terlalu banyak percobaan masuk. Silakan coba lagi dalam '.$seconds.' detik.',
+            ])->onlyInput('email');
+        }
+
         if (Auth::attempt([
             'email' => $request->email,
             'password' => $request->password,
         ], $request->boolean('remember'))) {
+            RateLimiter::clear($throttleKey);
             $request->session()->regenerate();
 
             return redirect()->intended('/dashboard');
         }
+
+        RateLimiter::hit($throttleKey, 60); // Blokir selama 60 detik jika mencapai limit
 
         return back()->withErrors([
             'email' => 'Email atau password salah.',

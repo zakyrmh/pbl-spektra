@@ -38,6 +38,10 @@ Route::middleware('guest')->group(function () {
     // Lupa Password
     Route::get('/forgot-password', [AuthController::class, 'forgotPassword'])->name('password.request');
     Route::post('/forgot-password', [AuthController::class, 'sendResetLink'])->name('password.email');
+
+    // Reset Password
+    Route::get('/reset-password/{token}', [AuthController::class, 'showResetForm'])->name('password.reset');
+    Route::post('/reset-password', [AuthController::class, 'resetPassword'])->name('password.update');
 });
 
 /*

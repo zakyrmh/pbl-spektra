@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -109,6 +110,39 @@ class AuthController extends Controller
         }
 
         return back()->withErrors(['email' => __($status)]);
+    }
+
+    // Tampilkan form reset password
+    public function showResetForm(Request $request, $token = null)
+    {
+        return view('auth.reset-password')->with(
+            ['token' => $token, 'email' => $request->email]
+        );
+    }
+
+    // Proses update password baru
+    public function resetPassword(Request $request)
+    {
+        $request->validate([
+            'token' => 'required',
+            'email' => 'required|email',
+            'password' => ['required', 'confirmed', Password::min(8)],
+        ]);
+
+        $status = PasswordFacade::reset(
+            $request->only('email', 'password', 'password_confirmation', 'token'),
+            function ($user, $password) {
+                $user->password = Hash::make($password);
+                $user->setRememberToken(Str::random(60));
+                $user->save();
+
+                event(new PasswordReset($user));
+            }
+        );
+
+        return $status == PasswordFacade::PASSWORD_RESET
+                    ? redirect()->route('login')->with('status', __($status))
+                    : back()->withErrors(['email' => [__($status)]]);
     }
 
     // Proses logout

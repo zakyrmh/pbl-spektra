@@ -1,8 +1,8 @@
-@extends('layouts.app')
+@extends('layouts.private')
 
 @section('title', 'Dashboard - MPP Kota Sawahlunto')
 
-@section('base_content')
+@section('content')
     @php
         $role = Auth::user()->role ?? 'pengunjung';
         if ($role === 'warga') $role = 'pengunjung';
@@ -514,20 +514,7 @@
     @elseif ($role === 'super_admin')
         {{-- Super Admin Dashboard --}}
         <div class="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 font-sans transition-colors duration-300">
-            <div class="max-w-7xl mx-auto p-4 md:p-6 lg:p-8">
-                <div class="flex justify-between items-center mb-8">
-                    <div>
-                        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Dashboard Super Admin</h1>
-                        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Sistem Antrean Digital MPP</p>
-                    </div>
-                    <form action="{{ route('logout') }}" method="POST">
-                        @csrf
-                        <button type="submit" class="px-4 py-2 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-xl font-medium text-sm hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors border border-red-100 dark:border-red-900/50">
-                            Logout
-                        </button>
-                    </form>
-                </div>
-
+            <div class="max-w-7xl mx-auto p-4 md:p-6 lg:p-8"></div>
                 <div class="bg-white dark:bg-gray-800 rounded-3xl p-8 shadow-sm border border-gray-100 dark:border-gray-700 text-center">
                     <div class="w-20 h-20 bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 rounded-full flex items-center justify-center mx-auto mb-4">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-10 h-10">

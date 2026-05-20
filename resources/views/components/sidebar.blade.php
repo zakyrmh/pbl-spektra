@@ -12,24 +12,24 @@
         $menu = [
             ['title' => 'Dashboard', 'url' => route('dashboard'), 'icon' => 'home'],
             ['title' => 'Monitor Antrean', 'url' => '#', 'icon' => 'tv'],
-            ['title' => 'Pencetakan Tiket (Ticketing)', 'url' => '#', 'icon' => 'printer'],
+            ['title' => 'Pencetakan Tiket', 'url' => '#', 'icon' => 'printer'],
             ['title' => 'Verifikasi & Check-In', 'url' => '#', 'icon' => 'check-circle'],
             ['title' => 'Panggilan Antrean FO', 'url' => '#', 'icon' => 'megaphone'],
         ];
     } elseif ($role === 'admin_gerai') {
         $menu = [
             ['title' => 'Dashboard Gerai', 'url' => route('dashboard'), 'icon' => 'home'],
-            ['title' => 'Papan Panggil (Calling Console)', 'url' => '#', 'icon' => 'tv'],
+            ['title' => 'Papan Panggil', 'url' => '#', 'icon' => 'tv'],
             ['title' => 'Daftar Tunggu Gerai', 'url' => '#', 'icon' => 'users'],
             ['title' => 'Log Pelayanan', 'url' => '#', 'icon' => 'clipboard-list'],
         ];
     } elseif ($role === 'super_admin') {
         $menu = [
-            ['title' => 'Dashboard Utama (Master Dashboard)', 'url' => route('dashboard'), 'icon' => 'home'],
-            ['title' => 'Manajemen Pengguna (User Management)', 'url' => '#', 'icon' => 'users'],
+            ['title' => 'Dashboard Utama', 'url' => route('dashboard'), 'icon' => 'home'],
+            ['title' => 'Manajemen Pengguna', 'url' => '#', 'icon' => 'users'],
             ['title' => 'Konfigurasi Gerai / Loket', 'url' => '#', 'icon' => 'settings'],
-            ['title' => 'Pengaturan Sistem (System Settings)', 'url' => '#', 'icon' => 'sliders'],
-            ['title' => 'Laporan & Analitik (Reports)', 'url' => '#', 'icon' => 'chart-pie'],
+            ['title' => 'Pengaturan Sistem', 'url' => '#', 'icon' => 'sliders'],
+            ['title' => 'Laporan & Analitik', 'url' => '#', 'icon' => 'chart-pie'],
         ];
     }
 @endphp
@@ -40,11 +40,8 @@
     <div class="h-16 flex items-center px-6 border-b border-gray-200 shrink-0">
         <a href="{{ route('dashboard') }}"
             class="flex items-center gap-2 text-blue-700 font-extrabold text-lg tracking-tight hover:opacity-90 transition-opacity">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M3 21V9.75L12 3l9 6.75V21M9 21v-6h6v6" />
-                <path stroke-linecap="round" stroke-linejoin="round" d="M8 10h.01M12 10h.01M16 10h.01" />
-            </svg>
+            <img src="{{ asset('images/Logo Mal Pelayanan Publik Kota Sawahlunto.webp') }}" alt="Logo Kota Sawahlunto"
+                class="w-6 h-6 object-contain">
             MPP Sawahlunto
         </a>
     </div>
@@ -135,21 +132,6 @@
                 {{ $item['title'] }}
             </a>
         @endforeach
-    </div>
-
-    {{-- Bottom Section --}}
-    <div class="p-4 border-t border-gray-100 shrink-0">
-        <div class="bg-gray-50 rounded-xl p-3 flex items-center gap-3 border border-gray-100">
-            <div
-                class="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-sm shadow-inner">
-                {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
-            </div>
-            <div class="flex-1 min-w-0">
-                <p class="text-sm font-bold text-gray-900 truncate">{{ Auth::user()->name }}</p>
-                <p class="text-xs font-medium text-gray-500 capitalize truncate">
-                    {{ str_replace('_', ' ', Auth::user()->role) }}</p>
-            </div>
-        </div>
     </div>
 </aside>
 

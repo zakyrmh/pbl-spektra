@@ -4,7 +4,8 @@
 
 @section('content')
     @php
-        $role = Auth::user()->role ?? 'pengunjung';
+        $role = Auth::user()->role;
+        $role = $role instanceof \BackedEnum ? $role->value : ($role ?? 'pengunjung');
         if ($role === 'warga') $role = 'pengunjung';
     @endphp
 
@@ -12,7 +13,7 @@
         {{-- Visitor Dashboard --}}
         <div class="space-y-6 pb-16">
             <!-- Greeting & Account Info Banner -->
-            <div class="bg-gradient-to-r from-blue-600 to-indigo-700 text-white rounded-3xl p-6 shadow-xl relative overflow-hidden transition-all duration-300 hover:shadow-indigo-500/10">
+            <div class="bg-linear-to-r from-blue-600 to-indigo-700 text-white rounded-3xl p-6 shadow-xl relative overflow-hidden transition-all duration-300 hover:shadow-indigo-500/10">
                 <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div>
                         <div class="flex items-center gap-2 text-blue-100 text-xs font-semibold uppercase tracking-wider mb-1">
@@ -54,7 +55,7 @@
                     <!-- Ticket Hero Card -->
                     <div class="bg-white dark:bg-gray-800 rounded-3xl border border-gray-200 dark:border-gray-700/50 shadow-md overflow-hidden relative">
                         <!-- Top Ticket Header Pattern -->
-                        <div class="bg-gradient-to-r from-blue-500 to-indigo-600 px-6 py-4 text-white flex justify-between items-center">
+                        <div class="bg-linear-to-r from-blue-500 to-indigo-600 px-6 py-4 text-white flex justify-between items-center">
                             <span class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider">
                                 <span class="w-2.5 h-2.5 bg-green-400 rounded-full animate-pulse shadow-sm"></span>
                                 Tiket Antrean Aktif Hari Ini
@@ -152,7 +153,7 @@
 
                             <!-- QR Code Modal Open Button -->
                             <div class="pt-2">
-                                <button type="button" onclick="openQrModal()" class="w-full flex items-center justify-center gap-2 py-4 px-6 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold rounded-2xl shadow-lg hover:shadow-indigo-500/25 active:scale-98 transition-all">
+                                <button type="button" onclick="openQrModal()" class="w-full flex items-center justify-center gap-2 py-4 px-6 bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold rounded-2xl shadow-lg hover:shadow-indigo-500/25 active:scale-98 transition-all">
                                     <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
                                     </svg>
@@ -322,7 +323,7 @@
         </div>
 
         <!-- Custom QR Code Modal Overlay -->
-        <div id="qr-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden opacity-0 transition-opacity duration-300">
+        <div id="qr-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
             <div class="bg-white dark:bg-gray-800 rounded-3xl p-6 md:p-8 max-w-sm w-full border border-gray-100 dark:border-gray-700/50 shadow-2xl relative transform scale-95 transition-transform duration-300" id="qr-modal-card">
                 <!-- Close Button -->
                 <button onclick="closeQrModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:white p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">

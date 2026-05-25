@@ -6,11 +6,11 @@ class PublicController extends Controller
 {
     public function index()
     {
-        return view('public.index');
+        return view('pages.index');
     }
 
     public function checkQueue()
     {
-        return view('public.check-queue');
+        return view('pages.check-queue');
     }
 }

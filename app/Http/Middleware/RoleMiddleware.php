@@ -23,7 +23,10 @@ class RoleMiddleware
         }
 
         // Jika role user tidak ada di daftar role yang diizinkan
-        if (! in_array(Auth::user()->role, $roles)) {
+        $userRole = Auth::user()->role;
+        $roleValue = $userRole instanceof \BackedEnum ? $userRole->value : $userRole;
+
+        if (! in_array($roleValue, $roles)) {
             abort(403, 'Anda tidak memiliki akses ke halaman ini.');
         }
 

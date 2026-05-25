@@ -3,6 +3,8 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\PublicController;
+use App\Http\Controllers\SessionManagementController;
+use App\Http\Controllers\UserController;
 use App\Mail\TestEmail;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Route;
@@ -57,11 +59,24 @@ Route::middleware('auth')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])
         ->name('dashboard');
 
-    // Khusus Super Admin
-    // Route::middleware('role:super_admin')->group(function () {
-    //     Route::get('/manajemen-pengguna', [UserController::class, 'index'])
-    //         ->name('users.index');
-    // });
+    // ── Super Admin: Manajemen Pengguna ──────────────────────────────────────
+    Route::middleware('role:super_admin')->group(function () {
+        // CRUD Pengguna
+        Route::get('/manajemen-pengguna', [UserController::class, 'index'])->name('users.index');
+        Route::post('/manajemen-pengguna', [UserController::class, 'store'])->name('users.store');
+        Route::put('/manajemen-pengguna/{user}', [UserController::class, 'update'])->name('users.update');
+        Route::patch('/manajemen-pengguna/{user}/status', [UserController::class, 'toggleStatus'])->name('users.toggle-status');
+        Route::patch('/manajemen-pengguna/{user}/reset-pw', [UserController::class, 'resetPassword'])->name('users.reset-password');
+        Route::delete('/manajemen-pengguna/{user}', [UserController::class, 'destroy'])->name('users.destroy');
+
+        // Audit Trail: Log Aktivitas per User
+        Route::get('/manajemen-pengguna/{user}/log', [UserController::class, 'activityLog'])->name('users.activity-log');
+
+        // Session Management: daftar & force-revoke sesi aktif
+        Route::get('/manajemen-pengguna/{user}/sessions', [SessionManagementController::class, 'index'])->name('users.sessions.index');
+        Route::delete('/manajemen-pengguna/{user}/sessions/all', [SessionManagementController::class, 'destroyAll'])->name('users.sessions.destroy-all');
+        Route::delete('/manajemen-pengguna/{user}/sessions/{session}', [SessionManagementController::class, 'destroy'])->name('users.sessions.destroy');
+    });
 
     // Khusus Admin FO
     // Route::middleware('role:admin_fo')->group(function () {

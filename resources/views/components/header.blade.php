@@ -31,8 +31,8 @@
                 <p class="text-sm font-bold text-gray-800 leading-tight">
                     {{ Auth::user()->name }}
                 </p>
-                <p class="text-xs font-medium text-gray-500 capitalize">
-                    {{ str_replace('_', ' ', Auth::user()->role) }}
+                <p class="text-xs font-medium text-gray-500">
+                    {{ Auth::user()->role_label }}
                 </p>
             </div>
             

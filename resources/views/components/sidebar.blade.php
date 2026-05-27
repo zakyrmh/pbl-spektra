@@ -11,7 +11,7 @@
     } elseif ($role === 'admin_fo') {
         $menu = [
             ['title' => 'Dashboard', 'url' => route('dashboard'), 'icon' => 'home'],
-            ['title' => 'Monitor Antrean', 'url' => '#', 'icon' => 'tv'],
+            ['title' => 'Monitor Antrean', 'url' => route('admin.fo.monitor'), 'icon' => 'tv'],
             ['title' => 'Pencetakan Tiket', 'url' => '#', 'icon' => 'printer'],
             ['title' => 'Verifikasi & Check-In', 'url' => '#', 'icon' => 'check-circle'],
             ['title' => 'Panggilan Antrean FO', 'url' => '#', 'icon' => 'megaphone'],

@@ -3,6 +3,7 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\PublicController;
+use App\Http\Controllers\QueueMonitorController;
 use App\Mail\TestEmail;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Route;
@@ -64,10 +65,10 @@ Route::middleware('auth')->group(function () {
     // });
 
     // Khusus Admin FO
-    // Route::middleware('role:admin_fo')->group(function () {
-    //     Route::get('/check-in', [CheckInController::class, 'index'])
-    //         ->name('checkin.index');
-    // });
+    Route::middleware('role:admin_fo')->group(function () {
+        Route::get('/fo/monitor', [QueueMonitorController::class, 'index'])
+            ->name('admin.fo.monitor');
+    });
 
     // Khusus Admin Gerai
     Route::middleware('role:admin_gerai')->group(function () {

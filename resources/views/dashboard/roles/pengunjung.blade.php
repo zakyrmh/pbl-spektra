@@ -1,7 +1,7 @@
 {{-- Visitor Dashboard --}}
 <div class="space-y-6 pb-16">
     <!-- Greeting & Account Info Banner -->
-    <div class="bg-gradient-to-r from-primary to-accent-teal text-white rounded-xl p-6 shadow-xl relative overflow-hidden transition-all duration-300 hover:shadow-primary/10">
+    <div class="bg-linear-to-r from-primary to-accent-teal text-white rounded-xl p-6 shadow-xl relative overflow-hidden transition-all duration-300 hover:shadow-primary/10">
         <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
                 <div class="flex items-center gap-2 text-white/90 text-xs font-semibold uppercase tracking-wider mb-1">
@@ -43,7 +43,7 @@
             <!-- Ticket Hero Card -->
             <div class="bg-canvas dark:bg-surface-dark-elevated rounded-lg border border-hairline dark:border-white/10 shadow-sm overflow-hidden relative">
                 <!-- Top Ticket Header Pattern -->
-                <div class="bg-gradient-to-r from-primary to-primary-hover px-6 py-4 text-white flex justify-between items-center">
+                <div class="bg-linear-to-r from-primary to-primary-hover px-6 py-4 text-white flex justify-between items-center">
                     <span class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider font-display">
                         <span class="w-2.5 h-2.5 bg-green-400 rounded-full animate-pulse shadow-sm"></span>
                         Tiket Antrean Aktif Hari Ini
@@ -328,7 +328,7 @@
 </div>
 
 <!-- Custom QR Code Modal Overlay -->
-<div id="qr-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden opacity-0 transition-opacity duration-300">
+<div id="qr-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
     <div class="bg-canvas dark:bg-surface-dark-elevated rounded-lg p-6 md:p-8 max-w-sm w-full border border-hairline dark:border-white/10 shadow-2xl relative transform scale-95 transition-transform duration-300" id="qr-modal-card">
         <!-- Close Button -->
         <button onclick="closeQrModal()" class="absolute top-4 right-4 text-muted hover:text-ink dark:hover:text-white p-1 rounded-full hover:bg-surface-soft dark:hover:bg-white/10 transition-colors focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-accent-teal">

@@ -81,9 +81,9 @@
                     </div>
 
                     <div class="relative flex items-center py-2">
-                        <div class="flex-grow border-t border-hairline dark:border-white/10"></div>
-                        <span class="flex-shrink mx-4 text-xs font-semibold text-muted dark:text-on-dark-soft uppercase font-display">Atau</span>
-                        <div class="flex-grow border-t border-hairline dark:border-white/10"></div>
+                        <div class="grow border-t border-hairline dark:border-white/10"></div>
+                        <span class="shrink mx-4 text-xs font-semibold text-muted dark:text-on-dark-soft uppercase font-display">Atau</span>
+                        <div class="grow border-t border-hairline dark:border-white/10"></div>
                     </div>
 
                     <button type="button" onclick="simulateQrScanner()" class="w-full h-11 flex items-center justify-center gap-2 bg-surface-soft hover:bg-surface-strong dark:bg-white/5 dark:hover:bg-white/10 text-ink dark:text-white font-semibold rounded-md text-xs border border-hairline dark:border-white/10 transition-all focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-accent-teal cursor-pointer">

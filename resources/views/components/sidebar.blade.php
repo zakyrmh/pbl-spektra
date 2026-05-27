@@ -35,28 +35,29 @@
 @endphp
 
 <aside
-    class="w-64 bg-white border-r border-gray-200 flex-col shrink-0 h-screen transition-all duration-300 hidden md:flex z-20">
+    class="fixed left-0 top-0 z-20 flex flex-col w-sidebar h-screen bg-surface-dark py-6 px-4 transition-all duration-300 md:flex">
     {{-- Brand --}}
-    <div class="h-16 flex items-center px-6 border-b border-gray-200 shrink-0">
+    <div class="flex items-center mb-8 px-3 shrink-0">
         <a href="{{ route('dashboard') }}"
-            class="flex items-center gap-2 text-blue-700 font-extrabold text-lg tracking-tight hover:opacity-90 transition-opacity">
-            <img src="{{ asset('images/Logo Mal Pelayanan Publik Kota Sawahlunto.webp') }}" alt="Logo Kota Sawahlunto"
-                class="w-6 h-6 object-contain">
-            MPP Sawahlunto
+            class="flex items-center gap-2.5 hover:opacity-90 transition-opacity focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-accent-teal rounded-md">
+            <img src="{{ asset('images/Logo Mal Pelayanan Publik Kota Sawahlunto.webp') }}" alt="Logo MPP Sawahlunto"
+                class="h-8 object-contain">
+            <img src="{{ asset('images/Logo Kota Sawahlunto.webp') }}" alt="Logo Kota Sawahlunto"
+                class="h-8 object-contain">
         </a>
     </div>
 
     {{-- Menu --}}
-    <div class="flex-1 overflow-y-auto py-6 px-4 space-y-1.5 custom-scrollbar">
-        <div class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3 px-3">Menu Utama</div>
+    <div class="flex-1 overflow-y-auto space-y-1.5 custom-scrollbar">
+        <div class="text-caption font-medium text-on-dark-soft/50 uppercase tracking-wider mb-3 px-3">Menu Utama</div>
         @foreach ($menu as $item)
             @php
                 $isActive = request()->url() === $item['url'];
             @endphp
             <a href="{{ $item['url'] }}"
-                class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 {{ $isActive ? 'bg-blue-50 text-blue-700 shadow-sm ring-1 ring-blue-100/50' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
+                class="flex items-center gap-3 px-3 py-2.5 rounded-md text-nav font-medium transition-all duration-200 border-l-3 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-accent-teal {{ $isActive ? 'bg-accent-teal/15 text-accent-teal border-accent-teal' : 'text-on-dark-soft hover:bg-white/6 hover:text-white border-transparent' }}">
 
-                <span class="shrink-0 {{ $isActive ? 'text-blue-600' : 'text-gray-400' }}">
+                <span class="shrink-0 transition-colors {{ $isActive ? 'text-accent-teal' : 'text-on-dark-soft/70' }}">
                     @if ($item['icon'] == 'home')
                         <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round"
@@ -136,7 +137,6 @@
 </aside>
 
 <style>
-    /* Optional: Hide scrollbar for cleaner look */
     .custom-scrollbar::-webkit-scrollbar {
         width: 4px;
     }
@@ -146,11 +146,11 @@
     }
 
     .custom-scrollbar::-webkit-scrollbar-thumb {
-        background: #e5e7eb;
-        border-radius: 4px;
+        background: rgba(255, 255, 255, 0.15);
+        border-radius: var(--radius-sm);
     }
 
     .custom-scrollbar:hover::-webkit-scrollbar-thumb {
-        background: #d1d5db;
+        background: rgba(255, 255, 255, 0.3);
     }
 </style>

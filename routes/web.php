@@ -7,6 +7,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\GeraiLoketController;
 use App\Http\Controllers\PublicController;
 use App\Http\Controllers\QueueMonitorController;
+use App\Http\Controllers\WalkInTicketController;
 use App\Mail\TestEmail;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Route;
@@ -99,13 +100,11 @@ Route::middleware('auth')->group(function () {
     Route::middleware('role:admin_fo')->group(function () {
         Route::get('/fo/monitor', [QueueMonitorController::class, 'index'])
             ->name('admin.fo.monitor');
-
         // Verifikasi & Check-In
         Route::get('/fo/check-in', [CheckInController::class, 'index'])
             ->name('admin.fo.checkin');
         Route::post('/fo/check-in/verify', [CheckInController::class, 'verify'])
             ->name('admin.fo.checkin.verify');
-
         // Panggilan Antrean FO
         Route::get('/fo/call', [QueueCallController::class, 'index'])
             ->name('admin.fo.call');
@@ -115,6 +114,10 @@ Route::middleware('auth')->group(function () {
             ->name('admin.fo.call.recall');
         Route::post('/fo/call/skip', [QueueCallController::class, 'skip'])
             ->name('admin.fo.call.skip');
+        Route::get('/fo/ticket/create', [WalkInTicketController::class, 'create'])
+            ->name('admin.fo.ticket.create');
+        Route::post('/fo/ticket', [WalkInTicketController::class, 'store'])
+            ->name('admin.fo.ticket.store');
     });
 
     // Khusus Admin Gerai

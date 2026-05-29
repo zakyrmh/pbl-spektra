@@ -28,7 +28,9 @@ class QueueDataSeeder extends Seeder
         $bpjsk = Department::where('inisial', 'BPJSK')->first();
         $dptk = Department::where('inisial', 'DPTK')->first();
 
-        if (! $ddk || ! $smst || ! $imi || ! $bpjsk) {
+        $fo = Department::where('inisial', 'FO')->first();
+
+        if (! $ddk || ! $smst || ! $imi || ! $bpjsk || ! $fo) {
             return;
         }
 
@@ -53,6 +55,10 @@ class QueueDataSeeder extends Seeder
             ['department_id' => $bpjsk->id, 'name' => 'Pendaftaran PPU'],
             ['description' => 'Pendaftaran Pekerja Penerima Upah']
         );
+        $serviceFo = Service::updateOrCreate(
+            ['department_id' => $fo->id, 'name' => 'Verifikasi & Informasi'],
+            ['description' => 'Layanan verifikasi berkas dan informasi umum front office']
+        );
 
         // 3. Create counters
         $counterDdk1 = Counter::updateOrCreate(
@@ -74,6 +80,10 @@ class QueueDataSeeder extends Seeder
         $counterBpjs = Counter::updateOrCreate(
             ['department_id' => $bpjsk->id, 'name' => 'Loket BPJS 01'],
             ['location' => 'Lantai 1 Sayap Kiri']
+        );
+        $counterFo = Counter::updateOrCreate(
+            ['department_id' => $fo->id, 'name' => 'Loket FO 1'],
+            ['location' => 'Lantai 1 Depan']
         );
 
         // 4. Create visitors & bookings
@@ -305,6 +315,67 @@ class QueueDataSeeder extends Seeder
             'status' => 'Waiting',
             'queue_date' => $today,
             'created_at' => Carbon::now()->subMinutes(10),
+        ]);
+
+        // Seed FO Queues
+        // FO Completed 1-11
+        for ($i = 1; $i <= 10; $i++) {
+            Queue::create([
+                'visitor_id' => $visitor1->id,
+                'counter_id' => $counterFo->id,
+                'service_id' => $serviceFo->id,
+                'queue_number' => 'FO-'.str_pad((string) $i, 3, '0', STR_PAD_LEFT),
+                'status' => 'Completed',
+                'called_at' => Carbon::now()->subMinutes(180 - ($i * 15)),
+                'completed_at' => Carbon::now()->subMinutes(170 - ($i * 15)),
+                'queue_date' => $today,
+                'created_at' => Carbon::now()->subMinutes(190 - ($i * 15)),
+            ]);
+        }
+
+        // FO Serving (FO-011)
+        Queue::create([
+            'visitor_id' => $visitor2->id,
+            'counter_id' => $counterFo->id,
+            'service_id' => $serviceFo->id,
+            'queue_number' => 'FO-011',
+            'status' => 'Serving',
+            'called_at' => Carbon::now()->subMinutes(5),
+            'queue_date' => $today,
+            'created_at' => Carbon::now()->subMinutes(20),
+        ]);
+
+        // FO Waiting 1 (FO-012)
+        Queue::create([
+            'visitor_id' => $visitor3->id,
+            'counter_id' => $counterFo->id,
+            'service_id' => $serviceFo->id,
+            'queue_number' => 'FO-012',
+            'status' => 'Waiting',
+            'queue_date' => $today,
+            'created_at' => Carbon::now()->subMinutes(15),
+        ]);
+
+        // FO Waiting 2 (FO-013)
+        Queue::create([
+            'visitor_id' => $visitor4->id,
+            'counter_id' => $counterFo->id,
+            'service_id' => $serviceFo->id,
+            'queue_number' => 'FO-013',
+            'status' => 'Waiting',
+            'queue_date' => $today,
+            'created_at' => Carbon::now()->subMinutes(10),
+        ]);
+
+        // FO Waiting 3 (FO-014)
+        Queue::create([
+            'visitor_id' => $visitor5->id,
+            'counter_id' => $counterFo->id,
+            'service_id' => $serviceFo->id,
+            'queue_number' => 'FO-014',
+            'status' => 'Waiting',
+            'queue_date' => $today,
+            'created_at' => Carbon::now()->subMinutes(5),
         ]);
     }
 }

@@ -8,20 +8,10 @@ return new class extends Migration
 {
     /**
      * Run the migrations.
-     * Schema sesuai AGENT.md §4.1 — Tabel bookings
+     * Schema sesuai AGENT.md §4.1 — Tabel activity_logs
      */
     public function up(): void
     {
-        Schema::create('bookings', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
-            $table->string('booking_code', 36)->unique(); // UUID v4
-            $table->enum('status', ['Pending', 'Checked-In', 'Completed', 'Cancelled'])->default('Pending');
-            $table->date('booking_date');
-            $table->timestamp('checked_in_at')->nullable();
-            $table->timestamps();
-        });
-
         Schema::create('activity_logs', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete();
@@ -40,6 +30,5 @@ return new class extends Migration
     public function down(): void
     {
         Schema::dropIfExists('activity_logs');
-        Schema::dropIfExists('bookings');
     }
 };

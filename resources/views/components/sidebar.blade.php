@@ -13,8 +13,8 @@
             ['title' => 'Dashboard', 'url' => route('dashboard'), 'icon' => 'home'],
             ['title' => 'Monitor Antrean', 'url' => route('admin.fo.monitor'), 'icon' => 'tv'],
             ['title' => 'Pencetakan Tiket', 'url' => '#', 'icon' => 'printer'],
-            ['title' => 'Verifikasi & Check-In', 'url' => '#', 'icon' => 'check-circle'],
-            ['title' => 'Panggilan Antrean FO', 'url' => '#', 'icon' => 'megaphone'],
+            ['title' => 'Verifikasi & Check-In', 'url' => route('admin.fo.checkin'), 'icon' => 'check-circle'],
+            ['title' => 'Panggilan Antrean FO', 'url' => route('admin.fo.call'), 'icon' => 'megaphone'],
         ];
     } elseif ($role === 'admin_gerai') {
         $menu = [

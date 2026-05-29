@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\Admin\FO\CheckInController;
+use App\Http\Controllers\Admin\FO\QueueCallController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\PublicController;
@@ -68,6 +70,22 @@ Route::middleware('auth')->group(function () {
     Route::middleware('role:admin_fo')->group(function () {
         Route::get('/fo/monitor', [QueueMonitorController::class, 'index'])
             ->name('admin.fo.monitor');
+
+        // Verifikasi & Check-In
+        Route::get('/fo/check-in', [CheckInController::class, 'index'])
+            ->name('admin.fo.checkin');
+        Route::post('/fo/check-in/verify', [CheckInController::class, 'verify'])
+            ->name('admin.fo.checkin.verify');
+
+        // Panggilan Antrean FO
+        Route::get('/fo/call', [QueueCallController::class, 'index'])
+            ->name('admin.fo.call');
+        Route::post('/fo/call/next', [QueueCallController::class, 'next'])
+            ->name('admin.fo.call.next');
+        Route::post('/fo/call/recall', [QueueCallController::class, 'recall'])
+            ->name('admin.fo.call.recall');
+        Route::post('/fo/call/skip', [QueueCallController::class, 'skip'])
+            ->name('admin.fo.call.skip');
     });
 
     // Khusus Admin Gerai

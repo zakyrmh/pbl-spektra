@@ -47,7 +47,7 @@ class DashboardController extends Controller
             })->count('*');
             $geraiPercentage = $totalGerai > 0 ? (int) round(($activeGerai / $totalGerai) * 100) : 0;
 
-            // 5. Data Live Tenant (untuk Tabel Pemantauan Live)
+            // 5. Data Live Gerai (untuk Tabel Pemantauan Live)
             $liveDepartments = Department::query()->with(['counters', 'queues' => function ($query) use ($today) {
                 $query->where('queue_date', $today);
             }])->get();
@@ -57,13 +57,44 @@ class DashboardController extends Controller
 
             // 7. Data Grafik
             $chartTrenData = $this->getTrenKedatanganData($today);
-            $chartTopTenantData = $this->getTopTenantData($today);
+            $chartTopGeraiData = $this->getTopGeraiData($today);
+
+            // Calculate Average FO Check-In Time
+            $confirmedBookings = Booking::query()
+                ->where('booking_date', $today)
+                ->where('status', 'Confirmed')
+                ->whereNotNull('checked_in_at', 'and')
+                ->whereNotNull('confirmed_at', 'and') // timestamp saat FO klik konfirmasi
+                ->get();
+
+            if ($confirmedBookings->isEmpty()) {
+                $avgFoCheckInTime = null; // jangan pakai hardcode 2.4
+            } else {
+                $totalDuration = $confirmedBookings->sum(function ($booking) {
+                    $checkedIn = Carbon::parse($booking->checked_in_at);
+                    $confirmed = Carbon::parse($booking->confirmed_at);
+
+                    return $confirmed->greaterThan($checkedIn)
+                        ? $confirmed->diffInSeconds($checkedIn)
+                        : 0;
+                });
+
+                $validCount = $confirmedBookings->filter(function ($booking) {
+                    return Carbon::parse($booking->confirmed_at)
+                        ->greaterThan(Carbon::parse($booking->checked_in_at));
+                })->count();
+
+                $avgFoCheckInTime = $validCount > 0
+                    ? round($totalDuration / $validCount / 60, 1) // konversi detik → menit
+                    : null;
+            }
 
             $data = [
                 'todayKunjunganCount' => $todayKunjunganCount,
                 'kunjunganPercentage' => $kunjunganPercentage,
                 'menungguFoCount' => $menungguFoCount,
                 'foStatus' => $foStatus,
+                'avgFoCheckInTime' => $avgFoCheckInTime,
                 'waitingCount' => $waitingCount,
                 'servingCount' => $servingCount,
                 'totalAntreanGerai' => $totalAntreanGerai,
@@ -73,7 +104,7 @@ class DashboardController extends Controller
                 'liveDepartments' => $liveDepartments,
                 'liveLogs' => $liveLogs,
                 'chartTrenData' => $chartTrenData,
-                'chartTopTenantData' => $chartTopTenantData,
+                'chartTopGeraiData' => $chartTopGeraiData,
             ];
         } elseif ($role === 'admin_fo') {
             $today = Carbon::today()->toDateString();
@@ -207,7 +238,7 @@ class DashboardController extends Controller
      *   - 'labels' : array inisial singkat instansi (ditampilkan sebagai kategori pada grafik ApexCharts)
      *   - 'values' : array jumlah antrean (urutan sesuai dengan 'keys' dan 'labels')
      */
-    protected function getTopTenantData(string $today): array
+    protected function getTopGeraiData(string $today): array
     {
         $departments = Department::all();
         $queuesToday = QueueModel::query()->where('queue_date', $today)->with('counter')->get();

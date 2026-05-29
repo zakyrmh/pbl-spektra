@@ -18,6 +18,7 @@ return new class extends Migration
             $table->uuid('booking_code')->unique();
             $table->enum('status', ['Pending', 'Checked-In', 'Completed', 'Cancelled'])->default('Pending');
             $table->date('booking_date');
+            $table->timestamp('checked_in_at')->nullable();
             $table->timestamps();
         });
     }

@@ -4,14 +4,26 @@ declare(strict_types=1);
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
-#[Fillable(['user_id', 'service_id', 'booking_code', 'status', 'booking_date'])]
 class Booking extends Model
 {
+    protected $fillable = [
+        'user_id',
+        'service_id',
+        'booking_code',
+        'status',
+        'booking_date',
+        'checked_in_at',
+    ];
+
+    protected $casts = [
+        'booking_date' => 'date',
+        'checked_in_at' => 'datetime',
+    ];
+
     /**
      * Get the customer that made this booking.
      *
@@ -40,5 +52,14 @@ class Booking extends Model
     public function queue(): HasOne
     {
         return $this->hasOne(Queue::class);
+    }
+
+    /**
+     * Apakah booking ini bisa di-check-in?
+     * Hanya booking berstatus 'Pending' yang valid.
+     */
+    public function canBeCheckedIn(): bool
+    {
+        return $this->status === 'Pending';
     }
 }

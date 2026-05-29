@@ -52,7 +52,7 @@ class AuthController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'nik' => ['required', 'string', 'size:16', 'unique:users,nik'],
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
-            'no_telp' => ['required', 'string', 'max:15'],
+            'phone_number' => ['required', 'string', 'max:15'],
             'password' => ['required', 'confirmed', Password::min(8)],
         ]);
 
@@ -60,7 +60,7 @@ class AuthController extends Controller
             'name' => $validated['name'],
             'nik' => $validated['nik'],
             'email' => $validated['email'],
-            'no_telp' => $validated['no_telp'],
+            'phone_number' => $validated['phone_number'],
             'password' => Hash::make($validated['password']),
             'role' => 'pengunjung',
         ]);

@@ -43,14 +43,14 @@ class UserSeeder extends Seeder
             ]
         );
 
-        // Pengunjung (NIK dan no_telp wajib diisi)
+        // Pengunjung (NIK dan phone_number wajib diisi)
         User::updateOrCreate(
             ['email' => 'pengunjung@example.com'],
             [
                 'name' => 'Budi Santoso',
                 'nik' => '1372010101900001',
                 'email' => 'pengunjung@example.com',
-                'no_telp' => '081234567890',
+                'phone_number' => '081234567890',
                 'password' => Hash::make('password'),
                 'role' => 'pengunjung',
             ]

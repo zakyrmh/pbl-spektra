@@ -27,7 +27,7 @@
         $menu = [
             ['title' => 'Dashboard Utama', 'url' => route('dashboard'), 'icon' => 'home'],
             ['title' => 'Manajemen Pengguna', 'url' => '#', 'icon' => 'users'],
-            ['title' => 'Konfigurasi Gerai / Loket', 'url' => '#', 'icon' => 'settings'],
+            ['title' => 'Konfigurasi Gerai', 'url' => '#', 'icon' => 'settings'],
             ['title' => 'Pengaturan Sistem', 'url' => '#', 'icon' => 'sliders'],
             ['title' => 'Laporan & Analitik', 'url' => '#', 'icon' => 'chart-pie'],
         ];

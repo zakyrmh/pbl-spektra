@@ -67,18 +67,18 @@ class AuthController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'nik' => ['required', 'string', 'digits:16', 'unique:users,nik'],
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
-            'no_telp' => ['required', 'string', 'regex:/^08[0-9]{8,13}$/'],
+            'phone_number' => ['required', 'string', 'regex:/^08[0-9]{8,13}$/'],
             'password' => ['required', 'confirmed', Password::min(8)],
         ], [
             'nik.digits' => 'NIK harus berupa 16 digit angka.',
-            'no_telp.regex' => 'Format nomor HP tidak valid (harus diawali 08 dan berisi 10-15 angka).',
+            'phone_number.regex' => 'Format nomor HP tidak valid (harus diawali 08 dan berisi 10-15 angka).',
         ]);
 
         $user = User::create([
             'name' => $validated['name'],
             'nik' => $validated['nik'],
             'email' => $validated['email'],
-            'no_telp' => $validated['no_telp'],
+            'phone_number' => $validated['phone_number'],
             'password' => Hash::make($validated['password']),
             'role' => 'pengunjung',
         ]);

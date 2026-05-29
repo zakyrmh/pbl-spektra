@@ -104,12 +104,12 @@
                             d="M10.5 1.5H8.25A2.25 2.25 0 006 3.75v16.5a2.25 2.25 0 002.25 2.25h7.5A2.25 2.25 0 0018 20.25V3.75a2.25 2.25 0 00-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 8.25h3" />
                     </svg>
                 </span>
-                @php $noTelpClass = $errors->has('no_telp') ? 'border-red-400 bg-red-50' : 'border-gray-300 bg-gray-50'; @endphp
-                <input type="text" name="no_telp" id="no_telp" value="{{ old('no_telp') }}"
+                @php $phone_numberClass = $errors->has('phone_number') ? 'border-red-400 bg-red-50' : 'border-gray-300 bg-gray-50'; @endphp
+                <input type="text" name="phone_number" id="phone_number" value="{{ old('phone_number') }}"
                     placeholder="Contoh: 081234567890" maxlength="15"
-                    class="w-full pl-10 pr-4 py-3 text-sm border {{ $noTelpClass }} rounded-xl text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
+                    class="w-full pl-10 pr-4 py-3 text-sm border {{ $phone_numberClass }} rounded-xl text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
             </div>
-            @error('no_telp')
+            @error('phone_number')
                 <p class="mt-1.5 text-xs text-red-500">{{ $message }}</p>
             @enderror
         </div>

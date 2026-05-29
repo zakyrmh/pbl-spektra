@@ -68,7 +68,7 @@
 
         {{-- Kolom Kanan — Form --}}
         <div
-            class="flex-1 flex flex-col justify-center lg:justify-start items-center px-6 py-10 lg:py-12 bg-white lg:overflow-y-auto lg:h-screen">
+            class="flex-1 flex flex-col justify-center items-center px-6 py-10 lg:py-12 bg-white lg:overflow-y-auto lg:h-screen">
 
             {{-- Mobile: Logo (hanya tampil di mobile) --}}
             <div class="flex lg:hidden flex-col items-center mb-6 text-center">

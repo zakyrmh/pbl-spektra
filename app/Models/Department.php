@@ -2,23 +2,28 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 
+#[Fillable(['name', 'inisial', 'description'])]
 class Department extends Model
 {
-    use HasFactory;
-
-    protected $fillable = [
-        'name',
-        'inisial',
-        'logo',
-        'description',
-    ];
+    /**
+     * Get the services offered by this department.
+     *
+     * @return HasMany<Service, $this>
+     */
+    public function services(): HasMany
+    {
+        return $this->hasMany(Service::class);
+    }
 
     /**
-     * Get all counters (loket) for this department.
+     * Get the counters (loket) associated with this department.
+     *
+     * @return HasMany<Counter, $this>
      */
     public function counters(): HasMany
     {
@@ -26,10 +31,12 @@ class Department extends Model
     }
 
     /**
-     * Get all services (layanan) for this department.
+     * Get the queues for this department through counters.
+     *
+     * @return HasManyThrough<Queue, Counter, $this>
      */
-    public function services(): HasMany
+    public function queues(): HasManyThrough
     {
-        return $this->hasMany(Service::class);
+        return $this->hasManyThrough(Queue::class, Counter::class);
     }
 }

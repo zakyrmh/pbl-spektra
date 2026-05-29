@@ -1,24 +1,21 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
+#[Fillable(['department_id', 'name', 'description'])]
 class Service extends Model
 {
-    use HasFactory;
-
-    protected $fillable = [
-        'department_id',
-        'name',
-        'description',
-    ];
-
     /**
-     * Get the department (gerai) that owns this service.
+     * Get the department that owns this service.
+     *
+     * @return BelongsTo<Department, $this>
      */
     public function department(): BelongsTo
     {
@@ -26,10 +23,12 @@ class Service extends Model
     }
 
     /**
-     * Get the counters that serve this service.
+     * Get the bookings for this service.
+     *
+     * @return HasMany<Booking, $this>
      */
-    public function counters(): BelongsToMany
+    public function bookings(): HasMany
     {
-        return $this->belongsToMany(Counter::class, 'counter_service');
+        return $this->hasMany(Booking::class);
     }
 }

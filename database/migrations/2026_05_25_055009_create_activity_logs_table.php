@@ -31,10 +31,16 @@ return new class extends Migration
             $table->string('subject_type')->nullable();
             $table->index(['subject_type', 'subject_id'], 'activity_logs_subject_index');
 
-            // Detail aksi
-            $table->string('event', 64);                    // cth: created, updated, deleted, login
-            $table->string('description');                  // Teks human-readable
+            // Detail aksi (event dari AuditLogger)
+            $table->string('event', 64)->nullable();        // cth: created, updated, deleted, login
+            $table->string('description')->nullable();       // Teks human-readable
             $table->json('properties')->nullable();         // {before: {...}, after: {...}}
+
+            // Fields untuk ActivityLog::record() design
+            $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete();
+            $table->string('action', 100)->nullable();       // e.g. VERIFY_CHECKIN, UPDATE_NIK
+            $table->string('model_type', 100)->nullable();   // e.g. Booking
+            $table->unsignedBigInteger('model_id')->nullable();
 
             // Metadata request
             $table->string('ip_address', 45)->nullable();

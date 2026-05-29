@@ -16,7 +16,7 @@ sequenceDiagram
         BE-->>FE: Return JSON Error Response (422 Unprocessable Entity)
         FE-->>PV: Tampilkan Pesan Peringatan di Layar
     else Data Valid & Lolos Aturan Bisnis
-        BE->>DB: INSERT INTO bookings (booking_code, user_id, status: 'Menunggu', ...)
+        BE->>DB: INSERT INTO bookings (booking_code, user_id, status: 'Pending', ...)
         DB-->>BE: Confirm Save Success
         BE->>BE: Generate QR Code (Mengunci data booking_code)
         BE-->>FE: Return JSON Success (201 Created + QR Code Payload)

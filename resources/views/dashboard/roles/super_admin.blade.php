@@ -15,16 +15,17 @@
         </div>
         <div class="flex flex-wrap items-center gap-3">
             <button id="btnSimulationToggle" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-pill text-xs font-semibold border border-hairline dark:border-white/10 bg-canvas dark:bg-surface-dark-elevated hover:bg-surface-soft dark:hover:bg-white/5 text-ink dark:text-white transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-accent-teal">
-                <svg class="w-4 h-4 text-accent-gold animate-spin-slow" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                <svg class="w-4 h-4 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                <span>Pause Simulasi</span>
+                <span>Mulai Simulasi</span>
             </button>
-            <button class="inline-flex items-center gap-2 px-4 py-2.5 rounded-pill text-xs font-semibold bg-primary hover:bg-primary-hover text-white transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-accent-teal">
-                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+            <button onclick="window.location.reload()" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-pill text-xs font-semibold border border-hairline dark:border-white/10 bg-canvas dark:bg-surface-dark-elevated hover:bg-surface-soft dark:hover:bg-white/5 text-ink dark:text-white transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-accent-teal">
+                <svg class="w-4 h-4 text-primary dark:text-accent-teal" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.21 7.89H18" />
                 </svg>
-                <span>Ekspor Laporan</span>
+                <span>Refresh Data</span>
             </button>
         </div>
     </div>
@@ -41,7 +42,7 @@
             <div class="flex items-start justify-between relative z-10">
                 <div>
                     <p class="text-[10px] font-bold text-muted dark:text-on-dark-soft uppercase tracking-wider font-display">Total Kunjungan Hari Ini</p>
-                    <h3 id="statTotalKunjungan" class="text-3xl font-extrabold text-ink dark:text-white mt-2 transition-all font-mono">342</h3>
+                    <h3 id="statTotalKunjungan" class="text-3xl font-extrabold text-ink dark:text-white mt-2 transition-all font-mono">{{ $todayKunjunganCount }}</h3>
                 </div>
                 <div class="p-3 bg-primary/10 text-primary dark:text-accent-teal rounded-lg border border-primary/20">
                     <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -50,11 +51,17 @@
                 </div>
             </div>
             <div class="mt-4 flex items-center gap-1.5 text-xs text-muted dark:text-on-dark-soft relative z-10">
-                <span class="text-green-600 dark:text-green-400 font-bold flex items-center gap-0.5 font-mono">
-                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 10l7-7m0 0l7 7m-7-7v18" />
-                    </svg>
-                    <span>+12%</span>
+                <span class="{{ $kunjunganPercentage['is_increase'] ? 'text-green-600 dark:text-green-400' : 'text-rose-600 dark:text-rose-400' }} font-bold flex items-center gap-0.5 font-mono">
+                    @if ($kunjunganPercentage['is_increase'])
+                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 10l7-7m0 0l7 7m-7-7v18" />
+                        </svg>
+                    @else
+                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                        </svg>
+                    @endif
+                    <span>{{ $kunjunganPercentage['formatted'] }}</span>
                 </span>
                 <span class="font-body">vs. harian</span>
             </div>
@@ -70,7 +77,7 @@
             <div class="flex items-start justify-between relative z-10">
                 <div>
                     <p class="text-[10px] font-bold text-muted dark:text-on-dark-soft uppercase tracking-wider font-display">Menunggu Konfirmasi FO</p>
-                    <h3 id="statMenungguFO" class="text-3xl font-extrabold text-ink dark:text-white mt-2 transition-all font-mono">18</h3>
+                    <h3 id="statMenungguFO" class="text-3xl font-extrabold text-ink dark:text-white mt-2 transition-all font-mono">{{ $menungguFoCount }}</h3>
                 </div>
                 <div class="p-3 bg-status-waiting/10 text-status-waiting rounded-lg border border-status-waiting/20">
                     <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -79,11 +86,11 @@
                 </div>
             </div>
             <div class="mt-4 flex items-center gap-1.5 text-xs text-muted dark:text-on-dark-soft relative z-10 font-body">
-                <span class="text-status-waiting font-bold flex items-center gap-0.5">
-                    <span class="w-2 h-2 rounded-full bg-status-waiting animate-pulse"></span>
-                    <span>Sedang</span>
+                <span class="{{ $foStatus['color'] }} font-bold flex items-center gap-0.5">
+                    <span class="w-2 h-2 rounded-full {{ $foStatus['bg_dot'] }} {{ $foStatus['label'] !== 'Lancar' ? 'animate-pulse' : '' }}"></span>
+                    <span>{{ $foStatus['label'] }}</span>
                 </span>
-                <span>Antrean di loket depan</span>
+                <span>Antrean di fo</span>
             </div>
         </div>
 
@@ -97,7 +104,7 @@
             <div class="flex items-start justify-between relative z-10">
                 <div>
                     <p class="text-[10px] font-bold text-muted dark:text-on-dark-soft uppercase tracking-wider font-display">Sedang Dilayani di Gerai</p>
-                    <h3 id="statSedangDilayani" class="text-3xl font-extrabold text-ink dark:text-white mt-2 transition-all font-mono">24</h3>
+                    <h3 id="statSedangDilayani" class="text-3xl font-extrabold text-ink dark:text-white mt-2 transition-all font-mono">{{ $totalAntreanGerai }}</h3>
                 </div>
                 <div class="p-3 bg-status-serving/10 text-status-serving rounded-lg border border-status-serving/20">
                     <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -106,8 +113,10 @@
                 </div>
             </div>
             <div class="mt-4 flex items-center gap-1.5 text-xs text-muted dark:text-on-dark-soft relative z-10 font-body">
-                <span class="font-semibold text-ink dark:text-white">Aktif</span>
-                <span>di loket gerai instansi</span>
+                <span class="font-semibold text-ink dark:text-white font-mono">{{ $waitingCount }}</span>
+                <span>menunggu,</span>
+                <span class="font-semibold text-ink dark:text-white font-mono">{{ $servingCount }}</span>
+                <span>sedang dilayani</span>
             </div>
         </div>
 
@@ -120,8 +129,8 @@
             </div>
             <div class="flex items-start justify-between relative z-10">
                 <div>
-                    <p class="text-[10px] font-bold text-muted dark:text-on-dark-soft uppercase tracking-wider font-display">Total Tenant Aktif</p>
-                    <h3 id="statTenantAktif" class="text-3xl font-extrabold text-ink dark:text-white mt-2 transition-all font-mono">12 <span class="text-lg font-medium text-muted">/ 15</span></h3>
+                    <p class="text-[10px] font-bold text-muted dark:text-on-dark-soft uppercase tracking-wider font-display">Total Gerai Aktif</p>
+                    <h3 id="statTenantAktif" class="text-3xl font-extrabold text-ink dark:text-white mt-2 transition-all font-mono">{{ $activeGerai }} <span class="text-lg font-medium text-muted">/ {{ $totalGerai }}</span></h3>
                 </div>
                 <div class="p-3 bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 rounded-lg border border-purple-200/50">
                     <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -131,9 +140,9 @@
             </div>
             <div class="mt-4 flex items-center gap-1.5 text-xs text-muted dark:text-on-dark-soft relative z-10">
                 <div class="w-full bg-surface-soft dark:bg-gray-700 h-1.5 rounded-full overflow-hidden">
-                    <div class="bg-purple-600 h-full rounded-full" style="width: 80%"></div>
+                    <div class="bg-purple-600 h-full rounded-full" style="width: {{ $geraiPercentage }}%"></div>
                 </div>
-                <span class="shrink-0 text-[10px] font-bold text-purple-600 dark:text-purple-400">80% Buka</span>
+                <span class="shrink-0 text-[10px] font-bold text-purple-600 dark:text-purple-400">{{ $geraiPercentage }}% Buka</span>
             </div>
         </div>
     </div>
@@ -200,141 +209,98 @@
                         </tr>
                     </thead>
                     <tbody class="text-sm divide-y divide-hairline dark:divide-white/5">
-                        <!-- Dukcapil -->
-                        <tr data-instansi="Dukcapil" class="hover:bg-surface-soft/50 dark:hover:bg-white/5 transition-colors">
-                            <td class="py-4 px-6 font-bold text-ink dark:text-white">
-                                <div class="flex items-center gap-3 font-display">
-                                    <div class="w-8 h-8 rounded-lg bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-400 flex items-center justify-center font-bold text-xs shrink-0 border border-hairline dark:border-white/10">
-                                        DK
+                        @forelse ($liveDepartments as $dept)
+                            @php
+                                // P5: Cache koleksi antrean sekali — semua filter di bawah beroperasi
+                                // pada objek Collection in-memory yang sama tanpa akses properti berulang.
+                                $allQueues = $dept->queues;
+
+                                $inisial         = $dept->inisial ?: substr($dept->name, 0, 6);
+                                $waitingCountRow  = $allQueues->where('status', 'Waiting')->count();
+                                $servingCountRow  = $allQueues->where('status', 'Serving')->count();
+                                $totalLiveAntrean = $waitingCountRow + $servingCountRow;
+
+                                // P3: Hitung rata-rata waktu pelayanan dari transaksi yang sudah selesai.
+                                // Guard negatif: hanya hitung jika completed_at >= called_at.
+                                // Fallback null (bukan angka fiktif) jika belum ada data Completed hari ini.
+                                $completedQueues  = $allQueues
+                                    ->where('status', 'Completed')
+                                    ->whereNotNull('called_at')
+                                    ->whereNotNull('completed_at');
+                                $totalServiceTime = 0;
+                                $countCompleted   = 0;
+                                foreach ($completedQueues as $q) {
+                                    $called    = \Carbon\Carbon::parse($q->called_at);
+                                    $completed = \Carbon\Carbon::parse($q->completed_at);
+                                    if ($completed->greaterThanOrEqualTo($called)) {
+                                        $totalServiceTime += $completed->diffInMinutes($called);
+                                        $countCompleted++;
+                                    }
+                                }
+                                // null = belum ada transaksi selesai (ditampilkan sebagai '—' di UI)
+                                $avgServiceTime = $countCompleted > 0
+                                    ? (int) round($totalServiceTime / $countCompleted)
+                                    : null;
+
+                                // Status kepadatan loket
+                                if ($totalLiveAntrean >= 15) {
+                                    $statusLabel = 'Padat';
+                                    $statusClass = 'bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400 border border-rose-200/50';
+                                    $dotClass    = 'bg-rose-500 animate-pulse';
+                                } elseif ($totalLiveAntrean >= 4) {
+                                    $statusLabel = 'Lancar';
+                                    $statusClass = 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 border border-emerald-200/50';
+                                    $dotClass    = 'bg-emerald-500';
+                                } else {
+                                    $statusLabel = 'Kosong';
+                                    $statusClass = 'bg-surface-soft dark:bg-white/5 text-muted dark:text-on-dark-soft border border-hairline dark:border-white/5';
+                                    $dotClass    = 'bg-muted';
+                                }
+                            @endphp
+                            <tr data-instansi="{{ $dept->name }}" class="hover:bg-surface-soft/50 dark:hover:bg-white/5 transition-colors">
+                                <td class="py-4 px-6 font-bold text-ink dark:text-white">
+                                    <div class="flex items-center gap-3 font-display">
+                                        <div class="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-bold text-xs shrink-0 border border-primary/20">
+                                            {{ strtoupper($inisial) }}
+                                        </div>
+                                        <span>{{ $dept->name }}</span>
                                     </div>
-                                    <span>Dukcapil</span>
-                                </div>
-                            </td>
-                            <td class="py-4 px-4 font-medium text-muted dark:text-on-dark-soft font-body">3 Loket</td>
-                            <td class="py-4 px-4 font-bold text-ink dark:text-white font-mono">
-                                <span class="queue-count">24</span> <span class="text-xs font-normal text-muted">orang</span>
-                            </td>
-                            <td class="py-4 px-4 text-muted dark:text-on-dark-soft font-body">12 Menit / Orang</td>
-                            <td class="py-4 px-4">
-                                <span class="status-badge bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400 px-2.5 py-1 rounded-full text-xs font-semibold inline-flex items-center gap-1.5 border border-rose-200/50 font-display">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse"></span>
-                                    Padat
-                                </span>
-                            </td>
-                            <td class="py-4 px-6 text-center">
-                                <button onclick="tegurTenant('Dukcapil')" class="btn-tegur px-3 py-1.5 bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/20 dark:hover:bg-rose-900/30 text-rose-600 dark:text-rose-400 hover:text-rose-700 rounded-lg text-xs font-bold transition-all border border-rose-100 dark:border-rose-900/30 cursor-pointer focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-status-skipped/50">
-                                    Tegur
-                                </button>
-                            </td>
-                        </tr>
-                        <!-- Imigrasi -->
-                        <tr data-instansi="Imigrasi" class="hover:bg-surface-soft/50 dark:hover:bg-white/5 transition-colors">
-                            <td class="py-4 px-6 font-bold text-ink dark:text-white">
-                                <div class="flex items-center gap-3 font-display">
-                                    <div class="w-8 h-8 rounded-lg bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-400 flex items-center justify-center font-bold text-xs shrink-0 border border-hairline dark:border-white/10">
-                                        IM
-                                    </div>
-                                    <span>Imigrasi</span>
-                                </div>
-                            </td>
-                            <td class="py-4 px-4 font-medium text-muted dark:text-on-dark-soft font-body">2 Loket</td>
-                            <td class="py-4 px-4 font-bold text-ink dark:text-white font-mono">
-                                <span class="queue-count">5</span> <span class="text-xs font-normal text-muted">orang</span>
-                            </td>
-                            <td class="py-4 px-4 text-muted dark:text-on-dark-soft font-body">20 Menit / Orang</td>
-                            <td class="py-4 px-4">
-                                <span class="status-badge bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 px-2.5 py-1 rounded-full text-xs font-semibold inline-flex items-center gap-1.5 border border-emerald-200/50 font-display">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                                    Lancar
-                                </span>
-                            </td>
-                            <td class="py-4 px-6 text-center">
-                                <button onclick="tegurTenant('Imigrasi')" class="btn-tegur px-3 py-1.5 text-gray-400 hover:text-gray-650 dark:text-gray-500 dark:hover:text-gray-450 rounded-lg text-xs font-bold transition-all border border-hairline dark:border-gray-700 cursor-not-allowed" disabled>
-                                    Tegur
-                                </button>
-                            </td>
-                        </tr>
-                        <!-- Bapenda -->
-                        <tr data-instansi="Bapenda" class="hover:bg-surface-soft/50 dark:hover:bg-white/5 transition-colors">
-                            <td class="py-4 px-6 font-bold text-ink dark:text-white">
-                                <div class="flex items-center gap-3 font-display">
-                                    <div class="w-8 h-8 rounded-lg bg-teal-100 dark:bg-teal-900/50 text-teal-700 dark:text-teal-400 flex items-center justify-center font-bold text-xs shrink-0 border border-hairline dark:border-white/10">
-                                        BP
-                                    </div>
-                                    <span>Bapenda</span>
-                                </div>
-                            </td>
-                            <td class="py-4 px-4 font-medium text-muted dark:text-on-dark-soft font-body">1 Loket</td>
-                            <td class="py-4 px-4 font-bold text-ink dark:text-white font-mono">
-                                <span class="queue-count">0</span> <span class="text-xs font-normal text-muted">orang</span>
-                            </td>
-                            <td class="py-4 px-4 text-muted dark:text-on-dark-soft font-body">8 Menit / Orang</td>
-                            <td class="py-4 px-4">
-                                <span class="status-badge bg-surface-soft dark:bg-white/5 text-muted dark:text-on-dark-soft px-2.5 py-1 rounded-full text-xs font-semibold inline-flex items-center gap-1.5 border border-hairline dark:border-white/5 font-display">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-muted"></span>
-                                    Kosong
-                                </span>
-                            </td>
-                            <td class="py-4 px-6 text-center">
-                                <button onclick="tegurTenant('Bapenda')" class="btn-tegur px-3 py-1.5 text-gray-400 hover:text-gray-655 dark:text-gray-500 dark:hover:text-gray-450 rounded-lg text-xs font-bold transition-all border border-hairline dark:border-gray-700 cursor-not-allowed" disabled>
-                                    Tegur
-                                </button>
-                            </td>
-                        </tr>
-                        <!-- Samsat -->
-                        <tr data-instansi="Samsat" class="hover:bg-surface-soft/50 dark:hover:bg-white/5 transition-colors">
-                            <td class="py-4 px-6 font-bold text-ink dark:text-white">
-                                <div class="flex items-center gap-3 font-display">
-                                    <div class="w-8 h-8 rounded-lg bg-orange-100 dark:bg-orange-900/50 text-orange-700 dark:text-orange-400 flex items-center justify-center font-bold text-xs shrink-0 border border-hairline dark:border-white/10">
-                                        SM
-                                    </div>
-                                    <span>Samsat</span>
-                                </div>
-                            </td>
-                            <td class="py-4 px-4 font-medium text-muted dark:text-on-dark-soft font-body">2 Loket</td>
-                            <td class="py-4 px-4 font-bold text-ink dark:text-white font-mono">
-                                <span class="queue-count">12</span> <span class="text-xs font-normal text-muted">orang</span>
-                            </td>
-                            <td class="py-4 px-4 text-muted dark:text-on-dark-soft font-body">15 Menit / Orang</td>
-                            <td class="py-4 px-4">
-                                <span class="status-badge bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400 px-2.5 py-1 rounded-full text-xs font-semibold inline-flex items-center gap-1.5 border border-rose-200/50 font-display">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse"></span>
-                                    Padat
-                                </span>
-                            </td>
-                            <td class="py-4 px-6 text-center">
-                                <button onclick="tegurTenant('Samsat')" class="btn-tegur px-3 py-1.5 bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/20 dark:hover:bg-rose-900/30 text-rose-600 dark:text-rose-400 hover:text-rose-700 rounded-lg text-xs font-bold transition-all border border-rose-100 dark:border-rose-900/30 cursor-pointer focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-status-skipped/50">
-                                    Tegur
-                                </button>
-                            </td>
-                        </tr>
-                        <!-- BPJS Kesehatan -->
-                        <tr data-instansi="BPJS Kesehatan" class="hover:bg-surface-soft/50 dark:hover:bg-white/5 transition-colors">
-                            <td class="py-4 px-6 font-bold text-ink dark:text-white">
-                                <div class="flex items-center gap-3 font-display">
-                                    <div class="w-8 h-8 rounded-lg bg-green-100 dark:bg-green-900/50 text-green-700 dark:text-green-400 flex items-center justify-center font-bold text-xs shrink-0 border border-hairline dark:border-white/10">
-                                        BP
-                                    </div>
-                                    <span>BPJS Kesehatan</span>
-                                </div>
-                            </td>
-                            <td class="py-4 px-4 font-medium text-muted dark:text-on-dark-soft font-body">1 Loket</td>
-                            <td class="py-4 px-4 font-bold text-ink dark:text-white font-mono">
-                                <span class="queue-count">3</span> <span class="text-xs font-normal text-muted">orang</span>
-                            </td>
-                            <td class="py-4 px-4 text-muted dark:text-on-dark-soft font-body">10 Menit / Orang</td>
-                            <td class="py-4 px-4">
-                                <span class="status-badge bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 px-2.5 py-1 rounded-full text-xs font-semibold inline-flex items-center gap-1.5 border border-emerald-200/50 font-display">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                                    Lancar
-                                </span>
-                            </td>
-                            <td class="py-4 px-6 text-center">
-                                <button onclick="tegurTenant('BPJS Kesehatan')" class="btn-tegur px-3 py-1.5 text-gray-400 hover:text-gray-655 dark:text-gray-500 dark:hover:text-gray-455 rounded-lg text-xs font-bold transition-all border border-hairline dark:border-gray-700 cursor-not-allowed" disabled>
-                                    Tegur
-                                </button>
-                            </td>
-                        </tr>
+                                </td>
+                                <td class="py-4 px-4 font-medium text-muted dark:text-on-dark-soft font-body">{{ $dept->counters->count() }} Loket</td>
+                                <td class="py-4 px-4 font-bold text-ink dark:text-white font-mono">
+                                    <span class="queue-count">{{ $totalLiveAntrean }}</span> <span class="text-xs font-normal text-muted">orang</span>
+                                </td>
+                                <td class="py-4 px-4 font-body">
+                                    @if ($avgServiceTime !== null)
+                                        <span class="text-muted dark:text-on-dark-soft">
+                                            {{ $avgServiceTime }} Menit / Orang
+                                        </span>
+                                    @else
+                                        {{-- P3: Tampilkan tanda strip jika belum ada transaksi selesai hari ini. --}}
+                                        <span class="text-muted/40 dark:text-on-dark-soft/30 italic text-xs" title="Belum ada transaksi selesai hari ini">—</span>
+                                    @endif
+                                </td>
+                                <td class="py-4 px-4">
+                                    <span class="status-badge {{ $statusClass }} px-2.5 py-1 rounded-full text-xs font-semibold inline-flex items-center gap-1.5 font-display">
+                                        <span class="w-1.5 h-1.5 rounded-full {{ $dotClass }}"></span>
+                                        {{ $statusLabel }}
+                                    </span>
+                                </td>
+                                <td class="py-4 px-6 text-center">
+                                    <button onclick="tegurTenant('{{ $dept->name }}')" 
+                                            class="btn-tegur px-3 py-1.5 {{ $totalLiveAntrean >= 15 ? 'bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/20 dark:hover:bg-rose-900/30 text-rose-600 dark:text-rose-400 hover:text-rose-700 border border-rose-100 dark:border-rose-900/30 cursor-pointer' : 'text-gray-400 dark:text-gray-500 border border-hairline dark:border-gray-700 cursor-not-allowed' }} rounded-lg text-xs font-bold transition-all focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-status-skipped/50"
+                                            {{ $totalLiveAntrean >= 15 ? '' : 'disabled' }}>
+                                        Tegur
+                                    </button>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="6" class="py-8 text-center text-muted font-body">
+                                    Tidak ada data instansi terdaftar.
+                                </td>
+                            </tr>
+                        @endforelse
                     </tbody>
                 </table>
             </div>
@@ -380,16 +346,19 @@
                     <span class="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
                 </div>
                 <div id="liveActivityFeed" class="space-y-2 max-h-[110px] overflow-y-auto pr-1 text-[11px] text-muted dark:text-on-dark-soft font-mono">
-                    <div class="flex items-start gap-1">
-                        <span class="text-[10px] text-muted">17:59</span>
-                        <span class="text-ink dark:text-white font-semibold shrink-0">&bull; System:</span>
-                        <span class="text-muted dark:text-on-dark-soft">WebSocket monitoring aktif.</span>
-                    </div>
-                    <div class="flex items-start gap-1">
-                        <span class="text-[10px] text-muted">17:58</span>
-                        <span class="text-primary dark:text-accent-teal font-semibold shrink-0">&bull; FO Admin:</span>
-                        <span class="text-muted dark:text-on-dark-soft">Verifikasi tiket B-490 selesai.</span>
-                    </div>
+                    @forelse ($liveLogs as $log)
+                        <div class="flex items-start gap-1">
+                            <span class="text-[10px] text-muted">{{ $log->created_at->format('H:i') }}</span>
+                            <span class="text-primary dark:text-accent-teal font-semibold shrink-0">&bull; {{ $log->action }}:</span>
+                            <span class="text-muted dark:text-on-dark-soft leading-tight">{{ $log->description }}</span>
+                        </div>
+                    @empty
+                        <div class="flex items-start gap-1">
+                            <span class="text-[10px] text-muted">{{ now()->format('H:i') }}</span>
+                            <span class="text-ink dark:text-white font-semibold shrink-0">&bull; System:</span>
+                            <span class="text-muted dark:text-on-dark-soft">WebSocket monitoring aktif.</span>
+                        </div>
+                    @endforelse
                 </div>
             </div>
         </div>
@@ -430,13 +399,13 @@
             dataLabels: { enabled: false },
             series: [{
                 name: 'Booking Online',
-                data: [45, 65, 80, 50, 40, 75, 95, 60]
+                data: @json($chartTrenData['online'])
             }, {
                 name: 'On-site (Langsung)',
-                data: [30, 40, 55, 60, 45, 50, 65, 40]
+                data: @json($chartTrenData['onsite'])
             }],
             xaxis: {
-                categories: ['08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00'],
+                categories: @json($chartTrenData['categories']),
                 axisBorder: { show: false },
                 axisTicks: { show: false },
                 labels: {
@@ -496,16 +465,16 @@
                     fontSize: '11px'
                 },
                 formatter: function (val, opt) {
-                    return Math.round(val / 4) + " Antrean";
+                    return val + " Antrean";
                 },
                 offsetX: 8
             },
             series: [{
                 name: 'Volume Antrean',
-                data: [96, 48, 20, 12, 0] // Scaled: Dukcapil (24*4), Samsat (12*4), Imigrasi (5*4), BPJS (3*4), Bapenda (0)
+                data: @json($chartTopTenantData['values'])
             }],
             xaxis: {
-                categories: ['Dukcapil', 'Samsat', 'Imigrasi', 'BPJS Kes.', 'Bapenda'],
+                categories: @json($chartTopTenantData['labels']),
                 axisBorder: { show: false },
                 axisTicks: { show: false },
                 labels: {
@@ -547,7 +516,7 @@
 
         // --- REAL TIME SIMULATION ENGINE ---
         let simulationInterval = null;
-        let isSimulationRunning = true;
+        let isSimulationRunning = false;
 
         // Elements
         const statTotalKunjungan = document.getElementById('statTotalKunjungan');
@@ -561,16 +530,14 @@
 
         // Current state values
         let stats = {
-            totalKunjungan: 342,
-            menungguFO: 18,
-            sedangDilayani: 24,
+            totalKunjungan: {{ $todayKunjunganCount }},
+            menungguFO: {{ $menungguFoCount }},
+            sedangDilayani: {{ $totalAntreanGerai }},
             foCheckInTime: 2.4,
             queues: {
-                'Dukcapil': 24,
-                'Imigrasi': 5,
-                'Bapenda': 0,
-                'Samsat': 12,
-                'BPJS Kesehatan': 3
+                @foreach ($liveDepartments as $dept)
+                    '{{ $dept->name }}': {{ $dept->queues->where('status', 'Waiting')->count() + $dept->queues->where('status', 'Serving')->count() }},
+                @endforeach
             }
         };
 
@@ -584,7 +551,7 @@
             eventDiv.innerHTML = `
                 <span class="text-[10px] text-muted">${hours}:${minutes}</span>
                 <span class="text-primary dark:text-accent-teal font-semibold shrink-0">&bull; ${user}:</span>
-                <span class="text-ink dark:text-white">${action}</span>
+                <span class="text-ink dark:text-white leading-tight">${action}</span>
             `;
             
             liveActivityFeed.prepend(eventDiv);
@@ -708,20 +675,22 @@
                 if (stats.menungguFO > 0) stats.menungguFO -= 1;
                 stats.sedangDilayani += 1;
                 
-                const tenants = ['Dukcapil', 'Samsat', 'BPJS Kesehatan', 'Imigrasi'];
-                const selected = tenants[Math.floor(Math.random() * tenants.length)];
-                stats.queues[selected] += 1;
+                // Get list of registered live departments
+                const liveDepts = Object.keys(stats.queues);
+                if (liveDepts.length > 0) {
+                    const selected = liveDepts[Math.floor(Math.random() * liveDepts.length)];
+                    stats.queues[selected] += 1;
+                    updateTableRow(selected);
+
+                    const codes = ['A', 'B', 'C', 'D'];
+                    const randCode = codes[Math.floor(Math.random() * codes.length)] + '-' + Math.floor(Math.random() * 900 + 100);
+                    addActivityFeed('Front Office', `Tiket ${randCode} telah dikonfirmasi untuk Gerai ${selected}`);
+                    createToast('Check-in Berhasil', `Tiket ${randCode} dikonfirmasi untuk gerai ${selected}.`, 'success');
+                }
 
                 statTotalKunjungan.innerText = stats.totalKunjungan;
                 statMenungguFO.innerText = stats.menungguFO;
                 statSedangDilayani.innerText = stats.sedangDilayani;
-                
-                updateTableRow(selected);
-
-                const codes = ['A', 'B', 'C', 'D'];
-                const randCode = codes[Math.floor(Math.random() * codes.length)] + '-' + Math.floor(Math.random() * 900 + 100);
-                addActivityFeed('Front Office', `Tiket ${randCode} telah dikonfirmasi untuk Gerai ${selected}`);
-                createToast('Check-in Berhasil', `Tiket ${randCode} dikonfirmasi untuk gerai ${selected}.`, 'success');
             } 
             else if (rand < 0.50) {
                 // Someone finished service at a counter
@@ -802,8 +771,11 @@
                 btnTegur.setAttribute('class', 'btn-tegur px-3 py-1.5 text-gray-400 hover:text-gray-655 dark:text-gray-500 dark:hover:text-gray-455 rounded-lg text-xs font-bold transition-all border border-hairline dark:border-gray-700 cursor-not-allowed');
             }
 
-            const order = ['Dukcapil', 'Samsat', 'Imigrasi', 'BPJS Kesehatan', 'Bapenda'];
-            const barData = order.map(t => stats.queues[t] * 4);
+            // Update top charts dynamic series
+            // Gunakan 'keys' (nama lengkap) bukan 'labels' (inisial)
+            // agar lookup ke stats.queues—yang diisi dengan nama lengkap—selalu cocok.
+            const liveDeptsKeys = @json($chartTopTenantData['keys']);
+            const barData = liveDeptsKeys.map(t => stats.queues[t] ?? 0);
             chartTop.updateSeries([{ name: 'Volume Antrean', data: barData }]);
         }
 
@@ -842,7 +814,7 @@
 
         // Initialize
         updateFOGauge(stats.foCheckInTime);
-        startSimulation();
+        // startSimulation();
     });
 </script>
 @endpush

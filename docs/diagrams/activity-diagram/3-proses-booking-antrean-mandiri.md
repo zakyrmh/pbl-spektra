@@ -11,7 +11,7 @@ flowchart TD
 
     %% ALUR AKTIVITAS
     Start --> P1["Pengunjung: Buka Halaman Booking Pelayanan"]
-    P1 --> S1["Sistem: Ambil & Tampilkan Daftar Instansi, Jenis Layanan, serta Slot Tanggal yang Tersedia"]
+    P1 --> S1["Sistem: Ambil & Tampilkan Daftar Instansi (Department), Jenis Layanan, serta Slot Tanggal yang Tersedia"]
 
     S1 --> P2["Pengunjung: Pilih Instansi & Jenis Layanan yang Dituju"]
     P2 --> P3["Pengunjung: Pilih Tanggal & Sesi Jam Booking"]
@@ -28,12 +28,12 @@ flowchart TD
 
     %% JALUR JIKA LAYAK (SUKSES)
     Cond1 -->|Ya / Layak| S4["Sistem: Generate Kode Karcis & QR Code Unik"]
-    S4 --> S5["Sistem: Simpan Data ke Tabel Bookings dengan Status 'Menunggu'"]
+    S4 --> S5["Sistem: Simpan Data ke Tabel Bookings dengan Status 'Pending'"]
 
     %% REAL-TIME NOTIFICATION (PEMBERITAHUAN KE FO)
     S5 --> S6["Sistem: Kirim Notifikasi Real-time Berhasil Booking ke Dashboard Admin Front Office"]
 
-    %% INTEGRASI UC-26 (LIHAT STATUS & POSISI ANTREAN)
+    %% INTEGRASI LIHAT STATUS & POSISI ANTREAN
     S6 --> S7["Sistem: Tampilkan Halaman Tiket Digital\n(Kode Booking, QR Code, Jadwal, dan Estimasi Posisi Antrean)"]
     S7 --> End
 ```

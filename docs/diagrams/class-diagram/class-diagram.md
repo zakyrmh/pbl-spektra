@@ -1,7 +1,7 @@
 ```mermaid
 classDiagram
     %% ==========================================
-    %% LAYER MODELS (REPRESENTASI DATABASE)
+    %% LAYER MODELS (DATABASE REPRESENTATION)
     %% ==========================================
     class User {
         +int id
@@ -12,51 +12,84 @@ classDiagram
         +getProfileData()
     }
 
+    class Department {
+        +int id
+        +string name
+        +string inisial
+        +hasMany(Counter) counters
+        +hasMany(Queue) queues
+    }
+
+    class Counter {
+        +int id
+        +int department_id
+        +string name
+        +int counter_number
+        +string status
+        +belongsTo(Department) department
+        +hasMany(Queue) queues
+        +hasMany(Booking) bookings
+    }
+
     class Booking {
         +int id
         +string booking_code
+        +int user_id
+        +int counter_id
         +date booking_date
         +string status
         +generateCode()
         +isExpired()
+        +belongsTo(User) user
+        +belongsTo(Counter) counter
+        +hasOne(Queue) queue
     }
 
     class Queue {
         +int id
         +string queue_number
+        +int booking_id
+        +int counter_id
         +string status
-        +timestamp started_at
-        +timestamp ended_at
+        +timestamp called_at
+        +timestamp completed_at
+        +date queue_date
         +calculateDuration()
-    }
-
-    class Service {
-        +int id
-        +string name
-        +string code_prefix
-    }
-
-    class Loket {
-        +int id
-        +string name
-        +int counter_number
+        +belongsTo(Counter) counter
+        +belongsTo(Booking) booking
+        +hasOne(Feedback) feedback
     }
 
     class Feedback {
         +int id
+        +int queue_id
+        +int user_id
         +int rating
         +string comment
+        +belongsTo(Queue) queue
+        +belongsTo(User) user
     }
 
     class Report {
         +int id
+        +int created_by
         +string status
         +json data_summary
         +lockData()
+        +belongsTo(User) creator
+    }
+
+    class ActivityLog {
+        +int id
+        +int user_id
+        +string action
+        +string description
+        +timestamp created_at
+        +belongsTo(User) user
     }
 
     %% ==========================================
-    %% LAYER CONTROLLERS (LOGIKA BISNIS)
+    %% LAYER CONTROLLERS (BUSINESS LOGIC)
     %% ==========================================
     class AuthController {
         +login(Request)
@@ -83,11 +116,19 @@ classDiagram
         +manualBooking(Request)
     }
 
-    class LoketController {
+    class CounterController {
         +dashboard()
         +callQueue(queueId)
         +finishService(queueId)
         +skipQueue(queueId)
+    }
+
+    class DashboardController {
+        +index()
+        +calculateKunjunganPercentage(int, string)
+        +getFoConfirmationStatus(int)
+        +getTrenKedatanganData(string)
+        +getTopTenantData(string)
     }
 
     class FeedbackController {
@@ -103,8 +144,8 @@ classDiagram
 
     class AdminController {
         +manageUsers()
-        +manageLokets()
-        +manageServices()
+        +manageDepartments()
+        +manageCounters()
     }
 
     %% ==========================================
@@ -117,31 +158,37 @@ classDiagram
     }
 
     %% ==========================================
-    %% DEFINISI RELASI (ASSOCIATION & DEPENDENCY)
+    %% RELASI ANTAR MODEL
     %% ==========================================
-
-    %% Relationships between Models
     User "1" --> "0..*" Booking : makes
     User "1" --> "0..*" Feedback : gives
     User "1" --> "0..*" Report : creates
-    Loket "1" -- "0..*" Service : offers
-    Service "1" -- "0..*" Booking : categorized
+    User "1" --> "0..*" ActivityLog : triggers
+
+    Department "1" --> "1..*" Counter : has
+    Counter "1" --> "0..*" Booking : targeted_by
+    Counter "1" --> "0..*" Queue : processes
+
     Booking "1" -- "0..1" Queue : triggers
     Queue "1" -- "0..1" Feedback : reviewed_in
 
-    %% Controllers Dependency on Models
+    %% Controller Dependencies on Models
     AuthController ..> User : uses
     ProfileController ..> User : uses
     BookingController ..> Booking : manages
     FrontOfficeController ..> Booking : verifies
     FrontOfficeController ..> Queue : creates
-    LoketController ..> Queue : updates
+    CounterController ..> Queue : updates
     FeedbackController ..> Feedback : stores
     ReportController ..> Report : manages
+    DashboardController ..> Queue : aggregates
+    DashboardController ..> Booking : aggregates
+    DashboardController ..> Department : aggregates
+    DashboardController ..> ActivityLog : reads
 
-    %% Controllers Dependency on Services
+    %% Controller Dependencies on Services
     FrontOfficeController ..> NotificationService : triggers
-    LoketController ..> NotificationService : triggers
+    CounterController ..> NotificationService : triggers
     FeedbackController ..> NotificationService : notifies
     ReportController ..> NotificationService : notifies
 ```

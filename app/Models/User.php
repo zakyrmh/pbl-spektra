@@ -9,13 +9,13 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
 #[Fillable(['name', 'nik', 'email', 'phone_number', 'password', 'role', 'instansi', 'nomor_loket', 'is_active', 'last_login_at'])]
-
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -164,5 +164,13 @@ class User extends Authenticatable
     {
         return $this->hasMany(ActivityLog::class, 'subject_id')
             ->where('subject_type', self::class);
+    }
+
+    /**
+     * Sesi loket fisik petugas.
+     */
+    public function counter(): BelongsTo
+    {
+        return $this->belongsTo(Counter::class);
     }
 }

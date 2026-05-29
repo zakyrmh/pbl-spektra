@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\GeraiLoketController;
 use App\Http\Controllers\PublicController;
 use App\Http\Controllers\SessionManagementController;
 use App\Http\Controllers\UserController;
@@ -76,6 +77,21 @@ Route::middleware('auth')->group(function () {
         Route::get('/manajemen-pengguna/{user}/sessions', [SessionManagementController::class, 'index'])->name('users.sessions.index');
         Route::delete('/manajemen-pengguna/{user}/sessions/all', [SessionManagementController::class, 'destroyAll'])->name('users.sessions.destroy-all');
         Route::delete('/manajemen-pengguna/{user}/sessions/{session}', [SessionManagementController::class, 'destroy'])->name('users.sessions.destroy');
+
+        // Konfigurasi Gerai / Loket (Instansi / Counter / Service)
+        Route::get('/konfigurasi-gerai-loket', [GeraiLoketController::class, 'index'])->name('config.index');
+        Route::post('/konfigurasi-gerai-loket/departments', [GeraiLoketController::class, 'storeDepartment'])->name('config.departments.store');
+        Route::put('/konfigurasi-gerai-loket/departments/{department}', [GeraiLoketController::class, 'updateDepartment'])->name('config.departments.update');
+        Route::delete('/konfigurasi-gerai-loket/departments/{department}', [GeraiLoketController::class, 'destroyDepartment'])->name('config.departments.destroy');
+
+        Route::post('/konfigurasi-gerai-loket/counters', [GeraiLoketController::class, 'storeCounter'])->name('config.counters.store');
+        Route::put('/konfigurasi-gerai-loket/counters/{counter}', [GeraiLoketController::class, 'updateCounter'])->name('config.counters.update');
+        Route::delete('/konfigurasi-gerai-loket/counters/{counter}', [GeraiLoketController::class, 'destroyCounter'])->name('config.counters.destroy');
+        Route::patch('/konfigurasi-gerai-loket/counters/{counter}/status', [GeraiLoketController::class, 'toggleCounterStatus'])->name('config.counters.toggle-status');
+
+        Route::post('/konfigurasi-gerai-loket/services', [GeraiLoketController::class, 'storeService'])->name('config.services.store');
+        Route::put('/konfigurasi-gerai-loket/services/{service}', [GeraiLoketController::class, 'updateService'])->name('config.services.update');
+        Route::delete('/konfigurasi-gerai-loket/services/{service}', [GeraiLoketController::class, 'destroyService'])->name('config.services.destroy');
     });
 
     // Khusus Admin FO

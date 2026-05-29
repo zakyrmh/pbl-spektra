@@ -118,6 +118,12 @@ Route::middleware('auth')->group(function () {
             ->name('admin.fo.ticket.create');
         Route::post('/fo/ticket', [WalkInTicketController::class, 'store'])
             ->name('admin.fo.ticket.store');
+
+        // API Endpoints for Front Office (AJAX/Fetch)
+        Route::get('/api/fo/bookings/verify', [CheckInController::class, 'verifyApi'])->name('api.fo.bookings.verify');
+        Route::post('/api/fo/bookings/{booking}/checkin', [CheckInController::class, 'checkInApi'])->name('api.fo.bookings.checkin');
+        Route::post('/api/fo/queues/walkin', [CheckInController::class, 'walkInApi'])->name('api.fo.queues.walkin');
+        Route::get('/api/fo/visitors/check-nik', [CheckInController::class, 'checkNikApi'])->name('api.fo.visitors.check-nik');
     });
 
     // Khusus Admin Gerai

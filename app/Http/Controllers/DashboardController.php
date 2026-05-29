@@ -75,6 +75,31 @@ class DashboardController extends Controller
                 'chartTrenData' => $chartTrenData,
                 'chartTopTenantData' => $chartTopTenantData,
             ];
+        } elseif ($role === 'admin_fo') {
+            $today = Carbon::today()->toDateString();
+            $departments = Department::with('counters')->get();
+            $recentQueues = QueueModel::query()
+                ->where('queue_date', $today)
+                ->with(['booking.user', 'visitor', 'service.department', 'counter.department'])
+                ->latest()
+                ->take(8)
+                ->get();
+
+            $todayFoQueueCount = Booking::query()
+                ->where('booking_date', $today)
+                ->where('status', 'Pending')
+                ->count('*');
+
+            $todayTotalPrintedTickets = QueueModel::query()
+                ->where('queue_date', $today)
+                ->count('*');
+
+            $data = [
+                'departments' => $departments,
+                'recentQueues' => $recentQueues,
+                'todayFoQueueCount' => $todayFoQueueCount,
+                'todayTotalPrintedTickets' => $todayTotalPrintedTickets,
+            ];
         }
 
         return view('dashboard.dashboard', $data);

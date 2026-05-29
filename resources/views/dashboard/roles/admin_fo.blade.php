@@ -25,7 +25,7 @@
             <div class="flex items-start justify-between">
                 <div>
                     <p class="text-xs font-bold text-muted dark:text-on-dark-soft uppercase tracking-wider font-display">Antrean FO Saat Ini</p>
-                    <h3 id="foStatAntrean" class="text-4xl font-extrabold text-ink dark:text-white mt-2 font-mono">18</h3>
+                    <h3 id="foStatAntrean" class="text-4xl font-extrabold text-ink dark:text-white mt-2 font-mono">{{ $todayFoQueueCount ?? 0 }}</h3>
                     <p class="text-xs text-muted dark:text-on-dark-soft mt-1 font-body">Warga di ruang tunggu loket depan</p>
                 </div>
                 <div class="p-3 bg-status-waiting/10 text-status-waiting rounded-lg border border-status-waiting/20">
@@ -41,7 +41,7 @@
             <div class="flex items-start justify-between">
                 <div>
                     <p class="text-xs font-bold text-muted dark:text-on-dark-soft uppercase tracking-wider font-display">Total Tiket Dicetak Hari Ini</p>
-                    <h3 id="foStatTiket" class="text-4xl font-extrabold text-ink dark:text-white mt-2 font-mono">142</h3>
+                    <h3 id="foStatTiket" class="text-4xl font-extrabold text-ink dark:text-white mt-2 font-mono">{{ $todayTotalPrintedTickets ?? 0 }}</h3>
                     <p class="text-xs text-muted dark:text-on-dark-soft mt-1 font-body">Gabungan online check-in + walk-in</p>
                 </div>
                 <div class="p-3 bg-primary/10 text-primary dark:text-accent-teal rounded-lg border border-primary/20">
@@ -136,45 +136,55 @@
             
             <p class="text-xs text-muted dark:text-on-dark-soft mb-4 font-body">Klik salah satu Instansi, pilih jenis layanan, kemudian cetak tiket antrean langsung untuk warga.</p>
 
-            <!-- Instansi Selection Grid -->
-            <div class="grid grid-cols-2 sm:grid-cols-3 gap-3" id="kioskInstansiGrid">
-                <button type="button" onclick="selectKioskTenant('Dukcapil', ['Cetak KTP-el', 'Pembuatan KK Baru', 'Keterangan Domisili'])" class="kiosk-tenant-btn p-4 bg-surface-soft dark:bg-white/5 border border-hairline dark:border-white/5 rounded-lg flex flex-col items-center text-center gap-2 hover:border-primary/50 dark:hover:border-accent-teal/50 transition-all focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-accent-teal cursor-pointer">
-                    <div class="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 flex items-center justify-center font-bold text-xs">DK</div>
-                    <span class="text-xs font-bold text-ink dark:text-white font-display">Dukcapil</span>
-                </button>
-                <button type="button" onclick="selectKioskTenant('Samsat', ['Pajak Tahunan Motor', 'Mutasi Kendaraan', 'Cetak STNK Baru'])" class="kiosk-tenant-btn p-4 bg-surface-soft dark:bg-white/5 border border-hairline dark:border-white/5 rounded-lg flex flex-col items-center text-center gap-2 hover:border-primary/50 dark:hover:border-accent-teal/50 transition-all focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-accent-teal cursor-pointer">
-                    <div class="w-10 h-10 rounded-full bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400 flex items-center justify-center font-bold text-xs">SM</div>
-                    <span class="text-xs font-bold text-ink dark:text-white font-display">Samsat</span>
-                </button>
-                <button type="button" onclick="selectKioskTenant('Imigrasi', ['Pembuatan Paspor Baru', 'Perpanjang Paspor', 'Izin Tinggal Kitas'])" class="kiosk-tenant-btn p-4 bg-surface-soft dark:bg-white/5 border border-hairline dark:border-white/5 rounded-lg flex flex-col items-center text-center gap-2 hover:border-primary/50 dark:hover:border-accent-teal/50 transition-all focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-accent-teal cursor-pointer">
-                    <div class="w-10 h-10 rounded-full bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 flex items-center justify-center font-bold text-xs">IM</div>
-                    <span class="text-xs font-bold text-ink dark:text-white font-display">Imigrasi</span>
-                </button>
-                <button type="button" onclick="selectKioskTenant('BPJS Kesehatan', ['Pendaftaran PPU', 'Perubahan Data PBI', 'Pengaduan Layanan'])" class="kiosk-tenant-btn p-4 bg-surface-soft dark:bg-white/5 border border-hairline dark:border-white/5 rounded-lg flex flex-col items-center text-center gap-2 hover:border-primary/50 dark:hover:border-accent-teal/50 transition-all focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-accent-teal cursor-pointer">
-                    <div class="w-10 h-10 rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 flex items-center justify-center font-bold text-xs">BP</div>
-                    <span class="text-xs font-bold text-ink dark:text-white font-display">BPJS Kesehatan</span>
-                </button>
-                <button type="button" onclick="selectKioskTenant('Bapenda', ['Bayar PBB', 'Cetak Surat Ketetapan Pajak', 'Konsultasi Pajak Daerah'])" class="kiosk-tenant-btn p-4 bg-surface-soft dark:bg-white/5 border border-hairline dark:border-white/5 rounded-lg flex flex-col items-center text-center gap-2 hover:border-primary/50 dark:hover:border-accent-teal/50 transition-all focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-accent-teal cursor-pointer">
-                    <div class="w-10 h-10 rounded-full bg-teal-100 dark:bg-teal-900/30 text-teal-700 dark:text-teal-400 flex items-center justify-center font-bold text-xs">BP</div>
-                    <span class="text-xs font-bold text-ink dark:text-white font-display">Bapenda</span>
-                </button>
-            </div>
-
-            <!-- Service Selection (Hidden by default, shown when Tenant selected) -->
-            <div id="kioskServiceBlock" class="hidden mt-6 space-y-4 border-t border-hairline dark:border-white/10 pt-4">
-                <div class="flex items-center justify-between">
-                    <span class="text-xs font-bold text-ink dark:text-white font-display">Instansi: <span id="kioskSelectedTenantText" class="text-primary dark:text-accent-teal">Disdukcapil</span></span>
-                    <button type="button" onclick="resetKiosk()" class="text-xs text-status-skipped hover:underline font-semibold focus-visible:outline-none">Pilih Ulang Instansi</button>
-                </div>
+            <!-- Walk-In Form -->
+            <div class="space-y-4" id="kioskWalkInForm">
+                <!-- NIK Input -->
                 <div>
-                    <label for="selKioskService" class="block text-xs font-semibold text-ink dark:text-white uppercase tracking-wider mb-2 font-display">Pilih Layanan</label>
-                    <select id="selKioskService" class="w-full h-11 bg-surface-soft dark:bg-surface-dark border border-hairline dark:border-white/10 text-ink dark:text-white rounded-md px-3 font-semibold focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-accent-teal">
-                        <!-- Filled dynamically -->
-                    </select>
+                    <label for="txtWalkInNik" class="block text-xs font-semibold text-ink dark:text-white uppercase tracking-wider mb-2 font-display">NIK Warga (16 Digit)</label>
+                    <div class="flex gap-2">
+                        <input type="text" id="txtWalkInNik" maxlength="16" placeholder="Masukkan 16 digit NIK" class="flex-1 h-11 bg-surface-soft dark:bg-white/5 border border-hairline dark:border-white/10 text-ink dark:text-white rounded-md px-3 font-semibold font-mono placeholder:text-muted focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-accent-teal" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+                        <button type="button" onclick="checkVisitorNik()" class="h-11 px-4 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-md text-xs transition-all focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-blue-500/50 cursor-pointer shadow-sm">
+                            Cek NIK
+                        </button>
+                    </div>
                 </div>
-                <button type="button" onclick="printWalkInTicket()" class="w-full h-11 bg-primary hover:bg-primary-hover text-white font-semibold rounded-pill text-xs transition-all focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-accent-teal cursor-pointer shadow-md">
-                    Cetak Tiket Mandiri
-                </button>
+
+                <!-- Nama Lengkap Input -->
+                <div>
+                    <label for="txtWalkInName" class="block text-xs font-semibold text-ink dark:text-white uppercase tracking-wider mb-2 font-display">Nama Lengkap</label>
+                    <input type="text" id="txtWalkInName" disabled placeholder="Nama warga (otomatis / isi jika baru)" class="w-full h-11 bg-surface-soft dark:bg-white/5 border border-hairline dark:border-white/10 text-ink dark:text-white rounded-md px-3 font-semibold focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-accent-teal disabled:opacity-50 disabled:cursor-not-allowed">
+                </div>
+
+                <!-- Instansi & Layanan Selection -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label for="selWalkInDept" class="block text-xs font-semibold text-ink dark:text-white uppercase tracking-wider mb-2 font-display">Instansi Tujuan</label>
+                        <select id="selWalkInDept" onchange="onWalkInDeptChange()" class="w-full h-11 bg-surface-soft dark:bg-surface-dark border border-hairline dark:border-white/10 text-ink dark:text-white rounded-md px-3 font-semibold focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-accent-teal cursor-pointer">
+                            <option value="">-- Pilih Instansi --</option>
+                            @foreach($departments as $dept)
+                                <option value="{{ $dept->id }}" data-services="{{ json_encode($dept->counters->pluck('name')) }}">{{ $dept->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div>
+                        <label for="selWalkInService" class="block text-xs font-semibold text-ink dark:text-white uppercase tracking-wider mb-2 font-display">Layanan (Opsional)</label>
+                        <select id="selWalkInService" class="w-full h-11 bg-surface-soft dark:bg-surface-dark border border-hairline dark:border-white/10 text-ink dark:text-white rounded-md px-3 font-semibold focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-accent-teal cursor-pointer disabled:opacity-50">
+                            <option value="">-- Pilih Layanan --</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Keperluan -->
+                <div>
+                    <label for="txtWalkInPurpose" class="block text-xs font-semibold text-ink dark:text-white uppercase tracking-wider mb-2 font-display">Keperluan (Opsional)</label>
+                    <textarea id="txtWalkInPurpose" rows="2" placeholder="Tuliskan keperluan kedatangan secara singkat..." class="w-full bg-surface-soft dark:bg-white/5 border border-hairline dark:border-white/10 text-ink dark:text-white rounded-md p-3 text-sm focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-accent-teal"></textarea>
+                </div>
+
+                <div class="pt-2">
+                    <button type="button" onclick="printWalkInTicket()" class="w-full h-11 bg-primary hover:bg-primary-hover text-white font-semibold rounded-pill text-xs transition-all focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-accent-teal cursor-pointer shadow-md">
+                        Cetak Tiket Mandiri
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -204,42 +214,53 @@
                     </tr>
                 </thead>
                 <tbody id="foLiveFeedBody" class="text-xs divide-y divide-hairline dark:divide-white/5">
-                    <tr class="hover:bg-surface-soft/50 dark:hover:bg-white/5 transition-colors">
-                        <td class="py-3 px-6 font-bold text-ink dark:text-white">Supardi Wijaya</td>
-                        <td class="py-3 px-4 font-mono font-bold text-primary dark:text-accent-teal">A-014</td>
-                        <td class="py-3 px-4 font-medium text-muted dark:text-on-dark-soft">Dukcapil</td>
-                        <td class="py-3 px-4 text-muted dark:text-on-dark-soft">Online Booking</td>
-                        <td class="py-3 px-4 font-mono text-muted dark:text-on-dark-soft">12:00</td>
-                        <td class="py-3 px-6">
-                            <span class="inline-flex items-center gap-1 px-2.5 py-1 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 rounded-full text-[10px] font-bold border border-green-200/50">
-                                <span class="w-1 h-1 rounded-full bg-green-500"></span>Check-In FO
-                            </span>
-                        </td>
-                    </tr>
-                    <tr class="hover:bg-surface-soft/50 dark:hover:bg-white/5 transition-colors">
-                        <td class="py-3 px-6 font-bold text-ink dark:text-white">Anita Rahman</td>
-                        <td class="py-3 px-4 font-mono font-bold text-primary dark:text-accent-teal">W-101</td>
-                        <td class="py-3 px-4 font-medium text-muted dark:text-on-dark-soft">Samsat</td>
-                        <td class="py-3 px-4 text-muted dark:text-on-dark-soft">Walk-In (Tiket Mandiri)</td>
-                        <td class="py-3 px-4 font-mono text-muted dark:text-on-dark-soft">11:58</td>
-                        <td class="py-3 px-6">
-                            <span class="inline-flex items-center gap-1 px-2.5 py-1 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 rounded-full text-[10px] font-bold border border-green-200/50">
-                                <span class="w-1 h-1 rounded-full bg-green-500"></span>Cetak Kios
-                            </span>
-                        </td>
-                    </tr>
-                    <tr class="hover:bg-surface-soft/50 dark:hover:bg-white/5 transition-colors">
-                        <td class="py-3 px-6 font-bold text-ink dark:text-white">M. Fadhil</td>
-                        <td class="py-3 px-4 font-mono font-bold text-primary dark:text-accent-teal">A-013</td>
-                        <td class="py-3 px-4 font-medium text-muted dark:text-on-dark-soft">Imigrasi</td>
-                        <td class="py-3 px-4 text-muted dark:text-on-dark-soft">Online Booking</td>
-                        <td class="py-3 px-4 font-mono text-muted dark:text-on-dark-soft">11:55</td>
-                        <td class="py-3 px-6">
-                            <span class="inline-flex items-center gap-1 px-2.5 py-1 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 rounded-full text-[10px] font-bold border border-green-200/50">
-                                <span class="w-1 h-1 rounded-full bg-green-500"></span>Check-In FO
-                            </span>
-                        </td>
-                    </tr>
+                    @forelse($recentQueues as $q)
+                        <tr class="hover:bg-surface-soft/50 dark:hover:bg-white/5 transition-colors">
+                            <td class="py-3 px-6 font-bold text-ink dark:text-white">
+                                {{ $q->booking?->user?->name ?? $q->visitor?->name ?? 'Walk-In Citizen' }}
+                            </td>
+                            <td class="py-3 px-4 font-mono font-bold text-primary dark:text-accent-teal">
+                                {{ $q->queue_number }}
+                            </td>
+                            <td class="py-3 px-4 font-medium text-muted dark:text-on-dark-soft">
+                                {{ $q->service?->department?->name ?? $q->counter?->department?->name ?? '-' }}
+                            </td>
+                            <td class="py-3 px-4 text-muted dark:text-on-dark-soft">
+                                {{ $q->booking_id ? 'Online Booking' : 'Walk-In (Tiket Mandiri)' }}
+                            </td>
+                            <td class="py-3 px-4 font-mono text-muted dark:text-on-dark-soft">
+                                {{ $q->created_at->format('H:i') }}
+                            </td>
+                            <td class="py-3 px-6">
+                                @php
+                                    $status = $q->status;
+                                    $badgeClass = match($status) {
+                                        'Waiting' => 'bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 border-amber-200/50',
+                                        'Serving' => 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 border-green-200/50',
+                                        'Completed' => 'bg-gray-100 dark:bg-gray-800/50 text-gray-700 dark:text-gray-400 border-gray-200/50',
+                                        'Skipped' => 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 border-red-200/50',
+                                        default => 'bg-gray-50 dark:bg-gray-900/20 text-gray-700 dark:text-gray-400 border-gray-200/50',
+                                    };
+                                    $dotClass = match($status) {
+                                        'Waiting' => 'bg-amber-500',
+                                        'Serving' => 'bg-green-500',
+                                        'Completed' => 'bg-gray-500',
+                                        'Skipped' => 'bg-red-500',
+                                        default => 'bg-gray-500',
+                                    };
+                                @endphp
+                                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold border {{ $badgeClass }}">
+                                    <span class="w-1 h-1 rounded-full {{ $dotClass }}"></span>{{ $status }}
+                                </span>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="6" class="py-8 text-center text-muted dark:text-on-dark-soft font-medium">
+                                Belum ada aktivitas kedatangan hari ini.
+                            </td>
+                        </tr>
+                    @endforelse
                 </tbody>
             </table>
         </div>
@@ -253,9 +274,12 @@
 <script>
     // Stats state
     let foStats = {
-        antreanFO: 18,
-        tiketDicetak: 142
+        antreanFO: {{ $todayFoQueueCount ?? 0 }},
+        tiketDicetak: {{ $todayTotalPrintedTickets ?? 0 }}
     };
+
+    // Global variable to store verified booking ID
+    let currentVerifiedBookingId = null;
 
     // Live clock
     function updateClock() {
@@ -274,7 +298,7 @@
     });
 
     // Verification module
-    function verifyBookingCode() {
+    async function verifyBookingCode() {
         const input = document.getElementById('txtBookingCode');
         const code = input.value.trim().toUpperCase();
         
@@ -283,25 +307,49 @@
             return;
         }
 
-        // Mock booking details database
-        const db = {
-            'A-015': { name: 'Rahmat Hidayat', nik: '1373021408990002', tenant: 'Disdukcapil', service: 'Cetak KTP-el' },
-            'B-490': { name: 'Eko Sulistyo', nik: '1373010502930005', tenant: 'Samsat', service: 'Pajak Tahunan Motor' },
-            'C-210': { name: 'Siti Aminah', nik: '1373034907950001', tenant: 'Imigrasi', service: 'Pembuatan Paspor Baru' }
-        };
+        try {
+            const response = await fetch(`/api/fo/bookings/verify?code=${code}`);
+            
+            if (!response.ok) {
+                if (response.status === 404) {
+                    createToast('Tiket Tidak Ditemukan', `Kode booking ${code} tidak terdaftar di database.`, 'warning');
+                } else {
+                    createToast('Error Sistem', `Gagal memverifikasi tiket (Status: ${response.status}).`, 'warning');
+                }
+                document.getElementById('pnlVerifyDetails').classList.add('hidden');
+                currentVerifiedBookingId = null;
+                return;
+            }
 
-        const result = db[code] || { name: 'Pengunjung Umum', nik: '1373' + Math.floor(Math.random() * 900000) + 'xxxx', tenant: 'Disdukcapil', service: 'Konsultasi Layanan' };
+            const data = await response.json();
+            
+            // Map JSON response to DOM elements
+            document.getElementById('verifyTicketCode').innerText = data.booking_code || code;
+            document.getElementById('verifyName').innerText = (data.user && data.user.name) ? data.user.name : '-';
+            document.getElementById('verifyNik').innerText = (data.user && data.user.nik) ? data.user.nik : '-';
+            
+            // Nama instansi di-resolve dari relasi booking->counter->department
+            const departmentName = (data.department && data.department.name) 
+                || (data.counter && data.counter.department && data.counter.department.name) 
+                || '-';
+            document.getElementById('verifyTenant').innerText = departmentName;
+            
+            // Layanan di-resolve dari counter name atau service name
+            const serviceName = (data.counter && data.counter.name) 
+                || (data.service && data.service.name) 
+                || '-';
+            document.getElementById('verifyService').innerText = serviceName;
 
-        document.getElementById('verifyTicketCode').innerText = code;
-        document.getElementById('verifyName').innerText = result.name;
-        document.getElementById('verifyNik').innerText = result.nik;
-        document.getElementById('verifyTenant').innerText = result.tenant;
-        document.getElementById('verifyService').innerText = result.service;
+            currentVerifiedBookingId = data.id;
 
-        const pnl = document.getElementById('pnlVerifyDetails');
-        pnl.classList.remove('hidden');
-        
-        createToast('Tiket Ditemukan', `Kode booking ${code} berhasil diverifikasi. Silakan klik Konfirmasi.`, 'info');
+            const pnl = document.getElementById('pnlVerifyDetails');
+            pnl.classList.remove('hidden');
+            
+            createToast('Tiket Ditemukan', `Kode booking ${code} berhasil diverifikasi. Silakan klik Konfirmasi.`, 'info');
+        } catch (error) {
+            console.error('Error verifying booking:', error);
+            createToast('Koneksi Gagal', 'Tidak dapat terhubung ke server untuk verifikasi tiket.', 'warning');
+        }
     }
 
     function simulateQrScanner() {
@@ -311,82 +359,200 @@
         verifyBookingCode();
     }
 
-    function confirmCheckIn() {
+    async function confirmCheckIn() {
+        if (!currentVerifiedBookingId) {
+            createToast('Peringatan', 'Silakan verifikasi kode booking terlebih dahulu.', 'warning');
+            return;
+        }
+
         const code = document.getElementById('verifyTicketCode').innerText;
         const name = document.getElementById('verifyName').innerText;
         const tenant = document.getElementById('verifyTenant').innerText;
 
-        // Modify stats
-        if (foStats.antreanFO > 0) foStats.antreanFO--;
-        foStats.tiketDicetak++;
+        try {
+            const response = await fetch(`/api/fo/bookings/${currentVerifiedBookingId}/checkin`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                }
+            });
 
-        document.getElementById('foStatAntrean').innerText = foStats.antreanFO;
-        document.getElementById('foStatTiket').innerText = foStats.tiketDicetak;
-
-        // Hide details panel
-        document.getElementById('pnlVerifyDetails').classList.add('hidden');
-        document.getElementById('txtBookingCode').value = '';
-
-        // Add to live feed
-        addLiveFeedRow(name, code, tenant, 'Online Booking', 'Check-In FO');
-        
-        createToast('Check-In Sukses', `Warga ${name} (${code}) telah check-in untuk loket ${tenant}.`, 'success');
-    }
-
-    // Kiosk Module
-    let kioskSelectedTenant = '';
-    function selectKioskTenant(tenantName, services) {
-        kioskSelectedTenant = tenantName;
-        document.getElementById('kioskSelectedTenantText').innerText = tenantName;
-        
-        const select = document.getElementById('selKioskService');
-        select.innerHTML = '';
-        services.forEach(s => {
-            const opt = document.createElement('option');
-            opt.value = s;
-            opt.innerText = s;
-            select.appendChild(opt);
-        });
-
-        // Toggle visibility
-        document.getElementById('kioskServiceBlock').classList.remove('hidden');
-        
-        // Highlight active button
-        document.querySelectorAll('.kiosk-tenant-btn').forEach(btn => {
-            const span = btn.querySelector('span');
-            if (span.innerText === tenantName) {
-                btn.className = 'kiosk-tenant-btn p-4 bg-primary/10 border border-primary text-primary rounded-lg flex flex-col items-center text-center gap-2 transition-all';
-            } else {
-                btn.className = 'kiosk-tenant-btn p-4 bg-surface-soft dark:bg-white/5 border border-hairline dark:border-white/5 rounded-lg flex flex-col items-center text-center gap-2 hover:border-primary/50 dark:hover:border-accent-teal/50 transition-all cursor-pointer';
+            if (!response.ok) {
+                const errData = await response.json().catch(() => ({}));
+                const errMsg = errData.message || `Gagal konfirmasi check-in (Status: ${response.status}).`;
+                createToast('Gagal Check-In', errMsg, 'warning');
+                return;
             }
-        });
+
+            const data = await response.json();
+
+            // Modify local stats and update DOM
+            if (foStats.antreanFO > 0) foStats.antreanFO--;
+            foStats.tiketDicetak++;
+
+            document.getElementById('foStatAntrean').innerText = foStats.antreanFO;
+            document.getElementById('foStatTiket').innerText = foStats.tiketDicetak;
+
+            // Hide details panel
+            document.getElementById('pnlVerifyDetails').classList.add('hidden');
+            document.getElementById('txtBookingCode').value = '';
+
+            // Add to live feed with state parameter 'Waiting' (instead of 'Check-In FO')
+            const finalCode = data.queue_number || data.ticket_code || code;
+            addLiveFeedRow(name, finalCode, tenant, 'Online Booking', 'Waiting');
+            
+            createToast('Check-In Sukses', `Warga ${name} (${finalCode}) telah check-in untuk loket ${tenant}.`, 'success');
+            
+            // Reset global verified booking ID
+            currentVerifiedBookingId = null;
+        } catch (error) {
+            console.error('Error confirming checkin:', error);
+            createToast('Koneksi Gagal', 'Tidak dapat terhubung ke server untuk konfirmasi check-in.', 'warning');
+        }
     }
 
-    function resetKiosk() {
-        document.getElementById('kioskServiceBlock').classList.add('hidden');
-        document.querySelectorAll('.kiosk-tenant-btn').forEach(btn => {
-            btn.className = 'kiosk-tenant-btn p-4 bg-surface-soft dark:bg-white/5 border border-hairline dark:border-white/5 rounded-lg flex flex-col items-center text-center gap-2 hover:border-primary/50 dark:hover:border-accent-teal/50 transition-all cursor-pointer';
-        });
-        kioskSelectedTenant = '';
+    // Walk-In Module
+    async function checkVisitorNik() {
+        const inputNik = document.getElementById('txtWalkInNik');
+        const inputName = document.getElementById('txtWalkInName');
+        const nik = inputNik.value.trim();
+
+        if (nik.length !== 16) {
+            createToast('NIK Tidak Valid', 'Pastikan NIK terdiri dari 16 digit angka.', 'warning');
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/fo/visitors/check-nik?nik=${nik}`);
+            if (!response.ok) {
+                createToast('Gagal', 'Terjadi kesalahan saat memeriksa NIK.', 'warning');
+                return;
+            }
+            
+            const data = await response.json();
+            
+            if (data.found) {
+                inputName.value = data.name;
+                inputName.disabled = true; // Lock if found
+                createToast('NIK Ditemukan', `Data warga ${data.name} berhasil dimuat.`, 'success');
+            } else {
+                inputName.value = '';
+                inputName.disabled = false; // Open for typing if new
+                inputName.focus();
+                createToast('NIK Baru', 'Data tidak ditemukan. Silakan isi nama lengkap warga.', 'info');
+            }
+        } catch (error) {
+            console.error('Error checking NIK:', error);
+            createToast('Koneksi Gagal', 'Tidak dapat terhubung ke server.', 'warning');
+        }
     }
 
-    function printWalkInTicket() {
-        if (!kioskSelectedTenant) return;
+    function onWalkInDeptChange() {
+        const deptSelect = document.getElementById('selWalkInDept');
+        const serviceSelect = document.getElementById('selWalkInService');
         
-        const service = document.getElementById('selKioskService').value;
-        const ticketNum = 'W-' + Math.floor(Math.random() * 900 + 100);
+        serviceSelect.innerHTML = '<option value="">-- Pilih Layanan --</option>';
+        serviceSelect.disabled = true;
 
-        foStats.tiketDicetak++;
-        document.getElementById('foStatTiket').innerText = foStats.tiketDicetak;
+        const selectedOption = deptSelect.options[deptSelect.selectedIndex];
+        if (!selectedOption.value) return;
 
-        // Add to live feed
-        const names = ['Ahmad Syarif', 'Budi Santoso', 'Laila Sari', 'Megawati', 'Roni Wijaya'];
-        const randomName = names[Math.floor(Math.random() * names.length)];
+        const servicesStr = selectedOption.getAttribute('data-services');
+        if (servicesStr) {
+            const services = JSON.parse(servicesStr);
+            if (services.length > 0) {
+                services.forEach(s => {
+                    const opt = document.createElement('option');
+                    opt.value = s;
+                    opt.innerText = s;
+                    serviceSelect.appendChild(opt);
+                });
+                serviceSelect.disabled = false;
+            }
+        }
+    }
+
+    function resetWalkInForm() {
+        document.getElementById('txtWalkInNik').value = '';
+        const nameInput = document.getElementById('txtWalkInName');
+        nameInput.value = '';
+        nameInput.disabled = true;
+        document.getElementById('selWalkInDept').value = '';
         
-        addLiveFeedRow(randomName, ticketNum, kioskSelectedTenant, 'Walk-In (Tiket Mandiri)', 'Cetak Kios');
+        const serviceSelect = document.getElementById('selWalkInService');
+        serviceSelect.innerHTML = '<option value="">-- Pilih Layanan --</option>';
+        serviceSelect.disabled = true;
         
-        createToast('Tiket Dicetak', `Tiket ${ticketNum} berhasil dicetak untuk ${randomName} tujuan ${kioskSelectedTenant}.`, 'success');
-        resetKiosk();
+        document.getElementById('txtWalkInPurpose').value = '';
+    }
+
+    async function printWalkInTicket() {
+        const nik = document.getElementById('txtWalkInNik').value.trim();
+        const name = document.getElementById('txtWalkInName').value.trim();
+        const deptId = document.getElementById('selWalkInDept').value;
+        const service = document.getElementById('selWalkInService').value;
+        const purpose = document.getElementById('txtWalkInPurpose').value.trim();
+
+        if (nik.length !== 16) {
+            createToast('Peringatan', 'NIK harus 16 digit.', 'warning');
+            return;
+        }
+        if (!name) {
+            createToast('Peringatan', 'Nama lengkap tidak boleh kosong.', 'warning');
+            return;
+        }
+        if (!deptId) {
+            createToast('Peringatan', 'Silakan pilih Instansi Tujuan.', 'warning');
+            return;
+        }
+        if (!purpose) {
+            createToast('Peringatan', 'Keperluan kedatangan wajib diisi.', 'warning');
+            return;
+        }
+
+        try {
+            const response = await fetch('/api/fo/queues/walkin', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify({
+                    nik: nik,
+                    name: name,
+                    department_id: deptId,
+                    service_name: service,
+                    purpose: purpose
+                })
+            });
+
+            if (!response.ok) {
+                const errData = await response.json().catch(() => ({}));
+                const errMsg = errData.message || `Gagal mencetak tiket walk-in (Status: ${response.status}).`;
+                createToast('Gagal Cetak', errMsg, 'warning');
+                return;
+            }
+
+            const data = await response.json();
+            const ticketNum = data.queue_number || data.ticket_code || 'W-000';
+            const citizenName = data.visitor_name || data.name || 'Walk-In Citizen';
+            
+            const deptSelect = document.getElementById('selWalkInDept');
+            const deptName = deptSelect.options[deptSelect.selectedIndex].text;
+
+            foStats.tiketDicetak++;
+            document.getElementById('foStatTiket').innerText = foStats.tiketDicetak;
+
+            // Add to live feed with state parameter 'Waiting'
+            addLiveFeedRow(citizenName, ticketNum, deptName, 'Walk-In (Tiket Mandiri)', 'Waiting');
+            
+            createToast('Tiket Dicetak', `Tiket ${ticketNum} berhasil dicetak untuk ${citizenName} tujuan ${deptName}.`, 'success');
+            resetWalkInForm();
+        } catch (error) {
+            console.error('Error printing walkin ticket:', error);
+            createToast('Koneksi Gagal', 'Tidak dapat terhubung ke server untuk mencetak tiket.', 'warning');
+        }
     }
 
     // Helper functions
@@ -461,15 +627,21 @@
         
         // Trigger reflow & animate in
         setTimeout(() => {
-            toast.classList.remove('translate-y-2', 'opacity-0');
+            if (toast.isConnected) {
+                toast.classList.remove('translate-y-2', 'opacity-0');
+            }
         }, 50);
 
         // Auto remove after 4s
         setTimeout(() => {
-            toast.classList.add('opacity-0', 'translate-y-[-10px]');
-            setTimeout(() => {
-                toast.remove();
-            }, 300);
+            if (toast.isConnected) {
+                toast.classList.add('opacity-0', 'translate-y-[-10px]');
+                setTimeout(() => {
+                    if (toast.isConnected) {
+                        toast.remove();
+                    }
+                }, 300);
+            }
         }, 4000);
     }
 </script>

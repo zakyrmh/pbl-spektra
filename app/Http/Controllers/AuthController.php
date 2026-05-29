@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Services\AuditLogger;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -43,6 +44,12 @@ class AuthController extends Controller
         ], $request->boolean('remember'))) {
             RateLimiter::clear($throttleKey);
             $request->session()->regenerate();
+
+            // Catat waktu login terakhir untuk tracking "staf aktif online"
+            Auth::user()->update(['last_login_at' => now()]);
+
+            // Audit trail: catat event login
+            AuditLogger::userLoggedIn(Auth::user());
 
             return redirect()->intended('/dashboard');
         }
@@ -148,6 +155,14 @@ class AuthController extends Controller
     // Proses logout
     public function logout(Request $request)
     {
+        /** @var User $user */
+        $user = Auth::user();
+
+        // Audit trail: catat event logout sebelum sesi dihapus
+        if ($user) {
+            AuditLogger::userLoggedOut($user);
+        }
+
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();

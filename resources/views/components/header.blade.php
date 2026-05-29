@@ -44,11 +44,10 @@
                 <p class="text-body-sm font-semibold text-ink dark:text-white leading-tight">
                     {{ Auth::user()->name }}
                 </p>
-                <p class="text-caption font-medium text-muted dark:text-on-dark-soft capitalize">
-                    {{ str_replace('_', ' ', Auth::user()->role) }}
+                <p class="text-xs font-medium text-gray-500">
+                    {{ Auth::user()->role_label }}
                 </p>
             </div>
-            
             <form action="{{ route('logout') }}" method="POST" class="m-0 pl-2">
                 @csrf
                 <button type="submit"

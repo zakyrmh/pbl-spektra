@@ -23,8 +23,10 @@ class GeraiLoketController extends Controller
         $this->authorize('viewAny', User::class); // Hanya Super Admin (sesuai UserPolicy)
 
         // ── Metrics ──────────────────────────────────────────────
-        $totalDepartments = Department::query()->count();
-        $totalStaff = User::query()->where('role', '=', UserRole::AdminGerai->value, 'and')->count();
+        $totalDepartments = Department::query()->count('*');
+        $totalStaff = User::query()
+            ->where('role', UserRole::AdminGerai->value)
+            ->count('*');
 
         // ── Data List ────────────────────────────────────────────
         $departments = Department::query()->withCount(['counters', 'services'])->latest()->get();

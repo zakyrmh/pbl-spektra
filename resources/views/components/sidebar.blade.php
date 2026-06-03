@@ -14,8 +14,9 @@
             ['title' => 'Dashboard', 'url' => route('dashboard'), 'icon' => 'home'],
             ['title' => 'Monitor Antrean', 'url' => route('admin.fo.monitor'), 'icon' => 'tv'],
             ['title' => 'Pencetakan Tiket', 'url' => route('admin.fo.ticket.create'), 'icon' => 'printer'],
-            ['title' => 'Verifikasi & Check-In', 'url' => '#', 'icon' => 'check-circle'],
-            ['title' => 'Panggilan Antrean FO', 'url' => '#', 'icon' => 'megaphone'],
+            ['title' => 'Verifikasi & Check-In', 'url' => route('admin.fo.checkin'), 'icon' => 'check-circle'],
+            ['title' => 'Panggilan Antrean FO', 'url' => route('admin.fo.call'), 'icon' => 'megaphone'],
+            ['title' => 'Kelola Laporan', 'url' => route('reports.index'), 'icon' => 'clipboard-list'],
         ];
     } elseif ($role === 'admin_gerai') {
         $menu = [
@@ -30,7 +31,7 @@
             ['title' => 'Manajemen Pengguna', 'url' => route('users.index'), 'icon' => 'users'],
             ['title' => 'Konfigurasi Gerai', 'url' => route('config.index'), 'icon' => 'settings'],
             ['title' => 'Pengaturan Sistem', 'url' => '#', 'icon' => 'sliders'],
-            ['title' => 'Laporan & Analitik', 'url' => '#', 'icon' => 'chart-pie'],
+            ['title' => 'Laporan & Analitik', 'url' => route('admin.reports.index'), 'icon' => 'chart-pie'],
         ];
     }
 @endphp

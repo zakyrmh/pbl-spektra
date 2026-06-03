@@ -8,7 +8,7 @@
 @section('title', 'Verifikasi & Check-In — MPP Kota Sawahlunto')
 
 @section('content')
-    <div class="max-w-4xl mx-auto space-y-6 pb-16">
+    <div class="max-w-4xl mx-auto space-y-6 pb-16" x-data="{ rejectModalOpen: false, rejectReason: '' }">
 
         {{-- ═══════════════════════════════════════════════════════════════
          HEADER
@@ -165,12 +165,16 @@
             </form>
         </div>
 
+        @php
+            $bk = $booking ?? session('booking') ?? null;
+            $isNikRequired = $nik_required ?? session('nik_required') ?? false;
+        @endphp
+
         {{-- ═══════════════════════════════════════════════════════════════
          NIK REQUIRED PANEL — Alert Amber + Inline Form
          Tampil ketika booking ditemukan tapi NIK warga kosong
     ═══════════════════════════════════════════════════════════════ --}}
-        @if (session('nik_required') && session('booking'))
-            @php $bk = session('booking'); @endphp
+        @if ($isNikRequired && $bk)
             <div class="bg-canvas dark:bg-surface-dark-elevated rounded-xl border border-hairline dark:border-white/10 shadow-sm overflow-hidden"
                 id="nik-panel">
 
@@ -185,44 +189,32 @@
                         </svg>
                     </div>
                     <div>
-                        <p class="text-sm font-bold text-amber-800 dark:text-amber-300 font-display">Profil Belum Lengkap —
-                            NIK Kosong</p>
+                        <p class="text-sm font-bold text-amber-800 dark:text-amber-300 font-display">Profil Belum Lengkap — NIK Kosong</p>
                         <p class="text-sm text-amber-700 dark:text-amber-400 font-body mt-0.5">
-                            Data NIK warga <strong>{{ $bk->user->name }}</strong> belum terisi di sistem. Silakan minta KTP
-                            warga dan isikan NIK di bawah ini sebelum melanjutkan check-in.
+                            Data NIK warga <strong>{{ $bk->user->name }}</strong> belum terisi di sistem. Silakan minta KTP warga dan isikan NIK di bawah ini sebelum melanjutkan.
                         </p>
                     </div>
                 </div>
 
                 {{-- Booking Detail + NIK Form --}}
                 <div class="p-5 sm:p-6 space-y-5">
-                    {{-- Detail Booking --}}
                     <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
                         <div>
-                            <span
-                                class="block text-[11px] font-bold text-muted dark:text-on-dark-soft uppercase tracking-wider font-display mb-1">Nama
-                                Warga</span>
+                            <span class="block text-[11px] font-bold text-muted dark:text-on-dark-soft uppercase tracking-wider font-display mb-1">Nama Warga</span>
                             <span class="font-semibold text-ink dark:text-white">{{ $bk->user->name }}</span>
                         </div>
                         <div>
-                            <span
-                                class="block text-[11px] font-bold text-muted dark:text-on-dark-soft uppercase tracking-wider font-display mb-1">Kode
-                                Booking</span>
-                            <span
-                                class="font-mono font-semibold text-primary dark:text-accent-teal">{{ $bk->booking_code }}</span>
+                            <span class="block text-[11px] font-bold text-muted dark:text-on-dark-soft uppercase tracking-wider font-display mb-1">Kode Booking</span>
+                            <span class="font-mono font-semibold text-primary dark:text-accent-teal">{{ $bk->booking_code }}</span>
                         </div>
                         <div>
-                            <span
-                                class="block text-[11px] font-bold text-muted dark:text-on-dark-soft uppercase tracking-wider font-display mb-1">Tanggal</span>
-                            <span
-                                class="text-ink dark:text-white">{{ $bk->booking_date->translatedFormat('d M Y') }}</span>
+                            <span class="block text-[11px] font-bold text-muted dark:text-on-dark-soft uppercase tracking-wider font-display mb-1">Tanggal</span>
+                            <span class="text-ink dark:text-white">{{ $bk->booking_date->translatedFormat('d M Y') }}</span>
                         </div>
                         <div>
-                            <span
-                                class="block text-[11px] font-bold text-muted dark:text-on-dark-soft uppercase tracking-wider font-display mb-1">Status</span>
-                            <span
-                                class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-status-waiting/12 text-status-waiting rounded-full text-[11px] font-bold">
-                                <span class="w-1.5 h-1.5 rounded-full bg-status-waiting"></span>{{ $bk->status }}
+                            <span class="block text-[11px] font-bold text-muted dark:text-on-dark-soft uppercase tracking-wider font-display mb-1">Status</span>
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 rounded-full text-[11px] font-bold border border-amber-200/50">
+                                <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>{{ $bk->status }}
                             </span>
                         </div>
                     </div>
@@ -230,8 +222,7 @@
                     <hr class="border-hairline dark:border-white/10">
 
                     {{-- Inline NIK Form --}}
-                    <form action="{{ route('admin.fo.checkin.verify') }}" method="POST" id="formNikCheckin"
-                        autocomplete="off">
+                    <form action="{{ route('admin.fo.checkin.verify') }}" method="POST" id="formNikCheckin" autocomplete="off">
                         @csrf
                         <input type="hidden" name="booking_code" value="{{ $bk->booking_code }}">
 
@@ -247,18 +238,106 @@
                             </div>
                             <button type="submit"
                                 class="h-14 px-6 bg-status-serving hover:bg-green-700 text-white font-bold rounded-lg text-sm transition-all focus:outline-none focus:ring-4 focus:ring-green-500/30 cursor-pointer flex items-center justify-center gap-2 shrink-0">
-                                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                                    stroke-width="2">
-                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                                 </svg>
-                                Simpan NIK & Check-In
+                                Simpan NIK & Lanjutkan
                             </button>
                         </div>
                         <p class="text-xs text-muted dark:text-on-dark-soft mt-2 font-body">
-                            NIK akan tersimpan ke profil warga dan check-in akan langsung diproses.
+                            NIK akan tersimpan ke profil warga dan detail verifikasi akan ditampilkan kembali.
                         </p>
                     </form>
+                </div>
+            </div>
+        @endif
+
+        {{-- ═══════════════════════════════════════════════════════════════
+         VERIFICATION DETAIL PANEL — Tampil jika booking ditemukan & NIK valid
+    ═══════════════════════════════════════════════════════════════ --}}
+        @if (!$isNikRequired && $bk)
+            <div class="bg-canvas dark:bg-surface-dark-elevated rounded-xl border border-hairline dark:border-white/10 shadow-sm overflow-hidden"
+                id="verification-panel">
+                
+                {{-- Banner Instruksi --}}
+                <div class="flex items-start gap-3 p-4 sm:p-5 bg-primary/5 border-b border-primary/15">
+                    <div class="p-2 bg-primary/10 rounded-lg shrink-0">
+                        <svg class="w-6 h-6 text-primary dark:text-accent-teal" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="text-sm font-bold text-primary dark:text-accent-teal font-display">Langkah Verifikasi Fisik</p>
+                        <p class="text-sm text-body dark:text-on-dark-soft font-body mt-0.5">
+                            Silakan periksa dokumen fisik warga untuk memastikan keabsahan persyaratan layanan sebelum menyetujui.
+                        </p>
+                    </div>
+                </div>
+
+                {{-- Detail Data Warga & Layanan --}}
+                <div class="p-6 space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
+                        <div class="space-y-4">
+                            <h3 class="text-xs font-bold text-muted uppercase tracking-wider font-display">Informasi Pengunjung</h3>
+                            <div class="bg-surface-soft dark:bg-white/5 p-4 rounded-lg space-y-3 border border-hairline dark:border-white/5">
+                                <div class="flex justify-between">
+                                    <span class="text-muted">Nama Lengkap</span>
+                                    <span class="font-bold text-ink dark:text-white">{{ $bk->user->name }}</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-muted">NIK</span>
+                                    <span class="font-mono font-bold text-ink dark:text-white">{{ $bk->user->nik }}</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-muted">Email</span>
+                                    <span class="font-bold text-ink dark:text-white">{{ $bk->user->email }}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="space-y-4">
+                            <h3 class="text-xs font-bold text-muted uppercase tracking-wider font-display">Tujuan Pelayanan</h3>
+                            <div class="bg-surface-soft dark:bg-white/5 p-4 rounded-lg space-y-3 border border-hairline dark:border-white/5">
+                                <div class="flex justify-between">
+                                    <span class="text-muted">Instansi</span>
+                                    <span class="font-bold text-ink dark:text-white">{{ $bk->service->department->name }}</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-muted">Layanan</span>
+                                    <span class="font-bold text-primary dark:text-accent-teal">{{ $bk->service->name }}</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-muted">Jadwal & Sesi</span>
+                                    <span class="font-bold text-ink dark:text-white">{{ $bk->booking_date->translatedFormat('d M Y') }} ({{ $bk->schedule->session_name ?? 'Umum' }})</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Actions block --}}
+                    <div class="pt-6 border-t border-hairline dark:border-white/10 flex flex-col sm:flex-row justify-end gap-3">
+                        {{-- Button Tolak --}}
+                        <button type="button" 
+                                @click="rejectModalOpen = true"
+                                class="inline-flex h-11 items-center justify-center gap-1.5 px-6 bg-status-skipped/10 hover:bg-status-skipped text-status-skipped hover:text-white font-bold text-xs rounded-pill border border-status-skipped/20 transition-all cursor-pointer">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            Tolak Booking
+                        </button>
+
+                        {{-- Button Setujui --}}
+                        <form action="{{ route('admin.fo.checkin.approve', $bk) }}" method="POST">
+                            @csrf
+                            <button type="submit"
+                                class="w-full sm:w-auto h-11 px-8 bg-status-serving hover:bg-green-700 text-white font-bold rounded-pill text-xs shadow-md transition-all cursor-pointer flex items-center justify-center gap-2">
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                Setujui & Terbitkan Antrean
+                            </button>
+                        </form>
+                    </div>
                 </div>
             </div>
         @endif
@@ -267,55 +346,69 @@
          CHECK-IN RESULT CARD — Ditampilkan setelah check-in sukses
     ═══════════════════════════════════════════════════════════════ --}}
         @if (session('checkin_result'))
-            @php $cr = session('checkin_result'); @endphp
+            @php 
+                $cr = session('checkin_result');
+                $queue = $cr->queue;
+            @endphp
             <div class="bg-canvas dark:bg-surface-dark-elevated rounded-xl border-2 border-status-serving/40 shadow-sm overflow-hidden"
                 id="checkin-result-card">
 
-                <div class="flex items-center gap-2 px-5 py-3 bg-status-serving/10 border-b border-status-serving/20">
-                    <svg class="w-5 h-5 text-status-serving" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                        stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <span class="text-sm font-bold text-status-serving font-display">Hasil Check-In</span>
+                <div class="flex items-center justify-between px-5 py-3 bg-status-serving/10 border-b border-status-serving/20 print:hidden">
+                    <div class="flex items-center gap-2">
+                        <svg class="w-5 h-5 text-status-serving" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span class="text-sm font-bold text-status-serving font-display">Check-In Berhasil & Tiket Diterbitkan</span>
+                    </div>
+                    <button onclick="window.print()" class="h-9 px-4 bg-primary hover:bg-primary-hover text-white font-bold rounded-pill text-xs shadow-xs transition-all cursor-pointer flex items-center justify-center gap-1">
+                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                        </svg>
+                        Cetak Karcis
+                    </button>
                 </div>
 
-                <div class="p-5 sm:p-6">
-                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
-                        <div>
-                            <span
-                                class="block text-[11px] font-bold text-muted dark:text-on-dark-soft uppercase tracking-wider font-display mb-1">Nama
-                                Warga</span>
-                            <span class="font-semibold text-ink dark:text-white">{{ $cr->user->name }}</span>
+                {{-- Thermal Ticket Print Container --}}
+                <div class="p-6 sm:p-8 space-y-6">
+                    <div class="text-center space-y-2 pb-6 border-b border-dashed border-hairline dark:border-white/10">
+                        <div class="flex items-center justify-center gap-2 mb-2">
+                            <img src="{{ asset('images/Logo Kota Sawahlunto.webp') }}" alt="Sawahlunto Logo" class="h-8 object-contain">
+                            <div class="text-left">
+                                <h4 class="text-[10px] font-bold uppercase tracking-wider font-display text-muted">Mal Pelayanan Publik</h4>
+                                <h5 class="text-xs font-extrabold uppercase tracking-tight font-display text-ink dark:text-white">Kota Sawahlunto</h5>
+                            </div>
                         </div>
-                        <div>
-                            <span
-                                class="block text-[11px] font-bold text-muted dark:text-on-dark-soft uppercase tracking-wider font-display mb-1">Kode
-                                Booking</span>
-                            <span
-                                class="font-mono font-semibold text-primary dark:text-accent-teal">{{ $cr->booking_code }}</span>
+                        <span class="text-[10px] font-bold text-muted dark:text-on-dark-soft uppercase tracking-wider block font-display">NOMOR ANTREAN</span>
+                        <div class="text-5xl sm:text-6xl font-extrabold text-primary dark:text-accent-teal tracking-tight font-mono">
+                            {{ $queue->queue_number ?? '-' }}
                         </div>
-                        <div>
-                            <span
-                                class="block text-[11px] font-bold text-muted dark:text-on-dark-soft uppercase tracking-wider font-display mb-1">NIK</span>
-                            <span class="font-mono text-ink dark:text-white">{{ $cr->user->nik ?? '-' }}</span>
-                        </div>
-                        <div>
-                            <span
-                                class="block text-[11px] font-bold text-muted dark:text-on-dark-soft uppercase tracking-wider font-display mb-1">Waktu
-                                Check-In</span>
-                            <span
-                                class="font-mono text-ink dark:text-white">{{ $cr->checked_in_at?->format('H:i:s') }}</span>
-                        </div>
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 rounded-full text-xs font-bold border border-green-200/50 print:hidden">
+                            <span class="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
+                            Waiting (Menunggu)
+                        </span>
                     </div>
 
-                    <div class="mt-4 pt-4 border-t border-hairline dark:border-white/10 flex items-center gap-2">
-                        <span
-                            class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-status-serving/12 text-status-serving rounded-full text-xs font-bold">
-                            <span class="w-1.5 h-1.5 rounded-full bg-status-serving"></span>Checked-In
-                        </span>
-                        <span class="text-xs text-muted dark:text-on-dark-soft font-body">— Warga siap menunggu panggilan
-                            antrean.</span>
+                    <div class="space-y-3.5 text-sm font-body">
+                        <div class="flex justify-between gap-4">
+                            <span class="text-muted dark:text-on-dark-soft font-medium">Nama Warga</span>
+                            <span class="font-bold text-ink dark:text-white text-right">{{ $cr->user->name }}</span>
+                        </div>
+                        <div class="flex justify-between gap-4">
+                            <span class="text-muted dark:text-on-dark-soft font-medium">NIK Warga</span>
+                            <span class="font-bold text-ink dark:text-white font-mono text-right">{{ $cr->user->nik ?? '-' }}</span>
+                        </div>
+                        <div class="flex justify-between gap-4">
+                            <span class="text-muted dark:text-on-dark-soft font-medium">Instansi</span>
+                            <span class="font-bold text-ink dark:text-white text-right">{{ $queue->counter->department->name ?? '-' }}</span>
+                        </div>
+                        <div class="flex justify-between gap-4">
+                            <span class="text-muted dark:text-on-dark-soft font-medium">Layanan</span>
+                            <span class="font-bold text-primary dark:text-accent-teal text-right">{{ $cr->service->name }}</span>
+                        </div>
+                        <div class="flex justify-between gap-4">
+                            <span class="text-muted dark:text-on-dark-soft font-medium">Tanggal Check-In</span>
+                            <span class="font-bold text-ink dark:text-white text-right">{{ $cr->checked_in_at?->translatedFormat('d F Y · H:i') }}</span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -325,7 +418,7 @@
          PETUNJUK PENGGUNAAN
     ═══════════════════════════════════════════════════════════════ --}}
         <div
-            class="bg-canvas dark:bg-surface-dark-elevated p-5 sm:p-6 rounded-xl border border-hairline dark:border-white/10 shadow-sm">
+            class="bg-canvas dark:bg-surface-dark-elevated p-5 sm:p-6 rounded-xl border border-hairline dark:border-white/10 shadow-sm print:hidden">
             <h3 class="text-sm font-bold text-ink dark:text-white font-display mb-3">Petunjuk Penggunaan</h3>
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div class="flex gap-3">
@@ -353,13 +446,106 @@
                         class="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 dark:bg-primary/20 text-primary dark:text-accent-teal flex items-center justify-center text-sm font-bold font-mono">
                         3</div>
                     <div>
-                        <p class="text-sm font-semibold text-ink dark:text-white font-display">Verifikasi</p>
-                        <p class="text-xs text-muted dark:text-on-dark-soft font-body mt-0.5">Sistem memvalidasi data. Jika
-                            NIK kosong, isi di tempat lalu check-in.</p>
+                        <p class="text-sm font-semibold text-ink dark:text-white font-display">Verifikasi & Cetak</p>
+                        <p class="text-xs text-muted dark:text-on-dark-soft font-body mt-0.5">Sistem memvalidasi berkas. Pilih Setuju untuk menerbitkan antrean dan cetak karcis.</p>
                     </div>
                 </div>
             </div>
         </div>
+
+        {{-- Rejection Reason Modal Overlay --}}
+        <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 opacity-0 transition-opacity duration-300 pointer-events-none print:hidden"
+             :class="rejectModalOpen ? 'opacity-100 pointer-events-auto' : ''"
+             x-cloak>
+            
+            <div class="bg-canvas dark:bg-surface-dark-elevated rounded-xl p-6 md:p-8 max-w-md w-full border border-hairline dark:border-white/10 shadow-2xl transform scale-95 transition-transform duration-300 relative"
+                 :class="rejectModalOpen ? 'scale-100' : 'scale-95'"
+                 @click.away="rejectModalOpen = false">
+                
+                {{-- Close button --}}
+                <button type="button" 
+                        @click="rejectModalOpen = false" 
+                        class="absolute top-4 right-4 text-muted hover:text-ink dark:hover:text-white p-1 rounded-full hover:bg-surface-soft dark:hover:bg-white/10 transition-colors cursor-pointer">
+                    <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+
+                <h3 class="font-extrabold text-xl text-ink dark:text-white leading-tight font-display mb-2">Tolak Verifikasi Booking</h3>
+                <p class="text-xs text-muted dark:text-on-dark-soft mb-6 font-body">Harap berikan alasan mengapa berkas dokumen warga tidak valid atau tidak lengkap. Alasan akan dikirim ke email warga.</p>
+
+                @if ($bk)
+                {{-- Form input reason --}}
+                <form action="{{ route('admin.fo.checkin.reject', $bk) }}" method="POST" class="space-y-4">
+                    @csrf
+                    <div class="space-y-2">
+                        <label for="reason" class="block text-sm font-bold text-ink dark:text-white font-display">
+                            Alasan Penolakan
+                        </label>
+                        <textarea id="reason" 
+                                  name="reason" 
+                                  rows="3" 
+                                  required 
+                                  x-model="rejectReason"
+                                  placeholder="Contoh: Dokumen persyaratan tidak asli, KTP kadaluarsa, berkas kurang lengkap..." 
+                                  class="w-full text-sm bg-canvas dark:bg-white/5 border border-hairline dark:border-white/15 text-ink dark:text-white rounded-md p-3 focus:border-primary dark:focus:border-accent-teal focus:outline-none focus:ring-3 focus:ring-primary/12 dark:focus:ring-accent-teal/20 transition-all"></textarea>
+                        <p class="text-[10px] text-muted dark:text-on-dark-soft font-body">Minimal 5 karakter.</p>
+                    </div>
+
+                    <div class="pt-4 border-t border-hairline dark:border-white/10 flex justify-end gap-3">
+                        <button type="button" 
+                                @click="rejectModalOpen = false" 
+                                class="h-11 px-5 bg-surface-soft hover:bg-surface-strong dark:bg-white/5 dark:hover:bg-white/10 text-ink dark:text-white font-semibold rounded-pill text-xs border border-hairline dark:border-white/10 transition-all cursor-pointer">
+                            Batal
+                        </button>
+                        <button type="submit" 
+                                :disabled="rejectReason.trim().length < 5"
+                                :class="rejectReason.trim().length < 5 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-red-700'"
+                                class="h-11 px-6 bg-status-skipped text-white font-bold rounded-pill text-xs shadow-md transition-all cursor-pointer flex items-center justify-center gap-1">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            Tolak Booking
+                        </button>
+                    </div>
+                </form>
+                @endif
+            </div>
+        </div>
+
+        {{-- Custom print layout style --}}
+        <style>
+            @media print {
+                body {
+                    background: white !important;
+                    color: black !important;
+                }
+                /* Hide everything except the ticket result card */
+                aside, header, nav, main > div > div:not(#checkin-result-card), #checkin-result-card > div:first-child, form, button, hr {
+                    display: none !important;
+                }
+                main {
+                    padding: 0 !important;
+                    margin: 0 !important;
+                }
+                .min-h-screen, .h-screen {
+                    height: auto !important;
+                    min-height: 0 !important;
+                    padding-left: 0 !important;
+                }
+                #checkin-result-card {
+                    border: none !important;
+                    box-shadow: none !important;
+                    padding: 0 !important;
+                    margin: 0 auto !important;
+                    max-width: 300px !important; /* Standard 80mm printer size width */
+                    text-align: center !important;
+                }
+                #checkin-result-card * {
+                    color: black !important;
+                }
+            }
+        </style>
     </div>
 @endsection
 

@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Counter;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
@@ -32,6 +33,8 @@ class UserSeeder extends Seeder
             ]
         );
 
+        $counter = Counter::where('name', 'like', '%Loket 01%')->first();
+
         // Admin Gerai
         User::updateOrCreate(
             ['email' => 'gerai@mpp-sawahlunto.id'],
@@ -40,6 +43,7 @@ class UserSeeder extends Seeder
                 'email' => 'gerai@mpp-sawahlunto.id',
                 'password' => Hash::make('password'),
                 'role' => 'admin_gerai',
+                'counter_id' => $counter ? $counter->id : null,
             ]
         );
 

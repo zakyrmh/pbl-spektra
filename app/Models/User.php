@@ -15,7 +15,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-#[Fillable(['name', 'nik', 'email', 'phone_number', 'password', 'role', 'instansi', 'nomor_loket', 'is_active', 'last_login_at'])]
+#[Fillable(['name', 'nik', 'email', 'phone_number', 'no_telp', 'password', 'role', 'instansi', 'nomor_loket', 'is_active', 'last_login_at'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -184,6 +184,22 @@ class User extends Authenticatable
     public function feedbacks(): HasMany
     {
         return $this->hasMany(Feedback::class);
+    }
+
+    /**
+     * Accessor untuk keselarasan dengan form no_telp.
+     */
+    public function getNoTelpAttribute(): ?string
+    {
+        return $this->phone_number;
+    }
+
+    /**
+     * Mutator untuk keselarasan dengan form no_telp.
+     */
+    public function setNoTelpAttribute(?string $value): void
+    {
+        $this->attributes['phone_number'] = $value;
     }
 
     /**

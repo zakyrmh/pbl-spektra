@@ -217,6 +217,11 @@
                                                     <span class="w-1.5 h-1.5 rounded-full bg-current"></span>
                                                     {{ $statusText }}
                                                 </span>
+                                                @if($booking->status === 'Cancelled' && $booking->cancel_reason)
+                                                    <div class="text-[11px] text-status-skipped dark:text-red-400 mt-1 font-medium italic max-w-[150px] truncate" title="{{ $booking->cancel_reason }}">
+                                                        Alasan: {{ $booking->cancel_reason }}
+                                                    </div>
+                                                @endif
                                             </td>
                                             <td class="py-4 px-6 text-right whitespace-nowrap">
                                                 <a href="{{ route('booking.show', $booking) }}" class="inline-flex items-center justify-center gap-1 text-xs font-bold text-primary dark:text-accent-teal hover:underline focus-visible:outline-none focus-visible:underline h-9 px-3 hover:bg-primary/5 dark:hover:bg-accent-teal/5 rounded-pill transition-colors cursor-pointer">

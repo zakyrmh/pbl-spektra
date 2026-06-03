@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\FO\BookingCancellationController;
 use App\Http\Controllers\Admin\FO\CheckInController;
 use App\Http\Controllers\Admin\FO\QueueCallController;
 use App\Http\Controllers\AuthController;
@@ -125,6 +126,12 @@ Route::middleware('auth')->group(function () {
             ->name('admin.fo.checkin');
         Route::post('/fo/check-in/verify', [CheckInController::class, 'verify'])
             ->name('admin.fo.checkin.verify');
+
+        // Pembatalan Booking oleh FO
+        Route::get('/fo/bookings', [BookingCancellationController::class, 'index'])
+            ->name('admin.fo.bookings.index');
+        Route::post('/fo/bookings/{booking}/cancel', [BookingCancellationController::class, 'cancel'])
+            ->name('admin.fo.bookings.cancel');
         // Panggilan Antrean FO
         Route::get('/fo/call', [QueueCallController::class, 'index'])
             ->name('admin.fo.call');

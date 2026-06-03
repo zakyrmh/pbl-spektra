@@ -16,6 +16,7 @@ class Booking extends Model
         'schedule_id',
         'booking_code',
         'status',
+        'cancel_reason',
         'booking_date',
         'checked_in_at',
     ];

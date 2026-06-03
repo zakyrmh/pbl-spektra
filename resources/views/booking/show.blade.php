@@ -46,7 +46,18 @@
                 
                 {{-- Queue Number Section (If Checked-In) or Status Badge --}}
                 <div class="text-center space-y-2">
-                    @if($booking->queue)
+                    @if($booking->status === 'Cancelled')
+                        <span class="text-[10px] font-bold text-muted dark:text-on-dark-soft uppercase tracking-wider block font-display">Status Booking</span>
+                        <div class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 rounded-full text-sm font-bold border border-red-200/50">
+                            <span class="w-1.5 h-1.5 rounded-full bg-red-500"></span>
+                            Dibatalkan / Kadaluarsa
+                        </div>
+                        @if($booking->cancel_reason)
+                            <p class="text-xs text-status-skipped dark:text-red-400 mt-2 font-medium italic">
+                                Alasan: {{ $booking->cancel_reason }}
+                            </p>
+                        @endif
+                    @elseif($booking->queue)
                         <span class="text-[10px] font-bold text-muted dark:text-on-dark-soft uppercase tracking-wider block font-display">Nomor Antrean Anda</span>
                         <div class="text-4xl sm:text-5xl font-extrabold text-primary dark:text-accent-teal tracking-tight font-mono">
                             {{ $booking->queue->queue_number }}
@@ -66,7 +77,7 @@
 
                 {{-- QR Code Area --}}
                 <div class="flex flex-col items-center space-y-3">
-                    <div class="bg-white p-4 rounded-lg border border-hairline inline-block shadow-inner mx-auto relative group">
+                    <div class="bg-white p-4 rounded-lg border border-hairline inline-block shadow-inner mx-auto relative group {{ $booking->status === 'Cancelled' ? 'opacity-40 select-none pointer-events-none' : '' }}">
                         <svg class="w-40 h-40 mx-auto" viewBox="0 0 100 100" fill="currentColor">
                             <!-- Positioning Squares -->
                             <rect x="0" y="0" width="25" height="25" fill="#1e293b" />
@@ -115,7 +126,16 @@
                             <circle cx="50" cy="50" r="5" fill="#ffffff" />
                         </svg>
                     </div>
-                    <span class="text-[10px] text-muted font-body tracking-normal text-center">Scan kode ini di barcode reader stasiun check-in Front Office</span>
+                    @if($booking->status === 'Cancelled')
+                        <span class="text-[10px] text-status-skipped dark:text-red-400 font-body font-bold tracking-normal text-center flex items-center gap-1 justify-center">
+                            <svg class="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            Tiket tidak aktif / tidak dapat dipindai
+                        </span>
+                    @else
+                        <span class="text-[10px] text-muted font-body tracking-normal text-center">Scan kode ini di barcode reader stasiun check-in Front Office</span>
+                    @endif
                 </div>
 
                 {{-- Booking UUID & Copy Action --}}
@@ -167,7 +187,7 @@
                         <span class="font-bold text-ink dark:text-white text-right">{{ $booking->schedule->session_name ?? '-' }}</span>
                     </div>
                     
-                    @if(!$booking->queue)
+                    @if($booking->status !== 'Cancelled' && !$booking->queue)
                     <div class="flex justify-between gap-4 pt-3 border-t border-hairline dark:border-white/10">
                         <span class="text-muted dark:text-on-dark-soft font-medium flex items-center gap-1">
                             Estimasi Urutan
@@ -182,17 +202,31 @@
                 </div>
 
                 {{-- Important notes (Hidden in print) --}}
-                <div class="bg-amber-500/5 dark:bg-amber-400/5 border border-amber-500/15 p-4 rounded-lg space-y-1.5 print:hidden">
-                    <h4 class="text-xs font-bold text-amber-800 dark:text-amber-400 font-display flex items-center gap-1">
-                        <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                        </svg>
-                        PENTING: Langkah Konfirmasi
-                    </h4>
-                    <p class="text-[11px] text-amber-700 dark:text-amber-400/90 leading-relaxed font-body">
-                        Tiket ini belum sah dipanggil sebelum Anda melakukan <strong>Check-In di loket Front Office MPP</strong> dengan memindai kode QR di atas. Datang paling lambat 15 menit sebelum sesi dimulai.
-                    </p>
-                </div>
+                @if($booking->status === 'Cancelled')
+                    <div class="bg-red-500/5 dark:bg-red-400/5 border border-red-500/15 p-4 rounded-lg space-y-1.5 print:hidden">
+                        <h4 class="text-xs font-bold text-red-800 dark:text-red-400 font-display flex items-center gap-1">
+                            <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                            </svg>
+                            TIKET TIDAK VALID
+                        </h4>
+                        <p class="text-[11px] text-red-700 dark:text-red-400/90 leading-relaxed font-body">
+                            Tiket booking antrean ini telah dibatalkan atau telah melewati batas waktu check-in (kadaluarsa). Tiket ini tidak dapat digunakan lagi untuk melakukan check-in di loket.
+                        </p>
+                    </div>
+                @else
+                    <div class="bg-amber-500/5 dark:bg-amber-400/5 border border-amber-500/15 p-4 rounded-lg space-y-1.5 print:hidden">
+                        <h4 class="text-xs font-bold text-amber-800 dark:text-amber-400 font-display flex items-center gap-1">
+                            <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                            </svg>
+                            PENTING: Langkah Konfirmasi
+                        </h4>
+                        <p class="text-[11px] text-amber-700 dark:text-amber-400/90 leading-relaxed font-body">
+                            Tiket ini belum sah dipanggil sebelum Anda melakukan <strong>Check-In di loket Front Office MPP</strong> dengan memindai kode QR di atas. Datang paling lambat 15 menit sebelum sesi dimulai.
+                        </p>
+                    </div>
+                @endif
 
             </div>
             

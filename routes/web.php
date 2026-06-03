@@ -11,6 +11,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PublicController;
 use App\Http\Controllers\QueueMonitorController;
 use App\Http\Controllers\SessionManagementController;
+use App\Http\Controllers\SettingController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\WalkInTicketController;
 use App\Mail\TestEmail;
@@ -115,6 +116,10 @@ Route::middleware('auth')->group(function () {
         Route::post('/konfigurasi-gerai-loket/services', [GeraiLoketController::class, 'storeService'])->name('config.services.store');
         Route::put('/konfigurasi-gerai-loket/services/{service}', [GeraiLoketController::class, 'updateService'])->name('config.services.update');
         Route::delete('/konfigurasi-gerai-loket/services/{service}', [GeraiLoketController::class, 'destroyService'])->name('config.services.destroy');
+
+        // Pengaturan Sistem
+        Route::get('/pengaturan-sistem', [SettingController::class, 'index'])->name('admin.settings.index');
+        Route::put('/pengaturan-sistem', [SettingController::class, 'update'])->name('admin.settings.update');
     });
 
     // Khusus Admin FO

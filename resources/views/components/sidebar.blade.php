@@ -31,7 +31,7 @@
             ['title' => 'Dashboard Utama', 'url' => route('dashboard'), 'icon' => 'home'],
             ['title' => 'Manajemen Pengguna', 'url' => route('users.index'), 'icon' => 'users'],
             ['title' => 'Konfigurasi Gerai', 'url' => route('config.index'), 'icon' => 'settings'],
-            ['title' => 'Pengaturan Sistem', 'url' => '#', 'icon' => 'sliders'],
+            ['title' => 'Pengaturan Sistem', 'url' => route('admin.settings.index'), 'icon' => 'sliders'],
             ['title' => 'Laporan & Analitik', 'url' => '#', 'icon' => 'chart-pie'],
         ];
     }

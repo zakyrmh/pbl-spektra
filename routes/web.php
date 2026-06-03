@@ -3,10 +3,15 @@
 use App\Http\Controllers\Admin\FO\CheckInController;
 use App\Http\Controllers\Admin\FO\QueueCallController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\CounterController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\FeedbackController;
 use App\Http\Controllers\GeraiLoketController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PublicController;
 use App\Http\Controllers\QueueMonitorController;
+use App\Http\Controllers\SessionManagementController;
+use App\Http\Controllers\UserController;
 use App\Http\Controllers\WalkInTicketController;
 use App\Mail\TestEmail;
 use Illuminate\Support\Facades\Mail;
@@ -22,6 +27,8 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', [PublicController::class, 'index'])->name('home');
 Route::get('/cek-antrean', [PublicController::class, 'checkQueue'])->name('public.check');
+Route::get('/display', [QueueMonitorController::class, 'publicDisplay'])->name('display.index');
+Route::get('/api/display/data', [QueueMonitorController::class, 'publicDisplayData'])->name('display.data');
 
 /*
 |--------------------------------------------------------------------------
@@ -61,6 +68,18 @@ Route::middleware('auth')->group(function () {
     // Dashboard Utama
     Route::get('/dashboard', [DashboardController::class, 'index'])
         ->name('dashboard');
+
+    // Pusat Notifikasi
+    Route::get('/notifikasi', [NotificationController::class, 'index'])
+        ->name('notifications.index');
+    Route::get('/notifikasi/{notification}', [NotificationController::class, 'show'])
+        ->name('notifications.show');
+
+    // Feedback & Rating Pelayanan
+    Route::get('/feedback/create', [FeedbackController::class, 'create'])
+        ->name('feedback.create');
+    Route::post('/feedback', [FeedbackController::class, 'store'])
+        ->name('feedback.store');
 
     // ── Super Admin: Manajemen Pengguna ──────────────────────────────────────
     Route::middleware('role:super_admin')->group(function () {
@@ -128,8 +147,20 @@ Route::middleware('auth')->group(function () {
 
     // Khusus Admin Gerai
     Route::middleware('role:admin_gerai')->group(function () {
-        Route::get('/antrean', [DashboardController::class, 'manageQueue'])
+        Route::get('/antrean', [CounterController::class, 'dashboard'])
             ->name('antrean.index');
+
+        // API Endpoints for Gerai operations
+        Route::post('/api/counter/status', [CounterController::class, 'updateStatus'])
+            ->name('gerai.status');
+        Route::post('/api/queues/call-next', [CounterController::class, 'callNext'])
+            ->name('gerai.call-next');
+        Route::post('/api/queues/{queue}/call', [CounterController::class, 'callQueue'])
+            ->name('gerai.call');
+        Route::post('/api/queues/{queue}/finish', [CounterController::class, 'finishService'])
+            ->name('gerai.finish');
+        Route::post('/api/queues/{queue}/skip', [CounterController::class, 'skipQueue'])
+            ->name('gerai.skip');
     });
 
     // Proses Logout

@@ -16,8 +16,8 @@ class DashboardController extends Controller
     {
         $role = Auth::user()->role;
         $role = $role instanceof \BackedEnum ? $role->value : ($role ?? 'pengunjung');
-        if ($role === 'warga') {
-            $role = 'pengunjung';
+        if ($role === 'admin_gerai') {
+            return redirect()->route('antrean.index');
         }
 
         $data = [];

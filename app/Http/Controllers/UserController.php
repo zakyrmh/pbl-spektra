@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Enums\UserRole;
 use App\Models\ActivityLog;
+use App\Models\Booking;
+use App\Models\Queue;
 use App\Models\User;
 use App\Services\AuditLogger;
 use Illuminate\Http\Request;
@@ -191,6 +193,23 @@ class UserController extends Controller
     public function destroy(User $user)
     {
         $this->authorize('delete', $user);
+
+        // Cek apakah user memiliki Booking Aktif (Pending, Checked-In)
+        $hasActiveBooking = Booking::where('user_id', $user->id)
+            ->whereIn('status', ['Pending', 'Checked-In'])
+            ->exists();
+
+        // Cek apakah user memiliki Antrean Aktif (Waiting, Serving)
+        $hasActiveQueue = Queue::whereHas('booking', function ($query) use ($user) {
+            $query->where('user_id', $user->id);
+        })
+            ->whereIn('status', ['Waiting', 'Serving'])
+            ->exists();
+
+        if ($hasActiveBooking || $hasActiveQueue) {
+            return redirect()->route('users.index')
+                ->with('error', 'Gagal! Akun sedang aktif di antrean atau memiliki booking aktif.');
+        }
 
         // Log sebelum dihapus agar snapshot tetap tersedia
         AuditLogger::userDeleted($user);

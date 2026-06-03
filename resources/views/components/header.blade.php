@@ -28,12 +28,17 @@
         </button>
         
         {{-- Notification Bell --}}
-        <button class="relative w-11 h-11 flex items-center justify-center text-muted dark:text-on-dark-soft hover:text-primary dark:hover:text-white hover:bg-surface-soft dark:hover:bg-white/5 rounded-full transition-all duration-150 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-accent-teal">
+        <a href="{{ route('notifications.index') }}" class="relative w-11 h-11 flex items-center justify-center text-muted dark:text-on-dark-soft hover:text-primary dark:hover:text-white hover:bg-surface-soft dark:hover:bg-white/5 rounded-full transition-all duration-150 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-accent-teal" aria-label="Notifikasi">
             <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
             </svg>
-            <span class="absolute top-2 right-2 block w-2.5 h-2.5 rounded-full bg-status-skipped ring-2 ring-canvas dark:ring-surface-dark-elevated shadow-sm animate-pulse"></span>
-        </button>
+            @php
+                $unreadCount = \App\Models\Notification::where('user_id', Auth::id())->whereNull('read_at')->count();
+            @endphp
+            @if ($unreadCount > 0)
+                <span class="absolute top-2 right-2 block w-2.5 h-2.5 rounded-full bg-status-skipped ring-2 ring-canvas dark:ring-surface-dark-elevated shadow-sm animate-pulse"></span>
+            @endif
+        </a>
 
         {{-- Divider --}}
         <div class="hidden sm:block w-px h-8 bg-hairline dark:bg-white/10"></div>

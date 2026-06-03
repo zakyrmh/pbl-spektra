@@ -62,7 +62,7 @@
                         </label>
                         <input type="date" id="start_date" name="start_date"
                             value="{{ old('start_date', $report->start_date->format('Y-m-d')) }}"
-                            class="w-full h-12 bg-surface-soft dark:bg-white/5 border border-hairline dark:border-white/10 text-ink dark:text-white rounded-md px-4 font-semibold focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-accent-teal @error('start_date') border-status-skipped @enderror">
+                            class="w-full h-12 bg-surface-soft dark:bg-white/5 border text-ink dark:text-white rounded-md px-4 font-semibold focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-accent-teal {{ $errors->has('start_date') ? 'border-status-skipped' : 'border-hairline dark:border-white/10' }}">
                         @error('start_date')
                             <p class="text-xs text-status-skipped font-semibold mt-1 font-body">{{ $message }}</p>
                         @enderror
@@ -75,7 +75,7 @@
                         </label>
                         <input type="date" id="end_date" name="end_date"
                             value="{{ old('end_date', $report->end_date->format('Y-m-d')) }}"
-                            class="w-full h-12 bg-surface-soft dark:bg-white/5 border border-hairline dark:border-white/10 text-ink dark:text-white rounded-md px-4 font-semibold focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-accent-teal @error('end_date') border-status-skipped @enderror">
+                            class="w-full h-12 bg-surface-soft dark:bg-white/5 border text-ink dark:text-white rounded-md px-4 font-semibold focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-accent-teal {{ $errors->has('end_date') ? 'border-status-skipped' : 'border-hairline dark:border-white/10' }}">
                         @error('end_date')
                             <p class="text-xs text-status-skipped font-semibold mt-1 font-body">{{ $message }}</p>
                         @enderror

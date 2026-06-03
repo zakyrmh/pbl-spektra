@@ -167,6 +167,26 @@ class User extends Authenticatable
     }
 
     /**
+     * Get the notifications for the user.
+     *
+     * @return HasMany<Notification>
+     */
+    public function notifications(): HasMany
+    {
+        return $this->hasMany(Notification::class);
+    }
+
+    /**
+     * Get the feedbacks submitted by the user.
+     *
+     * @return HasMany<Feedback>
+     */
+    public function feedbacks(): HasMany
+    {
+        return $this->hasMany(Feedback::class);
+    }
+
+    /**
      * Sesi loket fisik petugas.
      */
     public function counter(): BelongsTo

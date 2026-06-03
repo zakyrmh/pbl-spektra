@@ -328,7 +328,7 @@ class CheckInController extends Controller
             $queue = DB::transaction(function () use ($booking, $today) {
                 // UPDATE status booking
                 $booking->update([
-                    'status' => 'Confirmed',
+                    'status' => 'Checked-In',
                     'checked_in_at' => now(),
                 ]);
 

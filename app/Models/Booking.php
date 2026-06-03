@@ -13,6 +13,7 @@ class Booking extends Model
     protected $fillable = [
         'user_id',
         'service_id',
+        'schedule_id',
         'booking_code',
         'status',
         'booking_date',
@@ -23,6 +24,16 @@ class Booking extends Model
         'booking_date' => 'date',
         'checked_in_at' => 'datetime',
     ];
+
+    /**
+     * Get the schedule for this booking.
+     *
+     * @return BelongsTo<Schedule, $this>
+     */
+    public function schedule(): BelongsTo
+    {
+        return $this->belongsTo(Schedule::class);
+    }
 
     /**
      * Get the customer that made this booking.

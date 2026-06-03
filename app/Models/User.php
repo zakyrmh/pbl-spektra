@@ -193,4 +193,14 @@ class User extends Authenticatable
     {
         return $this->belongsTo(Counter::class);
     }
+
+    /**
+     * Bookings made by this user (customer).
+     *
+     * @return HasMany<Booking>
+     */
+    public function bookings(): HasMany
+    {
+        return $this->hasMany(Booking::class);
+    }
 }

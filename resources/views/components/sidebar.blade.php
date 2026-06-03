@@ -5,8 +5,8 @@
     if ($role === 'pengunjung') {
         $menu = [
             ['title' => 'Dashboard', 'url' => route('dashboard'), 'icon' => 'home'],
-            ['title' => 'Ambil Antrean', 'url' => '#', 'icon' => 'ticket'],
-            ['title' => 'Riwayat Antrean', 'url' => '#', 'icon' => 'clock'],
+            ['title' => 'Ambil Antrean', 'url' => route('booking.create'), 'icon' => 'ticket'],
+            ['title' => 'Riwayat Antrean', 'url' => route('booking.index'), 'icon' => 'clock'],
             ['title' => 'Panduan Layanan', 'url' => '#', 'icon' => 'book-open'],
             ['title' => 'Profil Saya', 'url' => route('profile.edit'), 'icon' => 'user'],
         ];

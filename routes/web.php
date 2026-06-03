@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\FO\CheckInController;
 use App\Http\Controllers\Admin\FO\QueueCallController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\BookingController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\GeraiLoketController;
 use App\Http\Controllers\ProfileController;
@@ -70,6 +71,16 @@ Route::middleware('auth')->group(function () {
         ->name('profile.edit');
     Route::put('/profil', [ProfileController::class, 'update'])
         ->name('profile.update');
+
+    // Booking Antrean Mandiri
+    Route::get('/booking', [BookingController::class, 'index'])
+        ->name('booking.index');
+    Route::get('/booking/baru', [BookingController::class, 'create'])
+        ->name('booking.create');
+    Route::post('/booking', [BookingController::class, 'store'])
+        ->name('booking.store');
+    Route::get('/booking/{booking}', [BookingController::class, 'show'])
+        ->name('booking.show');
 
     // ── Super Admin: Manajemen Pengguna ──────────────────────────────────────
     Route::middleware('role:super_admin')->group(function () {

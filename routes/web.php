@@ -5,8 +5,11 @@ use App\Http\Controllers\Admin\FO\QueueCallController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\GeraiLoketController;
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PublicController;
 use App\Http\Controllers\QueueMonitorController;
+use App\Http\Controllers\SessionManagementController;
+use App\Http\Controllers\UserController;
 use App\Http\Controllers\WalkInTicketController;
 use App\Mail\TestEmail;
 use Illuminate\Support\Facades\Mail;
@@ -61,6 +64,12 @@ Route::middleware('auth')->group(function () {
     // Dashboard Utama
     Route::get('/dashboard', [DashboardController::class, 'index'])
         ->name('dashboard');
+
+    // Profil Pengunjung
+    Route::get('/profil', [ProfileController::class, 'edit'])
+        ->name('profile.edit');
+    Route::put('/profil', [ProfileController::class, 'update'])
+        ->name('profile.update');
 
     // ── Super Admin: Manajemen Pengguna ──────────────────────────────────────
     Route::middleware('role:super_admin')->group(function () {

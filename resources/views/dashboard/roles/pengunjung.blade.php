@@ -21,7 +21,7 @@
                     <div>
                         <h4 class="font-bold text-sm text-white font-display">Profil Belum Lengkap</h4>
                         <p class="text-xs text-white/90 mt-0.5 font-body">NIK Anda belum terverifikasi. Lengkapi NIK Anda pada menu profil untuk mempermudah pendaftaran dan pencetakan tiket di MPP.</p>
-                        <a href="#" class="inline-flex items-center gap-1 text-xs font-bold text-accent-gold hover:text-accent-gold/90 mt-2 transition-colors focus-visible:outline-none focus-visible:underline">
+                        <a href="{{ route('profile.edit') }}" class="inline-flex items-center gap-1 text-xs font-bold text-accent-gold hover:text-accent-gold/90 mt-2 transition-colors focus-visible:outline-none focus-visible:underline">
                             Lengkapi Sekarang
                             <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
                         </a>

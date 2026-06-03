@@ -8,6 +8,7 @@
             ['title' => 'Ambil Antrean', 'url' => '#', 'icon' => 'ticket'],
             ['title' => 'Riwayat Antrean', 'url' => '#', 'icon' => 'clock'],
             ['title' => 'Panduan Layanan', 'url' => '#', 'icon' => 'book-open'],
+            ['title' => 'Profil Saya', 'url' => route('profile.edit'), 'icon' => 'user'],
         ];
     } elseif ($role === 'admin_fo') {
         $menu = [
@@ -118,6 +119,11 @@
                         <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round"
                                 d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    @elseif($item['icon'] == 'user')
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                         </svg>
                     @elseif($item['icon'] == 'book-open')
                         <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">

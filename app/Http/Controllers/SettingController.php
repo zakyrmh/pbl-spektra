@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Enums\UserRole;
 use App\Models\Setting;
 use App\Services\AuditLogger;
 use Illuminate\Http\RedirectResponse;
@@ -19,7 +20,7 @@ class SettingController extends Controller
     public function index(): View
     {
         // Hanya Super Admin yang boleh masuk
-        if (Auth::user()->role !== 'super_admin') {
+        if (Auth::user()->role !== UserRole::SuperAdmin) {
             abort(403, 'Anda tidak memiliki hak akses untuk halaman ini.');
         }
 
@@ -35,7 +36,7 @@ class SettingController extends Controller
     public function update(Request $request): RedirectResponse
     {
         // Hanya Super Admin yang boleh melakukan aksi ini
-        if (Auth::user()->role !== 'super_admin') {
+        if (Auth::user()->role !== UserRole::SuperAdmin) {
             abort(403, 'Anda tidak memiliki hak akses untuk halaman ini.');
         }
 

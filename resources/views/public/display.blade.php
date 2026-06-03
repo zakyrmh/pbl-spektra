@@ -26,7 +26,7 @@
     </div>
 
     <!-- Grid Loket -->
-    <div class="flex-grow grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 py-6 overflow-y-auto" id="monitorGrid">
+    <div class="grow grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 py-6 overflow-y-auto" id="monitorGrid">
         @foreach($counters as $counter)
         @php
             $activeQueue = $counter->queues->first();
@@ -75,7 +75,7 @@
         <div class="shrink-0 bg-primary/20 text-accent-teal px-3 py-1.5 rounded-md text-xs font-bold border border-primary/30 uppercase tracking-wider z-10">
             Pengumuman
         </div>
-        <div class="flex-grow overflow-hidden relative w-full">
+        <div class="grow overflow-hidden relative w-full">
             <!-- Scrolling text -->
             <div class="whitespace-nowrap text-sm text-on-dark-soft animate-[marquee_25s_linear_infinite] inline-block hover:[animation-play-state:paused]" id="marqueeText">
                 {{ $marqueeText }}

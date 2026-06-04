@@ -131,6 +131,44 @@ class DashboardController extends Controller
                 'todayFoQueueCount' => $todayFoQueueCount,
                 'todayTotalPrintedTickets' => $todayTotalPrintedTickets,
             ];
+        } elseif ($role === 'pengunjung') {
+            $activeBooking = Booking::where('user_id', Auth::id())
+                ->whereIn('status', ['Pending', 'Checked-In'])
+                ->with(['service.department', 'queue'])
+                ->latest()
+                ->first();
+
+            $currentServingQueue = 'Belum Mulai';
+            $remainingQueuesCount = 0;
+            $estimatedTime = 0;
+
+            if ($activeBooking && $activeBooking->queue) {
+                $queue = $activeBooking->queue;
+
+                $currentServing = QueueModel::where('counter_id', $queue->counter_id)
+                    ->whereDate('queue_date', now()->toDateString())
+                    ->where('status', 'Serving')
+                    ->first();
+
+                if ($currentServing) {
+                    $currentServingQueue = $currentServing->queue_number;
+                }
+
+                $remainingQueuesCount = QueueModel::where('counter_id', $queue->counter_id)
+                    ->whereDate('queue_date', now()->toDateString())
+                    ->where('status', 'Waiting')
+                    ->where('id', '<', $queue->id)
+                    ->count();
+
+                $estimatedTime = $remainingQueuesCount * 3;
+            }
+
+            $data = [
+                'activeBooking' => $activeBooking,
+                'currentServingQueue' => $currentServingQueue,
+                'remainingQueuesCount' => $remainingQueuesCount,
+                'estimatedTime' => $estimatedTime,
+            ];
         }
 
         return view('dashboard.dashboard', $data);

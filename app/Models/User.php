@@ -15,7 +15,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-#[Fillable(['name', 'nik', 'email', 'phone_number', 'no_telp', 'password', 'role', 'instansi', 'nomor_loket', 'is_active', 'last_login_at'])]
+#[Fillable(['name', 'nik', 'email', 'phone_number', 'avatar_path', 'ktp_photo_path', 'password', 'role', 'instansi', 'nomor_loket', 'is_active', 'last_login_at'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -141,6 +141,26 @@ class User extends Authenticatable
             && $this->last_login_at->diffInMinutes(now()) <= 15;
     }
 
+    /**
+     * Get the public URL of the user's avatar.
+     */
+    public function getAvatarUrlAttribute(): string
+    {
+        return $this->avatar_path
+            ? asset('storage/'.$this->avatar_path)
+            : 'https://ui-avatars.com/api/?name='.urlencode($this->name).'&color=1B4FA8&background=EFF2F7';
+    }
+
+    /**
+     * Get the public URL of the user's KTP photo.
+     */
+    public function getKtpPhotoUrlAttribute(): ?string
+    {
+        return $this->ktp_photo_path
+            ? asset('storage/'.$this->ktp_photo_path)
+            : null;
+    }
+
     // ──────────────────────────────────────────────────
     // Relationships
     // ──────────────────────────────────────────────────
@@ -208,5 +228,15 @@ class User extends Authenticatable
     public function counter(): BelongsTo
     {
         return $this->belongsTo(Counter::class);
+    }
+
+    /**
+     * Bookings made by this user (customer).
+     *
+     * @return HasMany<Booking>
+     */
+    public function bookings(): HasMany
+    {
+        return $this->hasMany(Booking::class);
     }
 }

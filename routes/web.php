@@ -1,13 +1,13 @@
 <?php
 
+use App\Http\Controllers\Admin\FO\BookingCancellationController;
 use App\Http\Controllers\Admin\FO\CheckInController;
 use App\Http\Controllers\Admin\FO\QueueCallController;
 use App\Http\Controllers\AuthController;
-use App\Http\Controllers\CounterController;
+use App\Http\Controllers\BookingController;
 use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\FeedbackController;
 use App\Http\Controllers\GeraiLoketController;
-use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PublicController;
 use App\Http\Controllers\QueueMonitorController;
 use App\Http\Controllers\SessionManagementController;
@@ -69,17 +69,21 @@ Route::middleware('auth')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])
         ->name('dashboard');
 
-    // Pusat Notifikasi
-    Route::get('/notifikasi', [NotificationController::class, 'index'])
-        ->name('notifications.index');
-    Route::get('/notifikasi/{notification}', [NotificationController::class, 'show'])
-        ->name('notifications.show');
+    // Profil Pengunjung
+    Route::get('/profil', [ProfileController::class, 'edit'])
+        ->name('profile.edit');
+    Route::put('/profil', [ProfileController::class, 'update'])
+        ->name('profile.update');
 
-    // Feedback & Rating Pelayanan
-    Route::get('/feedback/create', [FeedbackController::class, 'create'])
-        ->name('feedback.create');
-    Route::post('/feedback', [FeedbackController::class, 'store'])
-        ->name('feedback.store');
+    // Booking Antrean Mandiri
+    Route::get('/booking', [BookingController::class, 'index'])
+        ->name('booking.index');
+    Route::get('/booking/baru', [BookingController::class, 'create'])
+        ->name('booking.create');
+    Route::post('/booking', [BookingController::class, 'store'])
+        ->name('booking.store');
+    Route::get('/booking/{booking}', [BookingController::class, 'show'])
+        ->name('booking.show');
 
     // ── Super Admin: Manajemen Pengguna ──────────────────────────────────────
     Route::middleware('role:super_admin')->group(function () {
@@ -124,6 +128,12 @@ Route::middleware('auth')->group(function () {
             ->name('admin.fo.checkin');
         Route::post('/fo/check-in/verify', [CheckInController::class, 'verify'])
             ->name('admin.fo.checkin.verify');
+
+        // Pembatalan Booking oleh FO
+        Route::get('/fo/bookings', [BookingCancellationController::class, 'index'])
+            ->name('admin.fo.bookings.index');
+        Route::post('/fo/bookings/{booking}/cancel', [BookingCancellationController::class, 'cancel'])
+            ->name('admin.fo.bookings.cancel');
         // Panggilan Antrean FO
         Route::get('/fo/call', [QueueCallController::class, 'index'])
             ->name('admin.fo.call');

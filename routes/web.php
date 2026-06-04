@@ -10,6 +10,7 @@ use App\Http\Controllers\GeraiLoketController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PublicController;
 use App\Http\Controllers\QueueMonitorController;
+use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SessionManagementController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\WalkInTicketController;
@@ -117,6 +118,10 @@ Route::middleware('auth')->group(function () {
         Route::post('/konfigurasi-gerai-loket/services', [GeraiLoketController::class, 'storeService'])->name('config.services.store');
         Route::put('/konfigurasi-gerai-loket/services/{service}', [GeraiLoketController::class, 'updateService'])->name('config.services.update');
         Route::delete('/konfigurasi-gerai-loket/services/{service}', [GeraiLoketController::class, 'destroyService'])->name('config.services.destroy');
+
+        // Laporan & Analitik Super Admin
+        Route::get('admin/laporan', [ReportController::class, 'superAdminIndex'])->name('admin.reports.index');
+        Route::get('admin/laporan/{report}', [ReportController::class, 'superAdminShow'])->name('admin.reports.show');
     });
 
     // Khusus Admin FO
@@ -157,6 +162,12 @@ Route::middleware('auth')->group(function () {
         Route::post('/api/fo/bookings/{booking}/checkin', [CheckInController::class, 'checkInApi'])->name('api.fo.bookings.checkin');
         Route::post('/api/fo/queues/walkin', [CheckInController::class, 'walkInApi'])->name('api.fo.queues.walkin');
         Route::get('/api/fo/visitors/check-nik', [CheckInController::class, 'checkNikApi'])->name('api.fo.visitors.check-nik');
+
+        // Pengelolaan Laporan FO
+        Route::resource('fo/laporan', ReportController::class)->names('reports')->parameters([
+            'laporan' => 'report',
+        ]);
+        Route::post('fo/laporan/{report}/send', [ReportController::class, 'send'])->name('reports.send');
     });
 
     // Khusus Admin Gerai

@@ -19,7 +19,6 @@ class DatabaseSeeder extends Seeder
             ServiceAndCounterSeeder::class,
             UserSeeder::class,
             SettingsSeeder::class,
-            QueueHistorySeeder::class,
         ]);
     }
 }

@@ -31,7 +31,7 @@ beforeEach(function () {
         'department_id' => $this->department->id,
         'name' => 'Loket Disdukcapil 1',
         'location' => 'Lantai 1 Gerai 23',
-        'status' => 'active',
+        'status' => 'aktif',
         'counter_number' => 1,
     ]);
 

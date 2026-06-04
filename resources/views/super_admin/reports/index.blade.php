@@ -1,92 +1,108 @@
-{{--
-    Halaman: Inbox Laporan Masuk (Super Admin)
-    Role   : Super Admin
-    Route  : admin.reports.index (GET)
---}}
 @extends('layouts.private')
 
 @section('title', 'Laporan & Analitik — MPP Kota Sawahlunto')
 
 @section('content')
-    <div class="max-w-7xl mx-auto space-y-6 pb-16">
-
+    <div class="max-w-6xl mx-auto space-y-6 pb-16">
         {{-- Header --}}
-        <div>
-            <h1 class="text-2xl font-bold text-ink dark:text-white font-display">Laporan & Analitik Pelayanan</h1>
-            <p class="text-sm text-muted dark:text-on-dark-soft font-body mt-0.5">
-                Daftar laporan kompilasi kinerja loket dan antrean warga yang telah dikirim oleh Front Office.
-            </p>
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-hairline dark:border-white/10 pb-6">
+            <div>
+                <div class="flex items-center gap-2 mb-1">
+                    <span class="text-[11px] font-bold text-primary dark:text-accent-teal uppercase tracking-widest font-display">Pusat Laporan & Data</span>
+                </div>
+                <h1 class="text-2xl sm:text-3xl font-bold text-ink dark:text-white font-display tracking-tight">Laporan & Analitik Kinerja</h1>
+                <p class="text-sm text-muted dark:text-on-dark-soft font-body mt-0.5">Tinjau laporan kinerja pelayanan yang dikirim oleh Front Office dan unduh visualisasi data & rekapitulasi lengkap.</p>
+            </div>
         </div>
 
-        {{-- Tabel Daftar Laporan Masuk --}}
-        <div class="bg-canvas dark:bg-surface-dark-elevated rounded-xl border border-hairline dark:border-white/10 shadow-sm overflow-hidden">
-            @if ($reports->isEmpty())
-                <div class="flex flex-col items-center justify-center p-12 text-center">
-                    <div class="p-4 bg-primary/5 dark:bg-accent-teal/5 text-primary dark:text-accent-teal rounded-full mb-4">
-                        <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                        </svg>
-                    </div>
-                    <h3 class="text-sm font-bold text-ink dark:text-white font-display">Belum Ada Laporan Masuk</h3>
-                    <p class="text-xs text-muted dark:text-on-dark-soft font-body max-w-xs mt-1.5">
-                        Belum ada laporan pelayanan dari Front Office yang dikirim ke Super Admin.
-                    </p>
+        {{-- Alerts --}}
+        @if (session('success'))
+            <div class="flex items-start gap-3 p-4 bg-status-serving/10 border border-status-serving/30 rounded-lg animate-pulse" role="alert">
+                <svg class="w-5 h-5 text-status-serving shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <div class="flex-1 min-w-0">
+                    <p class="text-sm font-semibold text-status-serving font-display">Berhasil</p>
+                    <p class="text-sm text-green-800 dark:text-green-300 font-body mt-0.5">{{ session('success') }}</p>
                 </div>
-            @else
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse">
-                        <thead>
-                            <tr class="border-b border-hairline dark:border-white/10 bg-surface-soft/40 dark:bg-white/2 text-xs font-bold text-muted dark:text-on-dark-soft uppercase tracking-wider font-display">
-                                <th class="px-6 py-4">Nama Laporan</th>
-                                <th class="px-6 py-4">Periode Tanggal</th>
-                                <th class="px-6 py-4 text-center">Total Kunjungan</th>
-                                <th class="px-6 py-4">Front Office</th>
-                                <th class="px-6 py-4">Tanggal Terima</th>
-                                <th class="px-6 py-4 text-right">Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-hairline dark:divide-white/5 text-sm font-body">
-                            @foreach ($reports as $report)
-                                <tr class="hover:bg-surface-soft/20 dark:hover:bg-white/1 transition-colors">
-                                    <td class="px-6 py-4 font-bold text-ink dark:text-white font-display">
-                                        {{ $report->title }}
-                                    </td>
-                                    <td class="px-6 py-4 font-mono text-xs text-muted dark:text-on-dark-soft">
-                                        {{ $report->start_date->translatedFormat('d M Y') }} - {{ $report->end_date->translatedFormat('d M Y') }}
-                                    </td>
-                                    <td class="px-6 py-4 text-center font-mono font-bold text-ink dark:text-white">
-                                        {{ $report->data_summary['total_visitors'] ?? 0 }}
-                                    </td>
-                                    <td class="px-6 py-4 font-semibold text-ink dark:text-white">
-                                        {{ $report->creator ? $report->creator->name : 'Sistem' }}
-                                    </td>
-                                    <td class="px-6 py-4 text-muted dark:text-on-dark-soft font-mono text-xs">
-                                        {{ $report->updated_at->translatedFormat('d M Y, H:i') }}
-                                    </td>
-                                    <td class="px-6 py-4 text-right">
-                                        <a href="{{ route('admin.reports.show', $report->id) }}"
-                                            class="h-9 px-4 bg-primary hover:bg-primary-hover text-white font-bold rounded-md text-xs transition-all shadow-sm hover:shadow inline-flex items-center gap-1 cursor-pointer focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-accent-teal">
-                                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                                <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                                <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                            </svg>
-                                            Tinjau Kinerja
-                                        </a>
-                                    </td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
+                <button onclick="this.closest('[role=alert]').remove()" class="shrink-0 text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-200 transition-colors cursor-pointer">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+        @endif
 
-                {{-- Pagination --}}
-                @if ($reports->hasPages())
-                    <div class="px-6 py-4 border-t border-hairline dark:border-white/10">
-                        {{ $reports->links() }}
+        {{-- Reports List Grid --}}
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            @forelse ($reports as $report)
+                @php
+                    $summary = $report->data_summary;
+                    $totalVisitors = $summary['total_visitors'] ?? 0;
+                    $avgServiceTime = $summary['avg_service_time'] ?? 0;
+                    $avgWaitingTime = $summary['avg_waiting_time'] ?? 0;
+                @endphp
+                <div class="bg-canvas dark:bg-surface-dark-elevated rounded-lg border border-hairline dark:border-white/10 shadow-xs hover:shadow-md hover:border-primary/20 dark:hover:border-accent-teal/30 transition-all duration-200 flex flex-col justify-between overflow-hidden">
+                    {{-- Card Header --}}
+                    <div class="p-6 space-y-4">
+                        <div class="flex items-start justify-between gap-3">
+                            <div class="space-y-1">
+                                <h3 class="text-base font-bold text-ink dark:text-white font-display tracking-tight line-clamp-1" title="{{ $report->title }}">
+                                    {{ $report->title }}
+                                </h3>
+                                <p class="text-xs text-muted dark:text-on-dark-soft font-body">
+                                    {{ $report->start_date->format('d M Y') }} - {{ $report->end_date->format('d M Y') }}
+                                </p>
+                            </div>
+                            <span class="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-bold uppercase rounded bg-status-serving/10 text-status-serving tracking-wider shrink-0 select-none">
+                                Terkirim
+                            </span>
+                        </div>
+
+                        {{-- Quick Metrics Grid --}}
+                        <div class="grid grid-cols-3 gap-2 border-y border-hairline dark:border-white/10 py-3.5">
+                            <div class="text-center">
+                                <span class="block text-lg font-bold text-ink dark:text-white font-mono">{{ number_format($totalVisitors) }}</span>
+                                <span class="text-[10px] text-muted dark:text-on-dark-soft uppercase font-medium">Pengunjung</span>
+                            </div>
+                            <div class="text-center">
+                                <span class="block text-lg font-bold text-ink dark:text-white font-mono">{{ $avgServiceTime }}m</span>
+                                <span class="text-[10px] text-muted dark:text-on-dark-soft uppercase font-medium">Melayani</span>
+                            </div>
+                            <div class="text-center">
+                                <span class="block text-lg font-bold text-ink dark:text-white font-mono">{{ $avgWaitingTime }}m</span>
+                                <span class="text-[10px] text-muted dark:text-on-dark-soft uppercase font-medium">Tunggu</span>
+                            </div>
+                        </div>
+
+                        {{-- Metadata --}}
+                        <div class="flex items-center justify-between text-xs text-muted dark:text-on-dark-soft font-body">
+                            <span class="truncate">Oleh: {{ $report->creator?->name ?? 'Front Office' }}</span>
+                            <span class="shrink-0">{{ $report->created_at->format('d M Y') }}</span>
+                        </div>
                     </div>
-                @endif
-            @endif
+
+                    {{-- Card Action --}}
+                    <div class="bg-surface-soft dark:bg-white/3 border-t border-hairline dark:border-white/10 px-6 py-4 flex items-center justify-between">
+                        <span class="text-xs text-muted dark:text-on-dark-soft font-body select-none">Laporan Kinerja Terkunci</span>
+                        <a href="{{ route('admin.reports.show', $report) }}" 
+                           class="h-9 px-4 bg-primary hover:bg-primary-hover text-white text-xs font-bold rounded-pill shadow-xs transition-all flex items-center gap-1.5 cursor-pointer">
+                            Lihat Detail
+                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+            @empty
+                <div class="col-span-full py-16 text-center text-muted dark:text-on-dark-soft bg-canvas dark:bg-surface-dark-elevated rounded-lg border border-hairline dark:border-white/10 select-none">
+                    <svg class="w-16 h-16 mx-auto text-muted/30 dark:text-on-dark-soft/20 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0a2 2 0 01-2 2H6a2 2 0 01-2-2m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-4m-8 0H4" />
+                    </svg>
+                    <h3 class="text-base font-bold text-ink dark:text-white font-display mb-1">Belum Ada Laporan Masuk</h3>
+                    <p class="text-sm font-body max-w-sm mx-auto">Laporan kinerja pelayanan yang dikirim oleh Admin Front Office akan muncul di halaman ini.</p>
+                </div>
+            @endforelse
         </div>
     </div>
 @endsection

@@ -9,6 +9,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Report extends Model
 {
+    /**
+     * Atribut yang dapat diisi secara massal.
+     *
+     * @var list<string>
+     */
     protected $fillable = [
         'created_by',
         'title',
@@ -18,24 +23,24 @@ class Report extends Model
         'status',
     ];
 
-    protected $casts = [
-        'start_date' => 'date',
-        'end_date' => 'date',
-        'data_summary' => 'array',
-    ];
-
     /**
-     * Mengecek apakah laporan sudah dikirim (dikunci).
+     * Cast kolom ke tipe data yang sesuai.
+     *
+     * @return array<string, string>
      */
-    public function isLocked(): bool
+    protected function casts(): array
     {
-        return $this->status === 'Terkirim';
+        return [
+            'start_date' => 'date',
+            'end_date' => 'date',
+            'data_summary' => 'array',
+        ];
     }
 
     /**
-     * Hubungan ke pembuat laporan (Admin FO).
+     * User/Admin FO yang memicu pembuatan laporan ini.
      *
-     * @return BelongsTo<User, $this>
+     * @return BelongsTo<User, self>
      */
     public function creator(): BelongsTo
     {

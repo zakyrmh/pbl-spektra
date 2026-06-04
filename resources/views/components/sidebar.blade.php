@@ -17,7 +17,7 @@
             ['title' => 'Pencetakan Tiket', 'url' => route('admin.fo.ticket.create'), 'icon' => 'printer'],
             ['title' => 'Verifikasi & Check-In', 'url' => route('admin.fo.checkin'), 'icon' => 'check-circle'],
             ['title' => 'Panggilan Antrean FO', 'url' => route('admin.fo.call'), 'icon' => 'megaphone'],
-            ['title' => 'Kelola Laporan', 'url' => route('reports.index'), 'icon' => 'clipboard-list'],
+            ['title' => 'Kelola Laporan', 'url' => route('admin.fo.reports.index'), 'icon' => 'clipboard-list'],
         ];
     } elseif ($role === 'admin_gerai') {
         $menu = [
@@ -31,7 +31,7 @@
             ['title' => 'Dashboard Utama', 'url' => route('dashboard'), 'icon' => 'home'],
             ['title' => 'Manajemen Pengguna', 'url' => route('users.index'), 'icon' => 'users'],
             ['title' => 'Konfigurasi Gerai', 'url' => route('config.index'), 'icon' => 'settings'],
-            ['title' => 'Pengaturan Sistem', 'url' => '#', 'icon' => 'sliders'],
+            ['title' => 'Pengaturan Sistem', 'url' => route('admin.settings.index'), 'icon' => 'sliders'],
             ['title' => 'Laporan & Analitik', 'url' => route('admin.reports.index'), 'icon' => 'chart-pie'],
         ];
     }

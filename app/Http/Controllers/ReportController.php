@@ -4,317 +4,394 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
-use App\Models\ActivityLog;
-use App\Models\Counter;
+use App\Enums\UserRole;
+use App\Exports\QueuesExport;
+use App\Models\Department;
 use App\Models\Notification;
 use App\Models\Queue;
 use App\Models\Report;
 use App\Models\User;
+use App\Services\AuditLogger;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
+use Maatwebsite\Excel\Facades\Excel;
 
 class ReportController extends Controller
 {
-    /**
-     * Tampilkan daftar laporan untuk Admin FO.
-     * GET /fo/laporan
-     */
-    public function index(): View
-    {
-        $reports = Report::with('creator')
-            ->orderBy('created_at', 'desc')
-            ->paginate(10);
-
-        return view('reports.index', compact('reports'));
-    }
+    // =========================================================================
+    // FRONT OFFICE METHODS
+    // =========================================================================
 
     /**
-     * Halaman form pembuatan laporan baru.
-     * GET /fo/laporan/create
+     * Tampilkan daftar laporan untuk Admin Front Office.
      */
-    public function create(): View
+    public function foIndex(): View
     {
-        return view('reports.create');
-    }
-
-    /**
-     * Hitung agregat antrean dan simpan laporan dengan status 'Belum Dikirim'.
-     * POST /fo/laporan
-     */
-    public function store(Request $request): RedirectResponse
-    {
-        $request->validate([
-            'start_date' => ['required', 'date'],
-            'end_date' => ['required', 'date', 'after_or_equal:start_date'],
-        ], [
-            'end_date.after_or_equal' => 'Tanggal akhir harus sama dengan atau setelah tanggal mulai.',
-        ]);
-
-        $startDate = $request->input('start_date');
-        $endDate = $request->input('end_date');
-
-        // Pindai data antrean dalam rentang tanggal
-        $queues = Queue::whereDate('queue_date', '>=', $startDate)
-            ->whereDate('queue_date', '<=', $endDate)
-            ->get();
-
-        // 1. Cek apakah ada data antrean
-        if ($queues->isEmpty()) {
-            return back()->withInput()
-                ->with('error', 'Tidak ada data antrean pada tanggal tersebut.');
+        if (Auth::user()->role !== UserRole::AdminFo) {
+            abort(403, 'Hanya Admin Front Office yang dapat mengelola laporan.');
         }
 
-        $summary = $this->generateSummary($queues, $startDate, $endDate);
+        $reports = Report::with('creator')->latest()->get();
+
+        return view('admin.fo.reports.index', compact('reports'));
+    }
+
+    /**
+     * Simpan laporan baru yang digenerate oleh FO.
+     */
+    public function foStore(Request $request): RedirectResponse
+    {
+        if (Auth::user()->role !== UserRole::AdminFo) {
+            abort(403);
+        }
+
+        $validated = $request->validate([
+            'title' => ['required', 'string', 'max:255'],
+            'start_date' => ['required', 'date', 'before_or_equal:end_date'],
+            'end_date' => ['required', 'date', 'before_or_equal:today'],
+        ], [
+            'start_date.before_or_equal' => 'Tanggal mulai harus sebelum atau sama dengan tanggal akhir.',
+            'end_date.before_or_equal' => 'Tanggal akhir tidak boleh melebihi hari ini.',
+        ]);
+
+        $startDate = $validated['start_date'];
+        $endDate = $validated['end_date'];
+
+        // Cek data antrean dalam rentang tanggal tersebut
+        $queues = Queue::whereDate('queue_date', '>=', $startDate)
+            ->whereDate('queue_date', '<=', $endDate)
+            ->with('service.department')
+            ->get();
+
+        if ($queues->isEmpty()) {
+            return back()->withInput()->with('error', 'Tidak ada data antrean pada rentang tanggal tersebut.');
+        }
+
+        $summary = $this->calculateSummary($startDate, $endDate, $queues);
 
         $report = Report::create([
             'created_by' => Auth::id(),
-            'title' => 'Laporan Pelayanan MPP ('.Carbon::parse($startDate)->format('d M Y').' - '.Carbon::parse($endDate)->format('d M Y').')',
+            'title' => $validated['title'],
             'start_date' => $startDate,
             'end_date' => $endDate,
             'data_summary' => $summary,
             'status' => 'Belum Dikirim',
         ]);
 
-        ActivityLog::record(
-            action: 'GENERATE_REPORT',
-            modelType: 'Report',
-            modelId: $report->id,
-            description: "Front Office men-generate laporan baru periode {$startDate} sampai {$endDate}.",
-            actorUserId: Auth::id()
+        AuditLogger::log(
+            event: 'report_created',
+            description: "Admin FO membuat rekap laporan baru: '{$report->title}' untuk periode {$startDate} s/d {$endDate}.",
+            subject: $report
         );
 
-        return redirect()->route('reports.show', $report->id)
-            ->with('success', 'Laporan berhasil dibuat. Silakan periksa preview di bawah.');
+        return redirect()->route('admin.fo.reports.index')
+            ->with('success', 'Laporan berhasil dibuat.');
     }
 
     /**
-     * Tampilkan preview/detail laporan untuk FO.
-     * GET /fo/laporan/{report}
+     * Update/generate ulang laporan yang belum dikirim.
      */
-    public function show(Report $report): View
+    public function foUpdate(Request $request, Report $report): RedirectResponse
     {
-        return view('reports.show', compact('report'));
-    }
-
-    /**
-     * Form edit rentang tanggal laporan.
-     * GET /fo/laporan/{report}/edit
-     */
-    public function edit(Report $report): View|RedirectResponse
-    {
-        if ($report->isLocked()) {
-            return redirect()->route('reports.index')
-                ->with('warning', 'Laporan telah dikirim, data tidak dapat dimodifikasi.');
+        if (Auth::user()->role !== UserRole::AdminFo) {
+            abort(403);
         }
 
-        return view('reports.edit', compact('report'));
-    }
-
-    /**
-     * Update rentang tanggal laporan dan hitung ulang agregasi.
-     * PUT /fo/laporan/{report}
-     */
-    public function update(Request $request, Report $report): RedirectResponse
-    {
-        if ($report->isLocked()) {
-            return redirect()->route('reports.index')
-                ->with('warning', 'Laporan telah dikirim, data tidak dapat dimodifikasi.');
+        if ($report->status === 'Terkirim') {
+            return redirect()->route('admin.fo.reports.index')
+                ->with('error', 'Laporan yang telah dikirim ke Super Admin tidak dapat diubah.');
         }
 
-        $request->validate([
-            'start_date' => ['required', 'date'],
-            'end_date' => ['required', 'date', 'after_or_equal:start_date'],
-        ], [
-            'end_date.after_or_equal' => 'Tanggal akhir harus sama dengan atau setelah tanggal mulai.',
+        $validated = $request->validate([
+            'title' => ['required', 'string', 'max:255'],
+            'start_date' => ['required', 'date', 'before_or_equal:end_date'],
+            'end_date' => ['required', 'date', 'before_or_equal:today'],
         ]);
 
-        $startDate = $request->input('start_date');
-        $endDate = $request->input('end_date');
+        $startDate = $validated['start_date'];
+        $endDate = $validated['end_date'];
 
         $queues = Queue::whereDate('queue_date', '>=', $startDate)
             ->whereDate('queue_date', '<=', $endDate)
+            ->with('service.department')
             ->get();
 
         if ($queues->isEmpty()) {
-            return back()->withInput()
-                ->with('error', 'Data Kosong, Gagal Perbarui.');
+            return back()->withInput()->with('error', 'Tidak ada data antrean pada rentang tanggal tersebut untuk diperbarui.');
         }
 
-        $summary = $this->generateSummary($queues, $startDate, $endDate);
+        $summary = $this->calculateSummary($startDate, $endDate, $queues);
 
         $report->update([
-            'title' => 'Laporan Pelayanan MPP ('.Carbon::parse($startDate)->format('d M Y').' - '.Carbon::parse($endDate)->format('d M Y').')',
+            'title' => $validated['title'],
             'start_date' => $startDate,
             'end_date' => $endDate,
             'data_summary' => $summary,
         ]);
 
-        ActivityLog::record(
-            action: 'UPDATE_REPORT',
-            modelType: 'Report',
-            modelId: $report->id,
-            description: "Front Office memperbarui laporan periode {$startDate} sampai {$endDate}.",
-            actorUserId: Auth::id()
+        AuditLogger::log(
+            event: 'report_updated',
+            description: "Admin FO memperbarui rekap laporan: '{$report->title}' untuk periode {$startDate} s/d {$endDate}.",
+            subject: $report
         );
 
-        return redirect()->route('reports.show', $report->id)
+        return redirect()->route('admin.fo.reports.index')
             ->with('success', 'Laporan berhasil diperbarui.');
     }
 
     /**
-     * Hapus laporan dari database (hanya jika belum dikirim).
-     * DELETE /fo/laporan/{report}
+     * Hapus draf laporan.
      */
-    public function destroy(Report $report): RedirectResponse
+    public function foDestroy(Report $report): RedirectResponse
     {
-        if ($report->isLocked()) {
-            return redirect()->route('reports.index')
-                ->with('warning', 'Laporan telah dikirim, data tidak dapat dimodifikasi.');
+        if (Auth::user()->role !== UserRole::AdminFo) {
+            abort(403);
         }
 
-        ActivityLog::record(
-            action: 'DELETE_REPORT',
-            modelType: 'Report',
-            modelId: $report->id,
-            description: "Front Office menghapus draft laporan periode {$report->start_date->toDateString()} sampai {$report->end_date->toDateString()}.",
-            actorUserId: Auth::id()
-        );
+        if ($report->status === 'Terkirim') {
+            return redirect()->route('admin.fo.reports.index')
+                ->with('error', 'Laporan yang telah dikirim ke Super Admin tidak dapat dihapus.');
+        }
 
+        $title = $report->title;
         $report->delete();
 
-        return redirect()->route('reports.index')
-            ->with('success', 'Laporan berhasil dihapus.');
+        AuditLogger::log(
+            event: 'report_deleted',
+            description: "Admin FO menghapus draf laporan '{$title}'.",
+            subject: $report
+        );
+
+        return redirect()->route('admin.fo.reports.index')
+            ->with('success', "Laporan '{$title}' berhasil dihapus.");
     }
 
     /**
-     * Kirim laporan ke Super Admin (Kunci status & kirim notifikasi).
-     * POST /fo/laporan/{report}/send
+     * Kirim laporan ke Super Admin.
      */
-    public function send(Report $report): RedirectResponse
+    public function foSend(Report $report): RedirectResponse
     {
-        if ($report->isLocked()) {
-            return redirect()->route('reports.index')
-                ->with('warning', 'Laporan telah dikirim sebelumnya.');
+        if (Auth::user()->role !== UserRole::AdminFo) {
+            abort(403);
+        }
+
+        if ($report->status === 'Terkirim') {
+            return redirect()->route('admin.fo.reports.index')
+                ->with('warning', 'Laporan ini sudah dikirim sebelumnya.');
         }
 
         $report->update(['status' => 'Terkirim']);
 
-        // Kirim notifikasi sistem ke seluruh Super Admin
-        $superAdmins = User::where('role', 'super_admin')->get();
-        foreach ($superAdmins as $admin) {
+        // Kirim notifikasi database ke semua Super Admin
+        $superAdmins = User::where('role', UserRole::SuperAdmin->value)->get();
+        foreach ($superAdmins as $sa) {
             Notification::create([
-                'user_id' => $admin->id,
-                'title' => 'Laporan Baru Masuk',
-                'message' => "Laporan pelayanan baru '{$report->title}' telah dikirim oleh Front Office. Silakan tinjau rekap kinerjanya.",
+                'user_id' => $sa->id,
+                'title' => 'Laporan Kinerja Baru',
+                'message' => "Petugas FO telah mengirimkan Laporan Kinerja: {$report->title} untuk periode {$report->start_date->toDateString()} s/d {$report->end_date->toDateString()}.",
             ]);
         }
 
-        ActivityLog::record(
-            action: 'SEND_REPORT',
-            modelType: 'Report',
-            modelId: $report->id,
-            description: "Front Office mengirimkan laporan periode {$report->start_date->toDateString()} sampai {$report->end_date->toDateString()} ke Super Admin.",
-            actorUserId: Auth::id()
+        AuditLogger::log(
+            event: 'report_sent',
+            description: "Admin FO mengirim laporan '{$report->title}' ke Super Admin.",
+            subject: $report
         );
 
-        return redirect()->route('reports.index')
-            ->with('success', 'Laporan berhasil dikirim.');
+        return redirect()->route('admin.fo.reports.index')
+            ->with('success', 'Laporan berhasil dikirim ke Super Admin.');
     }
+
+    // =========================================================================
+    // SUPER ADMIN METHODS
+    // =========================================================================
 
     /**
      * Tampilkan daftar laporan masuk untuk Super Admin.
-     * GET /admin/laporan
      */
-    public function superAdminIndex(): View
+    public function adminIndex(): View
     {
+        if (Auth::user()->role !== UserRole::SuperAdmin) {
+            abort(403, 'Akses khusus Super Administrator.');
+        }
+
         $reports = Report::with('creator')
             ->where('status', 'Terkirim')
-            ->orderBy('updated_at', 'desc')
-            ->paginate(10);
+            ->latest()
+            ->get();
 
         return view('super_admin.reports.index', compact('reports'));
     }
 
     /**
-     * Tampilkan detail visual laporan untuk Super Admin.
-     * GET /admin/laporan/{report}
+     * Tampilkan visualisasi analitik laporan secara detail.
      */
-    public function superAdminShow(Report $report): View
+    public function adminShow(Report $report): View
     {
-        if ($report->status !== 'Terkirim') {
-            abort(403, 'Anda hanya dapat meninjau laporan yang telah dikirim.');
+        if (Auth::user()->role !== UserRole::SuperAdmin) {
+            abort(403);
         }
 
-        return view('super_admin.reports.show', compact('report'));
+        if ($report->status !== 'Terkirim') {
+            abort(404, 'Laporan belum dikirim oleh FO.');
+        }
+
+        // Ambil daftar detail riwayat kunjungan antrean
+        $queues = Queue::whereDate('queue_date', '>=', $report->start_date)
+            ->whereDate('queue_date', '<=', $report->end_date)
+            ->where('status', 'Completed')
+            ->with(['visitor', 'booking.user', 'service.department'])
+            ->orderBy('queue_date')
+            ->orderBy('queue_number')
+            ->paginate(15);
+
+        return view('super_admin.reports.show', compact('report', 'queues'));
     }
 
     /**
-     * Helper internal untuk memproses agregasi data antrean.
+     * Ekspor daftar riwayat antrean laporan ke Excel.
      */
-    protected function generateSummary($queues, $startDate, $endDate): array
+    public function exportExcel(Report $report)
+    {
+        if (Auth::user()->role !== UserRole::SuperAdmin) {
+            abort(403);
+        }
+
+        $filename = 'rekap-kunjungan-mpp-'.$report->start_date->toDateString().'-to-'.$report->end_date->toDateString().'.xlsx';
+
+        return Excel::download(new QueuesExport($report->start_date->toDateString(), $report->end_date->toDateString()), $filename);
+    }
+
+    /**
+     * Ekspor riwayat antrean laporan ke file PDF.
+     */
+    public function exportPdf(Report $report)
+    {
+        if (Auth::user()->role !== UserRole::SuperAdmin) {
+            abort(403);
+        }
+
+        $queues = Queue::whereDate('queue_date', '>=', $report->start_date)
+            ->whereDate('queue_date', '<=', $report->end_date)
+            ->where('status', 'Completed')
+            ->with(['visitor', 'booking.user', 'service.department'])
+            ->orderBy('queue_date')
+            ->orderBy('queue_number')
+            ->get();
+
+        $pdf = Pdf::loadView('super_admin.reports.pdf', compact('report', 'queues'));
+        $pdf->setPaper('a4', 'landscape');
+
+        $filename = 'laporan-antrean-'.$report->start_date->toDateString().'-to-'.$report->end_date->toDateString().'.pdf';
+
+        return $pdf->download($filename);
+    }
+
+    // =========================================================================
+    // HELPER METHODS
+    // =========================================================================
+
+    /**
+     * Hitung rekapitulasi agregat antrean.
+     */
+    protected function calculateSummary(string $startDate, string $endDate, $queues): array
     {
         $totalVisitors = $queues->count();
         $completedCount = $queues->where('status', 'Completed')->count();
         $skippedCount = $queues->where('status', 'Skipped')->count();
-        $waitingCount = $queues->where('status', 'Waiting')->count();
-        $servingCount = $queues->where('status', 'Serving')->count();
 
-        // Hitung rata-rata durasi pelayanan Completed
+        // Rata-rata waktu tunggu & pelayanan
         $completedQueues = $queues->where('status', 'Completed');
-        $totalSeconds = 0;
-        $validDurCount = 0;
+        $totalServiceTime = 0;
+        $serviceCount = 0;
+        $totalWaitingTime = 0;
+        $waitingCount = 0;
+
         foreach ($completedQueues as $q) {
-            $duration = $q->calculateDuration();
-            if ($duration !== null) {
-                $totalSeconds += $duration;
-                $validDurCount++;
+            if ($q->called_at && $q->completed_at) {
+                $called = Carbon::parse($q->called_at);
+                $completed = Carbon::parse($q->completed_at);
+                if ($completed->greaterThanOrEqualTo($called)) {
+                    $totalServiceTime += $completed->diffInMinutes($called, true);
+                    $serviceCount++;
+                }
+            }
+            if ($q->created_at && $q->called_at) {
+                $created = Carbon::parse($q->created_at);
+                $called = Carbon::parse($q->called_at);
+                if ($called->greaterThanOrEqualTo($created)) {
+                    $totalWaitingTime += $called->diffInMinutes($created, true);
+                    $waitingCount++;
+                }
             }
         }
-        $avgServiceTime = $validDurCount > 0 ? (int) round($totalSeconds / $validDurCount) : 0;
 
-        // Agregasi per loket/counter
-        $countersData = [];
-        $counters = Counter::with('department')->get();
-        foreach ($counters as $c) {
-            $cQueues = $queues->where('counter_id', $c->id);
-            if ($cQueues->isEmpty()) {
+        $avgServiceTime = $serviceCount > 0 ? round($totalServiceTime / $serviceCount, 1) : 0;
+        $avgWaitingTime = $waitingCount > 0 ? round($totalWaitingTime / $waitingCount, 1) : 0;
+        $attendanceRate = $totalVisitors > 0 ? round(($completedCount / $totalVisitors) * 100, 1) : 0;
+
+        // Metrik Per Instansi / Gerai (Department)
+        $perDepartment = [];
+        $departments = Department::all();
+
+        foreach ($departments as $dept) {
+            $deptQueues = $queues->filter(function ($q) use ($dept) {
+                return $q->service && $q->service->department_id === $dept->id;
+            });
+
+            if ($deptQueues->isEmpty()) {
                 continue;
             }
 
-            $cCompleted = $cQueues->where('status', 'Completed')->count();
-            $cSkipped = $cQueues->where('status', 'Skipped')->count();
-            $cWaiting = $cQueues->where('status', 'Waiting')->count();
-            $cServing = $cQueues->where('status', 'Serving')->count();
+            $dTotal = $deptQueues->count();
+            $dCompleted = $deptQueues->where('status', 'Completed')->count();
+            $dSkipped = $deptQueues->where('status', 'Skipped')->count();
 
-            $cTotalSec = 0;
-            $cValCount = 0;
-            foreach ($cQueues->where('status', 'Completed') as $q) {
-                $dur = $q->calculateDuration();
-                if ($dur !== null) {
-                    $cTotalSec += $dur;
-                    $cValCount++;
+            $dTotalService = 0;
+            $dServiceCount = 0;
+            $dTotalWaiting = 0;
+            $dWaitingCount = 0;
+
+            foreach ($deptQueues->where('status', 'Completed') as $q) {
+                if ($q->called_at && $q->completed_at) {
+                    $called = Carbon::parse($q->called_at);
+                    $completed = Carbon::parse($q->completed_at);
+                    if ($completed->greaterThanOrEqualTo($called)) {
+                        $dTotalService += $completed->diffInMinutes($called, true);
+                        $dServiceCount++;
+                    }
+                }
+                if ($q->created_at && $q->called_at) {
+                    $created = Carbon::parse($q->created_at);
+                    $called = Carbon::parse($q->called_at);
+                    if ($called->greaterThanOrEqualTo($created)) {
+                        $dTotalWaiting += $called->diffInMinutes($created, true);
+                        $dWaitingCount++;
+                    }
                 }
             }
-            $cAvgSec = $cValCount > 0 ? (int) round($cTotalSec / $cValCount) : 0;
 
-            $countersData[] = [
-                'counter_id' => $c->id,
-                'counter_name' => $c->name,
-                'department_name' => $c->department ? $c->department->name : 'Layanan Umum',
-                'total' => $cQueues->count(),
-                'completed' => $cCompleted,
-                'skipped' => $cSkipped,
-                'waiting' => $cWaiting,
-                'serving' => $cServing,
-                'average_service_time_seconds' => $cAvgSec,
+            $dAvgService = $dServiceCount > 0 ? round($dTotalService / $dServiceCount, 1) : 0;
+            $dAvgWaiting = $dWaitingCount > 0 ? round($dTotalWaiting / $dWaitingCount, 1) : 0;
+
+            $perDepartment[] = [
+                'department_id' => $dept->id,
+                'department_name' => $dept->name,
+                'inisial' => $dept->inisial,
+                'total_queues' => $dTotal,
+                'completed_queues' => $dCompleted,
+                'skipped_queues' => $dSkipped,
+                'avg_service_time' => $dAvgService,
+                'avg_waiting_time' => $dAvgWaiting,
             ];
         }
 
-        // Agregasi harian untuk grafik
-        $dailyStats = [];
+        // Deret tren harian untuk grafik
+        $dailySeries = [];
         $period = new \DatePeriod(
             new \DateTime($startDate),
             new \DateInterval('P1D'),
@@ -323,25 +400,30 @@ class ReportController extends Controller
 
         foreach ($period as $date) {
             $dateStr = $date->format('Y-m-d');
-            $dateQueues = $queues->where('queue_date', $dateStr);
+            $dayQueues = $queues->filter(function ($q) use ($dateStr) {
+                $qDate = $q->queue_date instanceof Carbon ? $q->queue_date->toDateString() : (string) $q->queue_date;
 
-            $dailyStats[] = [
-                'date' => $date->format('d M'),
-                'total' => $dateQueues->count(),
-                'completed' => $dateQueues->where('status', 'Completed')->count(),
-                'skipped' => $dateQueues->where('status', 'Skipped')->count(),
+                return $qDate === $dateStr;
+            });
+
+            $dailySeries[] = [
+                'date' => $dateStr,
+                'formatted_date' => $date->format('d M'),
+                'total' => $dayQueues->count(),
+                'completed' => $dayQueues->where('status', 'Completed')->count(),
+                'skipped' => $dayQueues->where('status', 'Skipped')->count(),
             ];
         }
 
         return [
             'total_visitors' => $totalVisitors,
-            'completed' => $completedCount,
-            'skipped' => $skippedCount,
-            'waiting' => $waitingCount,
-            'serving' => $servingCount,
-            'average_service_time_seconds' => $avgServiceTime,
-            'counters' => $countersData,
-            'daily' => $dailyStats,
+            'completed_count' => $completedCount,
+            'skipped_count' => $skippedCount,
+            'attendance_rate' => $attendanceRate,
+            'avg_service_time' => $avgServiceTime,
+            'avg_waiting_time' => $avgWaitingTime,
+            'per_department' => $perDepartment,
+            'daily_series' => $dailySeries,
         ];
     }
 }

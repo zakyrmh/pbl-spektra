@@ -10,6 +10,7 @@ use App\Http\Controllers\GeraiLoketController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PublicController;
 use App\Http\Controllers\QueueMonitorController;
+use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SessionManagementController;
 use App\Http\Controllers\SettingController;
 use App\Http\Controllers\UserController;
@@ -120,6 +121,12 @@ Route::middleware('auth')->group(function () {
         // Pengaturan Sistem
         Route::get('/pengaturan-sistem', [SettingController::class, 'index'])->name('admin.settings.index');
         Route::put('/pengaturan-sistem', [SettingController::class, 'update'])->name('admin.settings.update');
+
+        // Laporan & Analitik (Super Admin)
+        Route::get('/laporan-analitik', [ReportController::class, 'adminIndex'])->name('admin.reports.index');
+        Route::get('/laporan-analitik/{report}', [ReportController::class, 'adminShow'])->name('admin.reports.show');
+        Route::get('/laporan-analitik/{report}/export/excel', [ReportController::class, 'exportExcel'])->name('admin.reports.export.excel');
+        Route::get('/laporan-analitik/{report}/export/pdf', [ReportController::class, 'exportPdf'])->name('admin.reports.export.pdf');
     });
 
     // Khusus Admin FO
@@ -154,6 +161,13 @@ Route::middleware('auth')->group(function () {
             ->name('admin.fo.ticket.create');
         Route::post('/fo/ticket', [WalkInTicketController::class, 'store'])
             ->name('admin.fo.ticket.store');
+
+        // Kelola Laporan (FO)
+        Route::get('/fo/reports', [ReportController::class, 'foIndex'])->name('admin.fo.reports.index');
+        Route::post('/fo/reports', [ReportController::class, 'foStore'])->name('admin.fo.reports.store');
+        Route::put('/fo/reports/{report}', [ReportController::class, 'foUpdate'])->name('admin.fo.reports.update');
+        Route::delete('/fo/reports/{report}', [ReportController::class, 'foDestroy'])->name('admin.fo.reports.destroy');
+        Route::post('/fo/reports/{report}/send', [ReportController::class, 'foSend'])->name('admin.fo.reports.send');
 
         // API Endpoints for Front Office (AJAX/Fetch)
         Route::get('/api/fo/bookings/verify', [CheckInController::class, 'verifyApi'])->name('api.fo.bookings.verify');

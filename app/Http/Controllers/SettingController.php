@@ -63,7 +63,7 @@ class SettingController extends Controller
                 $before[$key] = $oldVal;
                 $after[$key] = $value;
 
-                Setting::setVal($key, $value);
+                Setting::setVal($key, $value === null ? null : (string) $value);
             }
         }
 

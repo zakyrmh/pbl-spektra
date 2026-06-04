@@ -27,18 +27,18 @@ flowchart TD
     Cond1 -->|Tidak| S3["Sistem: Tampilkan Pesan Error Validasi Pada Field Terkait"]
     S3 --> FO2
 
-    %% JALUR JIKA LAYAK - EKSEKUSI ATOMIK (UC-05 DAN INCLUDED UC-06)
-    Cond1 -->|Ya| S4["Sistem: Jalankan DB Transaction\nSimpan Data ke Tabel Bookings dengan Status 'Walk-in/Disetujui'"]
+    %% JALUR JIKA LAYAK - EKSEKUSI ATOMIK
+    Cond1 -->|Ya| S4["Sistem: Jalankan DB Transaction\nSimpan Data ke Tabel Bookings dengan Status 'Confirmed' (Walk-in)"]
 
-    %% PROSES INTEGRASI UC-06 (PENERBITAN NOMOR ANTREAN)
+    %% PROSES PENERBITAN NOMOR ANTREAN
     S4 --> S5["Sistem: Pindai & Hitung Nomor Urut Terakhir Layanan Pada Hari Ini"]
     S5 --> S6["Sistem: Generate Nomor Antrean Berurutan Sesuai Kode Layanan\n(Contoh: B-005)"]
 
     %% SIMPAN DATA ANTREAN
-    S6 --> S7["Sistem: Simpan Data Antrean ke Tabel Queues dengan Status 'Menunggu Dipanggil'"]
+    S6 --> S7["Sistem: Simpan Data Antrean ke Tabel Queues dengan Status 'Waiting'"]
 
-    %% REAL-TIME BROADCAST KE GERAI LOKET
-    S7 --> S8["Sistem: Broadcast Data Antrean Baru ke Dashboard Admin Loket/Gerai via Websocket"]
+    %% REAL-TIME BROADCAST KE COUNTER GERAI
+    S7 --> S8["Sistem: Broadcast Data Antrean Baru ke Dashboard Admin Counter/Gerai via Websocket"]
 
     %% OUTPUT FISIK
     S8 --> S9["Sistem: Kirim Perintah Cetak Karcis ke Printer Thermal Meja FO"]

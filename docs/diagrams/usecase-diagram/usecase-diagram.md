@@ -38,18 +38,20 @@ flowchart LR
 
         subgraph LOKET["Admin Loket/Gerai"]
             UC17(["Lihat Data Antrean"])
-            UC18(["Update Status\nAntrean Selesai"])
+            UC18(["Mark Queue as Completed"])
         end
 
         subgraph SUPERADMIN["Super Admin"]
             UC19(["Tambah Data Pengguna"])
             UC20(["Ubah Data Pengguna"])
             UC21(["Hapus Data Pengguna"])
-            UC22(["Tambah Data Loket"])
-            UC23(["Ubah Data Loket"])
-            UC24(["Hapus Data Loket"])
+            UC22(["Tambah Data Loket/Counter"])
+            UC23(["Ubah Data Loket/Counter"])
+            UC24(["Hapus Data Loket/Counter"])
             UC25(["Terima dan Tinjau\nLaporan"])
             UC29(["Kelola Jenis Layanan"])
+            UC31(["Pantau Dashboard Real-time"])
+            UC32(["Jalankan Simulasi\nArus Antrean"])
         end
 
         subgraph SISTEM_OTOMATIS["Sistem Otomatis"]
@@ -100,6 +102,8 @@ flowchart LR
     SA --> UC24
     SA --> UC25
     SA --> UC29
+    SA --> UC31
+    SA --> UC32
 
     %% Include Relationship
     UC5 -.->|«include»| UC2
@@ -107,6 +111,7 @@ flowchart LR
     UC12 -.->|«include»| UC11
     UC16 -.->|«include»| UC13
     UC27 -.->|«include»| UC30
+    UC32 -.->|«include»| UC31
 
     %% Extend Relationship
     UC9 -.->|«extend»| UC18

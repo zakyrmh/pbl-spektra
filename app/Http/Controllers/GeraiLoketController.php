@@ -9,8 +9,9 @@ use App\Models\Service;
 use App\Models\User;
 use App\Services\AuditLogger;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Validation\Rule;
+use Intervention\Image\Drivers\Gd\Driver;
+use Intervention\Image\Encoders\WebpEncoder;
+use Intervention\Image\ImageManager;
 
 class GeraiLoketController extends Controller
 {
@@ -22,33 +23,24 @@ class GeraiLoketController extends Controller
         $this->authorize('viewAny', User::class); // Hanya Super Admin (sesuai UserPolicy)
 
         // ── Metrics ──────────────────────────────────────────────
-        $totalDepartments = Department::count();
-        $totalCountersActive = Counter::where('status', 'aktif')->count();
-        $totalStaffStandby = User::where('role', UserRole::AdminGerai)
-            ->where(function ($query) {
-                $query->whereNull('counter_id')
-                    ->orWhereNotExists(function ($q) {
-                        $q->selectRaw(1)
-                            ->from('counters')
-                            ->whereColumn('counters.id', 'users.counter_id');
-                    });
-            })
-            ->count();
+        $totalDepartments = Department::query()->count('*');
+        $totalStaff = User::query()
+            ->where('role', UserRole::AdminGerai->value)
+            ->count('*');
 
         // ── Data List ────────────────────────────────────────────
-        $departments = Department::withCount(['counters', 'services'])->latest()->get();
+        $departments = Department::query()->withCount(['counters', 'services'])->latest()->get();
 
-        $counters = Counter::with(['department', 'users', 'services'])->latest()->get();
+        $counters = Counter::query()->with(['department', 'users', 'services'])->latest()->get();
 
-        $services = Service::with('department')->latest()->get();
+        $services = Service::query()->with('department')->latest()->get();
 
         // List petugas loket (role: admin_gerai) untuk form penugasan
-        $officers = User::where('role', UserRole::AdminGerai)->get();
+        $officers = User::query()->where('role', '=', UserRole::AdminGerai->value, 'and')->get();
 
-        return view('super_admin.config.index', compact(
+        return view('super_admin.gerai.index', compact(
             'totalDepartments',
-            'totalCountersActive',
-            'totalStaffStandby',
+            'totalStaff',
             'departments',
             'counters',
             'services',
@@ -64,18 +56,28 @@ class GeraiLoketController extends Controller
     {
         $this->authorize('viewAny', User::class);
 
-        $validated = $request->validate([
+        $validated = validator($request->all(), [
             'name' => ['required', 'string', 'max:255'],
             'inisial' => ['required', 'string', 'max:6', 'unique:departments,inisial'],
             'logo' => ['nullable', 'image', 'max:2048'], // Maks 2MB
             'description' => ['nullable', 'string'],
-        ]);
+        ])->validate();
 
         if ($request->hasFile('logo')) {
-            $validated['logo'] = $request->file('logo')->store('logos', 'public');
+            $file = $request->file('logo');
+            $filename = 'logos/'.bin2hex(random_bytes(20)).'.webp';
+
+            // Kompresi dan ubah ke webp (quality 80)
+            $manager = new ImageManager(new Driver);
+            $encoded = $manager->decode($file->getContent())->encode(new WebpEncoder(quality: 80));
+
+            // Simpan ke disk public
+            app('filesystem')->disk('public')->put($filename, $encoded->toString());
+
+            $validated['logo'] = $filename;
         }
 
-        $department = Department::create($validated);
+        $department = Department::query()->create($validated);
 
         AuditLogger::log(
             event: 'department_created',
@@ -84,7 +86,7 @@ class GeraiLoketController extends Controller
             properties: ['after' => $department->toArray()]
         );
 
-        return redirect()->route('config.index', ['tab' => 'gerai'])
+        return \redirect()->route('config.index', ['tab' => 'gerai'])
             ->with('success', "Gerai {$department->name} berhasil dibuat.");
     }
 
@@ -92,24 +94,36 @@ class GeraiLoketController extends Controller
     {
         $this->authorize('viewAny', User::class);
 
-        $validated = $request->validate([
+        $validated = validator($request->all(), [
             'name' => ['required', 'string', 'max:255'],
-            'inisial' => ['required', 'string', 'max:6', Rule::unique('departments', 'inisial')->ignore($department->id)],
+            'inisial' => ['required', 'string', 'max:6', 'unique:departments,inisial,'.$department->id],
             'logo' => ['nullable', 'image', 'max:2048'],
             'description' => ['nullable', 'string'],
-        ]);
+        ])->validate();
 
         $before = $department->toArray();
 
         if ($request->hasFile('logo')) {
             // Hapus logo lama jika ada
             if ($department->logo) {
-                Storage::disk('public')->delete($department->logo);
+                app('filesystem')->disk('public')->delete($department->logo);
             }
-            $validated['logo'] = $request->file('logo')->store('logos', 'public');
+
+            $file = $request->file('logo');
+            $filename = 'logos/'.bin2hex(random_bytes(20)).'.webp';
+
+            // Kompresi dan ubah ke webp (quality 80)
+            $manager = new ImageManager(new Driver);
+            $encoded = $manager->decode($file->getContent())->encode(new WebpEncoder(quality: 80));
+
+            // Simpan ke disk public
+            app('filesystem')->disk('public')->put($filename, $encoded->toString());
+
+            $validated['logo'] = $filename;
         }
 
-        $department->update($validated);
+        $department->fill($validated);
+        $department->save();
 
         AuditLogger::log(
             event: 'department_updated',
@@ -117,11 +131,11 @@ class GeraiLoketController extends Controller
             subject: $department,
             properties: [
                 'before' => $before,
-                'after' => $department->fresh()->toArray(),
+                'after' => Department::query()->find($department->id)->toArray(),
             ]
         );
 
-        return redirect()->route('config.index', ['tab' => 'gerai'])
+        return \redirect()->route('config.index', ['tab' => 'gerai'])
             ->with('success', "Gerai {$department->name} berhasil diperbarui.");
     }
 
@@ -133,7 +147,7 @@ class GeraiLoketController extends Controller
 
         // Hapus file logo dari storage
         if ($department->logo) {
-            Storage::disk('public')->delete($department->logo);
+            app('filesystem')->disk('public')->delete($department->logo);
         }
 
         AuditLogger::log(
@@ -143,9 +157,9 @@ class GeraiLoketController extends Controller
             properties: ['snapshot' => $department->toArray()]
         );
 
-        $department->delete();
+        $department->{'delete'}();
 
-        return redirect()->route('config.index', ['tab' => 'gerai'])
+        return \redirect()->route('config.index', ['tab' => 'gerai'])
             ->with('success', "Gerai {$name} berhasil dihapus.");
     }
 
@@ -157,17 +171,17 @@ class GeraiLoketController extends Controller
     {
         $this->authorize('viewAny', User::class);
 
-        $validated = $request->validate([
+        $validated = validator($request->all(), [
             'department_id' => ['required', 'exists:departments,id'],
             'name' => ['required', 'string', 'max:255'],
             'location' => ['nullable', 'string', 'max:255'],
-            'status' => ['required', Rule::in(['aktif', 'nonaktif', 'istirahat'])],
+            'status' => ['required', 'in:aktif,nonaktif,istirahat'],
             'officer_id' => ['nullable', 'exists:users,id'],
             'services' => ['nullable', 'array'],
             'services.*' => ['exists:services,id'],
-        ]);
+        ])->validate();
 
-        $counter = Counter::create([
+        $counter = Counter::query()->create([
             'department_id' => $validated['department_id'],
             'name' => $validated['name'],
             'location' => $validated['location'] ?? null,
@@ -182,7 +196,7 @@ class GeraiLoketController extends Controller
         // Plotting Petugas (Officer Assignment)
         if ($request->filled('officer_id')) {
             // Lepas petugas terpilih dari loket lamanya (jika ada)
-            User::where('id', $validated['officer_id'])->update(['counter_id' => $counter->id]);
+            User::query()->where('id', '=', $validated['officer_id'], 'and')->update(['counter_id' => $counter->id]);
         }
 
         AuditLogger::log(
@@ -192,11 +206,10 @@ class GeraiLoketController extends Controller
             properties: [
                 'after' => $counter->toArray(),
                 'assigned_officer_id' => $request->officer_id,
-                'assigned_services' => $request->services ?? [],
             ]
         );
 
-        return redirect()->route('config.index', ['tab' => 'loket'])
+        return \redirect()->route('config.index', ['tab' => 'loket'])
             ->with('success', "Loket {$counter->name} berhasil dibuat.");
     }
 
@@ -204,35 +217,36 @@ class GeraiLoketController extends Controller
     {
         $this->authorize('viewAny', User::class);
 
-        $validated = $request->validate([
+        $validated = validator($request->all(), [
             'department_id' => ['required', 'exists:departments,id'],
             'name' => ['required', 'string', 'max:255'],
             'location' => ['nullable', 'string', 'max:255'],
-            'status' => ['required', Rule::in(['aktif', 'nonaktif', 'istirahat'])],
+            'status' => ['required', 'in:aktif,nonaktif,istirahat'],
             'officer_id' => ['nullable', 'exists:users,id'],
             'services' => ['nullable', 'array'],
             'services.*' => ['exists:services,id'],
-        ]);
+        ])->validate();
 
         $before = $counter->toArray();
 
-        $counter->update([
+        $counter->fill([
             'department_id' => $validated['department_id'],
             'name' => $validated['name'],
             'location' => $validated['location'] ?? null,
             'status' => $validated['status'],
         ]);
+        $counter->save();
 
         // Mapping Services
         $counter->services()->sync($validated['services'] ?? []);
 
         // Plotting Petugas (Officer Assignment)
         // Reset petugas yang sebelumnya ditugaskan di loket ini
-        User::where('counter_id', $counter->id)->update(['counter_id' => null]);
+        User::query()->where('counter_id', '=', $counter->id, 'and')->update(['counter_id' => null]);
 
         if ($request->filled('officer_id')) {
             // Plotting petugas terpilih ke loket ini
-            User::where('id', $validated['officer_id'])->update(['counter_id' => $counter->id]);
+            User::query()->where('id', '=', $validated['officer_id'], 'and')->update(['counter_id' => $counter->id]);
         }
 
         AuditLogger::log(
@@ -241,13 +255,13 @@ class GeraiLoketController extends Controller
             subject: $counter,
             properties: [
                 'before' => $before,
-                'after' => $counter->fresh()->toArray(),
+                'after' => Counter::query()->find($counter->id)->toArray(),
                 'assigned_officer_id' => $request->officer_id,
                 'assigned_services' => $request->services ?? [],
             ]
         );
 
-        return redirect()->route('config.index', ['tab' => 'loket'])
+        return \redirect()->route('config.index', ['tab' => 'loket'])
             ->with('success', "Loket {$counter->name} berhasil diperbarui.");
     }
 
@@ -258,7 +272,7 @@ class GeraiLoketController extends Controller
         $name = $counter->name;
 
         // Reset petugas yang sedang aktif di loket ini
-        User::where('counter_id', $counter->id)->update(['counter_id' => null]);
+        User::query()->where('counter_id', '=', $counter->id, 'and')->update(['counter_id' => null]);
 
         AuditLogger::log(
             event: 'counter_deleted',
@@ -267,9 +281,9 @@ class GeraiLoketController extends Controller
             properties: ['snapshot' => $counter->toArray()]
         );
 
-        $counter->delete();
+        $counter->{'delete'}();
 
-        return redirect()->route('config.index', ['tab' => 'loket'])
+        return \redirect()->route('config.index', ['tab' => 'loket'])
             ->with('success', "Loket {$name} berhasil dihapus.");
     }
 
@@ -277,12 +291,13 @@ class GeraiLoketController extends Controller
     {
         $this->authorize('viewAny', User::class);
 
-        $validated = $request->validate([
-            'status' => ['required', Rule::in(['aktif', 'nonaktif', 'istirahat'])],
-        ]);
+        $validated = validator($request->all(), [
+            'status' => ['required', 'in:aktif,nonaktif,istirahat'],
+        ])->validate();
 
         $oldStatus = $counter->status;
-        $counter->update(['status' => $validated['status']]);
+        $counter->status = $validated['status'];
+        $counter->save();
 
         AuditLogger::log(
             event: 'counter_status_toggled',
@@ -305,13 +320,13 @@ class GeraiLoketController extends Controller
     {
         $this->authorize('viewAny', User::class);
 
-        $validated = $request->validate([
+        $validated = validator($request->all(), [
             'department_id' => ['required', 'exists:departments,id'],
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
-        ]);
+        ])->validate();
 
-        $service = Service::create($validated);
+        $service = Service::query()->create($validated);
 
         AuditLogger::log(
             event: 'service_created',
@@ -320,7 +335,7 @@ class GeraiLoketController extends Controller
             properties: ['after' => $service->toArray()]
         );
 
-        return redirect()->route('config.index', ['tab' => 'layanan'])
+        return \redirect()->route('config.index', ['tab' => 'layanan'])
             ->with('success', "Layanan {$service->name} berhasil ditambahkan.");
     }
 
@@ -328,14 +343,15 @@ class GeraiLoketController extends Controller
     {
         $this->authorize('viewAny', User::class);
 
-        $validated = $request->validate([
+        $validated = validator($request->all(), [
             'department_id' => ['required', 'exists:departments,id'],
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
-        ]);
+        ])->validate();
 
         $before = $service->toArray();
-        $service->update($validated);
+        $service->fill($validated);
+        $service->save();
 
         AuditLogger::log(
             event: 'service_updated',
@@ -343,11 +359,11 @@ class GeraiLoketController extends Controller
             subject: $service,
             properties: [
                 'before' => $before,
-                'after' => $service->fresh()->toArray(),
+                'after' => Service::query()->find($service->id)->toArray(),
             ]
         );
 
-        return redirect()->route('config.index', ['tab' => 'layanan'])
+        return \redirect()->route('config.index', ['tab' => 'layanan'])
             ->with('success', "Layanan {$service->name} berhasil diperbarui.");
     }
 
@@ -364,9 +380,9 @@ class GeraiLoketController extends Controller
             properties: ['snapshot' => $service->toArray()]
         );
 
-        $service->delete();
+        $service->{'delete'}();
 
-        return redirect()->route('config.index', ['tab' => 'layanan'])
+        return \redirect()->route('config.index', ['tab' => 'layanan'])
             ->with('success', "Layanan {$name} berhasil dihapus.");
     }
 }

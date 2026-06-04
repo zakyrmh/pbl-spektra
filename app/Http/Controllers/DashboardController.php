@@ -62,26 +62,25 @@ class DashboardController extends Controller
             // Calculate Average FO Check-In Time
             $confirmedBookings = Booking::query()
                 ->where('booking_date', $today)
-                ->where('status', 'Confirmed')
-                ->whereNotNull('checked_in_at', 'and')
-                ->whereNotNull('confirmed_at', 'and') // timestamp saat FO klik konfirmasi
+                ->where('status', 'Checked-In')
+                ->whereNotNull('checked_in_at')
                 ->get();
 
             if ($confirmedBookings->isEmpty()) {
                 $avgFoCheckInTime = null; // jangan pakai hardcode 2.4
             } else {
                 $totalDuration = $confirmedBookings->sum(function ($booking) {
+                    $created = Carbon::parse($booking->created_at);
                     $checkedIn = Carbon::parse($booking->checked_in_at);
-                    $confirmed = Carbon::parse($booking->confirmed_at);
 
-                    return $confirmed->greaterThan($checkedIn)
-                        ? $confirmed->diffInSeconds($checkedIn)
+                    return $checkedIn->greaterThan($created)
+                        ? $checkedIn->diffInSeconds($created)
                         : 0;
                 });
 
                 $validCount = $confirmedBookings->filter(function ($booking) {
-                    return Carbon::parse($booking->confirmed_at)
-                        ->greaterThan(Carbon::parse($booking->checked_in_at));
+                    return Carbon::parse($booking->checked_in_at)
+                        ->greaterThan(Carbon::parse($booking->created_at));
                 })->count();
 
                 $avgFoCheckInTime = $validCount > 0

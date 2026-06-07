@@ -21,11 +21,13 @@
         $dailyData = $summary['daily'] ?? [];
         $maxTotal = collect($dailyData)->max('total') ?: 1;
 
-        function formatDurationSuper($seconds) {
-            if ($seconds <= 0) return '0s';
-            $m = floor($seconds / 60);
-            $s = $seconds % 60;
-            return ($m > 0 ? "{$m}m " : "") . "{$s}s";
+        if (!function_exists('formatDurationSuper')) {
+            function formatDurationSuper($seconds) {
+                if ($seconds <= 0) return '0s';
+                $m = floor($seconds / 60);
+                $s = $seconds % 60;
+                return ($m > 0 ? "{$m}m " : "") . "{$s}s";
+            }
         }
     @endphp
 

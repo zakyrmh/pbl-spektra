@@ -26,7 +26,7 @@ class UserController extends Controller
         $this->authorize('viewAny', User::class);
 
         // ── Metrics ──────────────────────────────────────────────
-        $totalUsers = User::count();
+        $totalUsers = User::count('*');
         $activeStaff = User::online()
             ->whereIn('role', array_column(UserRole::staffRoles(), 'value'))
             ->count();
@@ -60,6 +60,15 @@ class UserController extends Controller
 
         $users = $query->paginate(10)->withQueryString();
 
+        if ($request->ajax() || $request->has('ajax') || $request->expectsJson()) {
+            return response()->json([
+                'html' => view('super_admin.users.table', compact('users'))->render(),
+                'info' => $users->total() > 0
+                    ? 'Menampilkan <strong class="text-gray-700 dark:text-gray-300">'.$users->firstItem().'–'.$users->lastItem().'</strong> dari <strong class="text-gray-700 dark:text-gray-300">'.$users->total().'</strong> pengguna'
+                    : '',
+            ]);
+        }
+
         return view('super_admin.users.index', compact(
             'users',
             'totalUsers',
@@ -84,7 +93,7 @@ class UserController extends Controller
             'no_telp' => ['nullable', 'string', 'max:15'],
             'role' => ['required', Rule::in(UserRole::values())],
             'instansi' => ['nullable', 'string', 'max:100', Rule::requiredIf($request->role === UserRole::AdminGerai->value)],
-            'nomor_loket' => ['nullable', 'string', 'max:10',  Rule::requiredIf($request->role === UserRole::AdminGerai->value)],
+            'nomor_loket' => ['nullable', 'string', 'max:10'],
             'password' => ['required', Password::min(8)->mixedCase()->numbers()],
         ]);
 
@@ -124,7 +133,7 @@ class UserController extends Controller
             'no_telp' => ['nullable', 'string', 'max:15'],
             'role' => ['required', Rule::in(UserRole::values())],
             'instansi' => ['nullable', 'string', 'max:100', Rule::requiredIf($request->role === UserRole::AdminGerai->value)],
-            'nomor_loket' => ['nullable', 'string', 'max:10',  Rule::requiredIf($request->role === UserRole::AdminGerai->value)],
+            'nomor_loket' => ['nullable', 'string', 'max:10'],
         ]);
 
         $user->update($validated);
@@ -215,7 +224,7 @@ class UserController extends Controller
         AuditLogger::userDeleted($user);
 
         $name = $user->name;
-        $user->delete();
+        $user->delete('*');
 
         return redirect()->route('users.index')
             ->with('success', "Pengguna {$name} berhasil dihapus dari sistem.");
@@ -234,7 +243,7 @@ class UserController extends Controller
             ->where(function ($q) use ($user) {
                 // Log OLEH user ini (sebagai pelaku)
                 $q->where('causer_id', $user->id)
-                  // ATAU log PADA user ini (sebagai subjek)
+                    // ATAU log PADA user ini (sebagai subjek)
                     ->orWhere(function ($q2) use ($user) {
                         $q2->where('subject_type', User::class)
                             ->where('subject_id', $user->id);

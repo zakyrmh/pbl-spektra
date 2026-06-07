@@ -251,6 +251,7 @@
         <form id="user-form" method="POST" action="{{ route('users.store') }}" class="px-6 py-6 space-y-5" novalidate>
             @csrf
             <span id="form-method-spoofing"></span>
+            <input type="hidden" id="f-user-id" name="user_id" value="">
 
             {{-- Nama Lengkap --}}
             <div>
@@ -559,7 +560,60 @@
 
         // Auto-buka modal jika ada error validasi
         @if($errors->any())
-            openUserModal();
+            @if(old('_method') === 'PUT')
+                (() => {
+                    const userId = @json(old('user_id') ?? '');
+                    isEditMode = true;
+                    editUserId = userId;
+                    
+                    document.getElementById('modal-title').textContent    = 'Edit Pengguna';
+                    document.getElementById('modal-subtitle').textContent = 'Perbarui informasi akun pengguna.';
+                    document.getElementById('submit-label').textContent   = 'Simpan Perubahan';
+                    document.getElementById('user-form').action           = `/manajemen-pengguna/${userId}`;
+                    document.getElementById('form-method-spoofing').innerHTML = '<input type="hidden" name="_method" value="PUT">';
+                    document.getElementById('f-user-id').value            = userId;
+                    document.getElementById('field-password').classList.add('hidden');
+                    document.getElementById('f-password').required = false;
+                    document.getElementById('pw-required-marker').style.display = 'none';
+
+                    // Populate fields
+                    document.getElementById('f-name').value    = @json(old('name') ?? '');
+                    document.getElementById('f-email').value   = @json(old('email') ?? '');
+                    document.getElementById('f-nik').value     = @json(old('nik') ?? '');
+                    document.getElementById('f-no-telp').value = @json(old('no_telp') ?? '');
+                    document.getElementById('f-role').value    = @json(old('role') ?? '');
+
+                    handleRoleChange(@json(old('role')), @json(old('instansi')));
+
+                    showModal();
+                })();
+            @else
+                (() => {
+                    isEditMode = false;
+                    editUserId = null;
+
+                    document.getElementById('modal-title').textContent    = 'Tambah Pengguna Baru';
+                    document.getElementById('modal-subtitle').textContent = 'Isi formulir di bawah untuk membuat akun baru.';
+                    document.getElementById('submit-label').textContent   = 'Simpan Pengguna';
+                    document.getElementById('user-form').action           = '{{ route("users.store") }}';
+                    document.getElementById('form-method-spoofing').innerHTML = '';
+                    document.getElementById('f-user-id').value            = '';
+                    document.getElementById('field-password').classList.remove('hidden');
+                    document.getElementById('f-password').required = true;
+                    document.getElementById('pw-required-marker').style.display = '';
+
+                    // Populate fields
+                    document.getElementById('f-name').value    = @json(old('name') ?? '');
+                    document.getElementById('f-email').value   = @json(old('email') ?? '');
+                    document.getElementById('f-nik').value     = @json(old('nik') ?? '');
+                    document.getElementById('f-no-telp').value = @json(old('no_telp') ?? '');
+                    document.getElementById('f-role').value    = @json(old('role') ?? '');
+
+                    handleRoleChange(@json(old('role')), @json(old('instansi')));
+
+                    showModal();
+                })();
+            @endif
         @endif
     });
 
@@ -594,6 +648,7 @@
         document.getElementById('submit-label').textContent   = 'Simpan Perubahan';
         document.getElementById('user-form').action           = `/manajemen-pengguna/${userId}`;
         document.getElementById('form-method-spoofing').innerHTML = '<input type="hidden" name="_method" value="PUT">';
+        document.getElementById('f-user-id').value            = userId;
 
         // Field password opsional saat edit
         document.getElementById('field-password').classList.add('hidden');
@@ -680,6 +735,7 @@
     // ── Reset Form ────────────────────────────────────────────
     function resetForm() {
         document.getElementById('user-form').reset();
+        document.getElementById('f-user-id').value = '';
         document.getElementById('field-instansi-loket').classList.add('hidden');
         document.getElementById('f-instansi').required = false;
         document.getElementById('field-nik-notelp').classList.add('hidden');
@@ -687,14 +743,38 @@
 
     // ── Generate Password ─────────────────────────────────────
     function generatePassword() {
-        const chars    = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$!';
-        let password   = '';
-        const length   = 12;
-        const array    = new Uint32Array(length);
-        window.crypto.getRandomValues(array);
-        for (let i = 0; i < length; i++) {
-            password += chars[array[i] % chars.length];
+        const lowercase = 'abcdefghijklmnopqrstuvwxyz';
+        const uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        const numbers   = '0123456789';
+        const symbols   = '@#$!';
+        const allChars  = lowercase + uppercase + numbers + symbols;
+        
+        let passwordArr = [];
+        // Helper to get random char securely
+        function getRandomChar(str) {
+            const arr = new Uint32Array(1);
+            window.crypto.getRandomValues(arr);
+            return str[arr[0] % str.length];
         }
+        
+        passwordArr.push(getRandomChar(lowercase));
+        passwordArr.push(getRandomChar(uppercase));
+        passwordArr.push(getRandomChar(numbers));
+        passwordArr.push(getRandomChar(symbols));
+        
+        for (let i = passwordArr.length; i < 12; i++) {
+            passwordArr.push(getRandomChar(allChars));
+        }
+        
+        // Fisher-Yates shuffle using crypto
+        for (let i = passwordArr.length - 1; i > 0; i--) {
+            const arr = new Uint32Array(1);
+            window.crypto.getRandomValues(arr);
+            const j = arr[0] % (i + 1);
+            [passwordArr[i], passwordArr[j]] = [passwordArr[j], passwordArr[i]];
+        }
+        
+        const password = passwordArr.join('');
         const pwField = document.getElementById('f-password');
         pwField.type  = 'text';
         pwField.value = password;

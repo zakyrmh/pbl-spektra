@@ -24,7 +24,7 @@ class UserController extends Controller
         $this->authorize('viewAny', User::class);
 
         // ── Metrics ──────────────────────────────────────────────
-        $totalUsers = User::count();
+        $totalUsers = User::count('*');
         $activeStaff = User::online()
             ->whereIn('role', array_column(UserRole::staffRoles(), 'value'))
             ->count();
@@ -205,7 +205,7 @@ class UserController extends Controller
         AuditLogger::userDeleted($user);
 
         $name = $user->name;
-        $user->delete();
+        $user->delete('*');
 
         return redirect()->route('users.index')
             ->with('success', "Pengguna {$name} berhasil dihapus dari sistem.");
@@ -224,7 +224,7 @@ class UserController extends Controller
             ->where(function ($q) use ($user) {
                 // Log OLEH user ini (sebagai pelaku)
                 $q->where('causer_id', $user->id)
-                  // ATAU log PADA user ini (sebagai subjek)
+                    // ATAU log PADA user ini (sebagai subjek)
                     ->orWhere(function ($q2) use ($user) {
                         $q2->where('subject_type', User::class)
                             ->where('subject_id', $user->id);

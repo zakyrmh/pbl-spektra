@@ -4,7 +4,8 @@
 
 @section('content')
     @php
-        $role = Auth::user()->role ?? 'pengunjung';
+        $role = Auth::user()->role;
+        $role = $role instanceof \BackedEnum ? $role->value : ($role ?? 'pengunjung');
         if ($role === 'warga') $role = 'pengunjung';
     @endphp
 

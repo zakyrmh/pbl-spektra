@@ -16,11 +16,12 @@ return new class extends Migration
             $table->string('name');
             $table->string('nik', 16)->nullable()->unique();
             $table->string('email')->unique();
-            $table->string('no_telp', 15)->nullable();
+            $table->string('phone_number', 15)->nullable();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->enum('role', ['pengunjung', 'admin_fo', 'admin_gerai', 'super_admin'])->default('pengunjung');
             $table->rememberToken();
+            $table->softDeletes();
             $table->timestamps();
         });
 

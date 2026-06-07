@@ -1,5 +1,6 @@
 @php
     $role = Auth::user()->role;
+    $role = $role instanceof \BackedEnum ? $role->value : $role;
     $menu = [];
     if ($role === 'pengunjung') {
         $menu = [
@@ -26,36 +27,70 @@
     } elseif ($role === 'super_admin') {
         $menu = [
             ['title' => 'Dashboard Utama', 'url' => route('dashboard'), 'icon' => 'home'],
-            ['title' => 'Manajemen Pengguna', 'url' => '#', 'icon' => 'users'],
-            ['title' => 'Konfigurasi Gerai / Loket', 'url' => '#', 'icon' => 'settings'],
+            ['title' => 'Manajemen Pengguna', 'url' => route('users.index'), 'icon' => 'users'],
+            ['title' => 'Konfigurasi Gerai', 'url' => route('config.index'), 'icon' => 'settings'],
             ['title' => 'Pengaturan Sistem', 'url' => '#', 'icon' => 'sliders'],
             ['title' => 'Laporan & Analitik', 'url' => '#', 'icon' => 'chart-pie'],
         ];
     }
 @endphp
 
+{{-- Mobile backdrop --}}
+<div x-show="sidebarOpen" 
+     x-transition:opacity
+     @click="sidebarOpen = false" 
+     class="fixed inset-0 z-10 bg-black/60 backdrop-blur-xs md:hidden"
+     x-cloak></div>
+
 <aside
-    class="fixed left-0 top-0 z-20 flex flex-col w-sidebar h-screen bg-surface-dark py-6 px-4 transition-all duration-300 md:flex">
-    {{-- Brand --}}
-    <div class="flex items-center mb-8 px-3 shrink-0">
+    class="fixed left-0 top-0 z-20 flex flex-col h-screen bg-surface-dark py-6 px-4 transition-all duration-300 transform md:transform-none"
+    :class="[
+        sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0',
+        sidebarMinimized ? 'w-20' : 'w-sidebar'
+    ]"
+    x-cloak>
+    
+    {{-- Brand & Toggle Header --}}
+    <div class="flex items-center mb-8 shrink-0" :class="sidebarMinimized ? 'flex-col gap-4 justify-center' : 'justify-between px-3'">
         <a href="{{ route('dashboard') }}"
             class="flex items-center gap-2.5 hover:opacity-90 transition-opacity focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-accent-teal rounded-md">
-            <img src="{{ asset('images/Logo Mal Pelayanan Publik Kota Sawahlunto.webp') }}" alt="Logo MPP Sawahlunto"
+            <img x-show="!sidebarMinimized" src="{{ asset('images/Logo Mal Pelayanan Publik Kota Sawahlunto.webp') }}" alt="Logo MPP Sawahlunto"
                 class="h-8 object-contain">
             <img src="{{ asset('images/Logo Kota Sawahlunto.webp') }}" alt="Logo Kota Sawahlunto"
-                class="h-8 object-contain">
+                class="h-8 object-contain shrink-0">
         </a>
+
+        {{-- Close Button for Mobile Menu --}}
+        <button type="button" @click="sidebarOpen = false" x-show="!sidebarMinimized"
+            class="md:hidden w-8 h-8 flex items-center justify-center text-on-dark-soft hover:text-white hover:bg-white/10 rounded-full transition-all focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-accent-teal cursor-pointer">
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+        </button>
+
+        {{-- Minimize / Expand Toggle Button for Desktop --}}
+        <button type="button" @click="sidebarMinimized = !sidebarMinimized; localStorage.setItem('sidebarMinimized', sidebarMinimized)"
+            class="hidden md:flex w-8 h-8 items-center justify-center text-on-dark-soft hover:text-white hover:bg-white/10 rounded-full transition-all focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-accent-teal cursor-pointer"
+            :title="sidebarMinimized ? 'Expand Menu' : 'Minimize Menu'">
+            <svg x-show="!sidebarMinimized" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+            </svg>
+            <svg x-show="sidebarMinimized" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+            </svg>
+        </button>
     </div>
 
     {{-- Menu --}}
     <div class="flex-1 overflow-y-auto space-y-1.5 custom-scrollbar">
-        <div class="text-caption font-medium text-on-dark-soft/50 uppercase tracking-wider mb-3 px-3">Menu Utama</div>
+        <div x-show="!sidebarMinimized" class="text-caption font-medium text-on-dark-soft/50 uppercase tracking-wider mb-3 px-3">Menu Utama</div>
         @foreach ($menu as $item)
             @php
                 $isActive = request()->url() === $item['url'];
             @endphp
-            <a href="{{ $item['url'] }}"
-                class="flex items-center gap-3 px-3 py-2.5 rounded-md text-nav font-medium transition-all duration-200 border-l-3 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-accent-teal {{ $isActive ? 'bg-accent-teal/15 text-accent-teal border-accent-teal' : 'text-on-dark-soft hover:bg-white/6 hover:text-white border-transparent' }}">
+            <a href="{{ $item['url'] }}" title="{{ $item['title'] }}"
+                :class="sidebarMinimized ? 'justify-center px-0' : 'px-3'"
+                class="flex items-center gap-3 py-2.5 rounded-md text-nav font-medium transition-all duration-200 border-l-3 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-accent-teal {{ $isActive ? 'bg-accent-teal/15 text-accent-teal border-accent-teal' : 'text-on-dark-soft hover:bg-white/6 hover:text-white border-transparent' }}">
 
                 <span class="shrink-0 transition-colors {{ $isActive ? 'text-accent-teal' : 'text-on-dark-soft/70' }}">
                     @if ($item['icon'] == 'home')
@@ -130,10 +165,12 @@
                     @endif
                 </span>
 
-                {{ $item['title'] }}
+                <span x-show="!sidebarMinimized" class="truncate">{{ $item['title'] }}</span>
             </a>
         @endforeach
     </div>
+
+
 </aside>
 
 <style>
@@ -152,5 +189,9 @@
 
     .custom-scrollbar:hover::-webkit-scrollbar-thumb {
         background: rgba(255, 255, 255, 0.3);
+    }
+
+    [x-cloak] {
+        display: none !important;
     }
 </style>

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Services\AuditLogger;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -44,6 +45,12 @@ class AuthController extends Controller
             RateLimiter::clear($throttleKey);
             $request->session()->regenerate();
 
+            // Catat waktu login terakhir untuk tracking "staf aktif online"
+            Auth::user()->update(['last_login_at' => now()]);
+
+            // Audit trail: catat event login
+            AuditLogger::userLoggedIn(Auth::user());
+
             return redirect()->intended('/dashboard');
         }
 
@@ -67,18 +74,18 @@ class AuthController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'nik' => ['required', 'string', 'digits:16', 'unique:users,nik'],
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
-            'no_telp' => ['required', 'string', 'regex:/^08[0-9]{8,13}$/'],
+            'phone_number' => ['required', 'string', 'regex:/^08[0-9]{8,13}$/'],
             'password' => ['required', 'confirmed', Password::min(8)],
         ], [
             'nik.digits' => 'NIK harus berupa 16 digit angka.',
-            'no_telp.regex' => 'Format nomor HP tidak valid (harus diawali 08 dan berisi 10-15 angka).',
+            'phone_number.regex' => 'Format nomor HP tidak valid (harus diawali 08 dan berisi 10-15 angka).',
         ]);
 
         $user = User::create([
             'name' => $validated['name'],
             'nik' => $validated['nik'],
             'email' => $validated['email'],
-            'no_telp' => $validated['no_telp'],
+            'phone_number' => $validated['phone_number'],
             'password' => Hash::make($validated['password']),
             'role' => 'pengunjung',
         ]);
@@ -148,6 +155,14 @@ class AuthController extends Controller
     // Proses logout
     public function logout(Request $request)
     {
+        /** @var User $user */
+        $user = Auth::user();
+
+        // Audit trail: catat event logout sebelum sesi dihapus
+        if ($user) {
+            AuditLogger::userLoggedOut($user);
+        }
+
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();

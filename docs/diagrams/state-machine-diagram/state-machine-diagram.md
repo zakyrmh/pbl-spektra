@@ -1,31 +1,44 @@
+## State Machine — Booking Lifecycle
+
 ```mermaid
 stateDiagram-v2
     classDef statusStyle fill:#bbf,stroke:#333,stroke-width:1px;
 
-    [*] --> Menunggu : Pengunjung Booking Mandiri (PWA)
-    [*] --> WalkIn : Diinput Langsung oleh Admin FO (FO Meja)
+    [*] --> Pending : Pengunjung Booking Mandiri (PWA)
 
-    state Menunggu :::statusStyle
-    state WalkIn :::statusStyle
-    state Disetujui :::statusStyle
-    state Dibatalkan :::statusStyle
-    state Kadaluarsa :::statusStyle
-    state Dipanggil :::statusStyle
-    state Selesai :::statusStyle
-    state Lewat :::statusStyle
+    state Pending :::statusStyle
+    state Confirmed :::statusStyle
+    state Cancelled :::statusStyle
+    state Expired :::statusStyle
 
-    Menunggu --> Disetujui : Admin FO Klik "Setujui" (Pengunjung Hadir)
-    Menunggu --> Dibatalkan : Admin FO Klik "Batalkan"
-    Menunggu --> Kadaluarsa : Otomatis via Laravel Scheduler (Jam 16.00 WIB)
+    Pending --> Confirmed : Admin FO clicks "Approve & Check-in" (Visitor Present)
+    Pending --> Cancelled : Admin FO clicks "Cancel"
+    Pending --> Expired : Auto via Laravel Scheduler (16:00 WIB)
 
-    Disetujui --> Dipanggil : Admin Loket Klik "Panggil / Mulai"
-    WalkIn --> Dipanggil : Admin Loket Klik "Panggil / Mulai"
+    Confirmed --> [*] : Queue ticket issued (transitions to Queue lifecycle)
+    Cancelled --> [*]
+    Expired --> [*]
+```
 
-    Dipanggil --> Selesai : Pelayanan Selesai (Klik "Selesai")
-    Dipanggil --> Lewat : Pengunjung Tidak Muncul (Klik "Lewati")
+---
 
-    Selesai --> [*]
-    Dibatalkan --> [*]
-    Kadaluarsa --> [*]
-    Lewat --> [*]
+## State Machine — Queue Lifecycle
+
+```mermaid
+stateDiagram-v2
+    classDef statusStyle fill:#bbf,stroke:#333,stroke-width:1px;
+
+    [*] --> Waiting : FO issues ticket (Confirmed Booking or Walk-in)
+
+    state Waiting :::statusStyle
+    state Serving :::statusStyle
+    state Completed :::statusStyle
+    state Skipped :::statusStyle
+
+    Waiting --> Serving : Admin Counter clicks "Call / Start Service" — sets called_at = NOW()
+    Serving --> Completed : Service finished, Admin clicks "Done" — sets completed_at = NOW()
+    Serving --> Skipped : Visitor absent — Admin clicks "Skip"
+
+    Completed --> [*]
+    Skipped --> [*]
 ```

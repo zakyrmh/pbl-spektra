@@ -23,6 +23,9 @@
     </script>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
+    <!-- Alpine.js -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
     {{-- Favicon --}}
     <link rel="icon" href="{{ asset('favicon.ico') }}">
 </head>

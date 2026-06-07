@@ -1,13 +1,13 @@
 <header class="h-16 flex items-center justify-between px-4 sm:px-6 lg:px-8 bg-canvas dark:bg-surface-dark-elevated border-b border-hairline dark:border-white/10 z-10 shrink-0">
     {{-- Left: Mobile Menu Button & Title --}}
     <div class="flex items-center gap-4">
-        <button type="button"
-            class="md:hidden w-11 h-11 flex items-center justify-center text-muted dark:text-on-dark-soft hover:text-primary dark:hover:text-white transition-colors duration-150 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-accent-teal rounded-md">
+        <button type="button" @click="sidebarOpen = !sidebarOpen"
+            class="md:hidden w-11 h-11 flex items-center justify-center text-muted dark:text-on-dark-soft hover:text-primary dark:hover:text-white hover:bg-surface-soft dark:hover:bg-white/5 rounded-full transition-all duration-150 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-accent-teal cursor-pointer">
             <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
             </svg>
         </button>
-        <h1 class="hidden sm:block text-title-lg font-display font-semibold text-ink dark:text-white">
+        <h1 class="hidden lg:block text-title-lg font-display font-semibold text-ink dark:text-white">
             @yield('title', 'Dashboard')
         </h1>
     </div>
@@ -44,11 +44,10 @@
                 <p class="text-body-sm font-semibold text-ink dark:text-white leading-tight">
                     {{ Auth::user()->name }}
                 </p>
-                <p class="text-caption font-medium text-muted dark:text-on-dark-soft capitalize">
-                    {{ str_replace('_', ' ', Auth::user()->role) }}
+                <p class="text-xs font-medium text-gray-500">
+                    {{ Auth::user()->role_label }}
                 </p>
             </div>
-            
             <form action="{{ route('logout') }}" method="POST" class="m-0 pl-2">
                 @csrf
                 <button type="submit"

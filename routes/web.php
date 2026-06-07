@@ -1,12 +1,19 @@
 <?php
 
+use App\Http\Controllers\Admin\FO\BookingCancellationController;
 use App\Http\Controllers\Admin\FO\CheckInController;
 use App\Http\Controllers\Admin\FO\QueueCallController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\BookingController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\GeraiLoketController;
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PublicController;
 use App\Http\Controllers\QueueMonitorController;
+use App\Http\Controllers\ReportController;
+use App\Http\Controllers\SessionManagementController;
+use App\Http\Controllers\SettingController;
+use App\Http\Controllers\UserController;
 use App\Http\Controllers\WalkInTicketController;
 use App\Mail\TestEmail;
 use Illuminate\Support\Facades\Mail;
@@ -22,6 +29,8 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', [PublicController::class, 'index'])->name('home');
 Route::get('/cek-antrean', [PublicController::class, 'checkQueue'])->name('public.check');
+Route::get('/display', [QueueMonitorController::class, 'publicDisplay'])->name('display.index');
+Route::get('/api/display/data', [QueueMonitorController::class, 'publicDisplayData'])->name('display.data');
 
 /*
 |--------------------------------------------------------------------------
@@ -62,6 +71,22 @@ Route::middleware('auth')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])
         ->name('dashboard');
 
+    // Profil Pengunjung
+    Route::get('/profil', [ProfileController::class, 'edit'])
+        ->name('profile.edit');
+    Route::put('/profil', [ProfileController::class, 'update'])
+        ->name('profile.update');
+
+    // Booking Antrean Mandiri
+    Route::get('/booking', [BookingController::class, 'index'])
+        ->name('booking.index');
+    Route::get('/booking/baru', [BookingController::class, 'create'])
+        ->name('booking.create');
+    Route::post('/booking', [BookingController::class, 'store'])
+        ->name('booking.store');
+    Route::get('/booking/{booking}', [BookingController::class, 'show'])
+        ->name('booking.show');
+
     // ── Super Admin: Manajemen Pengguna ──────────────────────────────────────
     Route::middleware('role:super_admin')->group(function () {
         // CRUD Pengguna
@@ -94,6 +119,16 @@ Route::middleware('auth')->group(function () {
         Route::post('/konfigurasi-gerai-loket/services', [GeraiLoketController::class, 'storeService'])->name('config.services.store');
         Route::put('/konfigurasi-gerai-loket/services/{service}', [GeraiLoketController::class, 'updateService'])->name('config.services.update');
         Route::delete('/konfigurasi-gerai-loket/services/{service}', [GeraiLoketController::class, 'destroyService'])->name('config.services.destroy');
+
+        // Pengaturan Sistem
+        Route::get('/pengaturan-sistem', [SettingController::class, 'index'])->name('admin.settings.index');
+        Route::put('/pengaturan-sistem', [SettingController::class, 'update'])->name('admin.settings.update');
+
+        // Laporan & Analitik (Super Admin)
+        Route::get('/laporan-analitik', [ReportController::class, 'adminIndex'])->name('admin.reports.index');
+        Route::get('/laporan-analitik/{report}', [ReportController::class, 'adminShow'])->name('admin.reports.show');
+        Route::get('/laporan-analitik/{report}/export/excel', [ReportController::class, 'exportExcel'])->name('admin.reports.export.excel');
+        Route::get('/laporan-analitik/{report}/export/pdf', [ReportController::class, 'exportPdf'])->name('admin.reports.export.pdf');
     });
 
     // Khusus Admin FO
@@ -105,6 +140,16 @@ Route::middleware('auth')->group(function () {
             ->name('admin.fo.checkin');
         Route::post('/fo/check-in/verify', [CheckInController::class, 'verify'])
             ->name('admin.fo.checkin.verify');
+        Route::post('/fo/check-in/{booking}/approve', [CheckInController::class, 'approve'])
+            ->name('admin.fo.checkin.approve');
+        Route::post('/fo/check-in/{booking}/reject', [CheckInController::class, 'reject'])
+            ->name('admin.fo.checkin.reject');
+
+        // Pembatalan Booking oleh FO
+        Route::get('/fo/bookings', [BookingCancellationController::class, 'index'])
+            ->name('admin.fo.bookings.index');
+        Route::post('/fo/bookings/{booking}/cancel', [BookingCancellationController::class, 'cancel'])
+            ->name('admin.fo.bookings.cancel');
         // Panggilan Antrean FO
         Route::get('/fo/call', [QueueCallController::class, 'index'])
             ->name('admin.fo.call');
@@ -119,17 +164,42 @@ Route::middleware('auth')->group(function () {
         Route::post('/fo/ticket', [WalkInTicketController::class, 'store'])
             ->name('admin.fo.ticket.store');
 
+        // Kelola Laporan (FO)
+        Route::get('/fo/reports', [ReportController::class, 'foIndex'])->name('admin.fo.reports.index');
+        Route::post('/fo/reports', [ReportController::class, 'foStore'])->name('admin.fo.reports.store');
+        Route::put('/fo/reports/{report}', [ReportController::class, 'foUpdate'])->name('admin.fo.reports.update');
+        Route::delete('/fo/reports/{report}', [ReportController::class, 'foDestroy'])->name('admin.fo.reports.destroy');
+        Route::post('/fo/reports/{report}/send', [ReportController::class, 'foSend'])->name('admin.fo.reports.send');
+
         // API Endpoints for Front Office (AJAX/Fetch)
         Route::get('/api/fo/bookings/verify', [CheckInController::class, 'verifyApi'])->name('api.fo.bookings.verify');
         Route::post('/api/fo/bookings/{booking}/checkin', [CheckInController::class, 'checkInApi'])->name('api.fo.bookings.checkin');
         Route::post('/api/fo/queues/walkin', [CheckInController::class, 'walkInApi'])->name('api.fo.queues.walkin');
         Route::get('/api/fo/visitors/check-nik', [CheckInController::class, 'checkNikApi'])->name('api.fo.visitors.check-nik');
+
+        // Pengelolaan Laporan FO
+        Route::resource('fo/laporan', ReportController::class)->names('reports')->parameters([
+            'laporan' => 'report',
+        ]);
+        Route::post('fo/laporan/{report}/send', [ReportController::class, 'send'])->name('reports.send');
     });
 
     // Khusus Admin Gerai
     Route::middleware('role:admin_gerai')->group(function () {
-        Route::get('/antrean', [DashboardController::class, 'manageQueue'])
+        Route::get('/antrean', [CounterController::class, 'dashboard'])
             ->name('antrean.index');
+
+        // API Endpoints for Gerai operations
+        Route::post('/api/counter/status', [CounterController::class, 'updateStatus'])
+            ->name('gerai.status');
+        Route::post('/api/queues/call-next', [CounterController::class, 'callNext'])
+            ->name('gerai.call-next');
+        Route::post('/api/queues/{queue}/call', [CounterController::class, 'callQueue'])
+            ->name('gerai.call');
+        Route::post('/api/queues/{queue}/finish', [CounterController::class, 'finishService'])
+            ->name('gerai.finish');
+        Route::post('/api/queues/{queue}/skip', [CounterController::class, 'skipQueue'])
+            ->name('gerai.skip');
     });
 
     // Proses Logout

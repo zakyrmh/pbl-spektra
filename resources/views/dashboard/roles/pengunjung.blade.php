@@ -21,7 +21,7 @@
                     <div>
                         <h4 class="font-bold text-sm text-white font-display">Profil Belum Lengkap</h4>
                         <p class="text-xs text-white/90 mt-0.5 font-body">NIK Anda belum terverifikasi. Lengkapi NIK Anda pada menu profil untuk mempermudah pendaftaran dan pencetakan tiket di MPP.</p>
-                        <a href="#" class="inline-flex items-center gap-1 text-xs font-bold text-accent-gold hover:text-accent-gold/90 mt-2 transition-colors focus-visible:outline-none focus-visible:underline">
+                        <a href="{{ route('profile.edit') }}" class="inline-flex items-center gap-1 text-xs font-bold text-accent-gold hover:text-accent-gold/90 mt-2 transition-colors focus-visible:outline-none focus-visible:underline">
                             Lengkapi Sekarang
                             <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
                         </a>
@@ -40,6 +40,7 @@
         <!-- Left/Main: Active Ticket & Live Tracking (Spans 2 cols on Large Screens) -->
         <div class="lg:col-span-2 space-y-6">
             
+            @if($activeBooking)
             <!-- Ticket Hero Card -->
             <div class="bg-canvas dark:bg-surface-dark-elevated rounded-lg border border-hairline dark:border-white/10 shadow-sm overflow-hidden relative">
                 <!-- Top Ticket Header Pattern -->
@@ -57,8 +58,8 @@
                     <div class="flex items-start justify-between gap-4">
                         <div>
                             <h3 class="text-muted dark:text-on-dark-soft text-xs font-semibold uppercase tracking-wider font-display">Instansi & Layanan</h3>
-                            <h4 class="text-xl md:text-2xl font-bold text-ink dark:text-white mt-1 font-display">Dinas Kependudukan & Pencatatan Sipil</h4>
-                            <p class="text-sm font-semibold text-primary dark:text-accent-teal mt-0.5 font-body">Cetak Kartu Tanda Penduduk Elektronik (KTP-el)</p>
+                            <h4 class="text-xl md:text-2xl font-bold text-ink dark:text-white mt-1 font-display">{{ $activeBooking->service->department->name }}</h4>
+                            <p class="text-sm font-semibold text-primary dark:text-accent-teal mt-0.5 font-body">{{ $activeBooking->service->name }}</p>
                         </div>
                         <div class="bg-surface-soft dark:bg-white/5 text-primary dark:text-accent-teal p-3 rounded-lg shrink-0 border border-hairline dark:border-white/5">
                             <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
@@ -71,18 +72,32 @@
                     <div class="grid grid-cols-2 sm:grid-cols-3 gap-6 bg-surface-soft dark:bg-white/5 rounded-lg p-6 border border-hairline dark:border-white/5">
                         <div class="col-span-2 sm:col-span-1 border-b sm:border-b-0 sm:border-r border-hairline dark:border-white/10 pb-4 sm:pb-0">
                             <p class="text-xs text-muted dark:text-on-dark-soft font-semibold uppercase tracking-wider font-display">Nomor Antrean Anda</p>
-                            <p class="text-4xl md:text-5xl font-extrabold text-primary dark:text-accent-teal mt-1 tracking-tight font-mono">A-015</p>
+                            <p class="text-3xl md:text-4xl font-extrabold text-primary dark:text-accent-teal mt-1 tracking-tight font-mono">
+                                {{ $activeBooking->queue ? $activeBooking->queue->queue_number : 'Belum Check-In' }}
+                            </p>
                         </div>
                         <div class="sm:border-r border-hairline dark:border-white/10 sm:pl-4">
                             <p class="text-xs text-muted dark:text-on-dark-soft font-semibold uppercase tracking-wider font-display">Panggilan Sekarang</p>
-                            <p class="text-4xl md:text-5xl font-extrabold text-ink dark:text-white mt-1 tracking-tight font-mono" id="live-current-queue">A-010</p>
+                            <p id="live-current-queue" class="text-3xl md:text-4xl font-extrabold text-ink dark:text-white mt-1 tracking-tight font-mono">
+                                {{ $activeBooking->queue ? $currentServingQueue : '-' }}
+                            </p>
                         </div>
                         <div class="sm:pl-4 flex flex-col justify-between">
+                            @if($activeBooking->queue)
                             <div>
                                 <p class="text-xs text-muted dark:text-on-dark-soft font-semibold uppercase tracking-wider font-display">Sisa Antrean</p>
-                                <p class="text-4xl md:text-5xl font-extrabold text-status-waiting mt-1 tracking-tight font-mono animate-pulse" id="live-remaining-queues">5 Orang</p>
+                                <p id="live-remaining-queues" class="text-3xl md:text-4xl font-extrabold text-status-waiting mt-1 tracking-tight font-mono animate-pulse">
+                                    {{ $remainingQueuesCount }} Orang
+                                </p>
                             </div>
-                            <p class="text-[11px] font-semibold text-status-waiting mt-1 font-body transition-all" id="live-waiting-time">Estimasi: ±15 Menit</p>
+                            <p id="live-waiting-time" class="text-[11px] font-semibold text-status-waiting mt-1 font-body transition-all">Estimasi: ±{{ $estimatedTime }} Menit</p>
+                            @else
+                            <div>
+                                <p class="text-xs text-muted dark:text-on-dark-soft font-semibold uppercase tracking-wider font-display">Status Booking</p>
+                                <p class="text-md font-extrabold text-status-waiting mt-2 font-display">Menunggu Check-In</p>
+                            </div>
+                            <p class="text-[11px] font-semibold text-muted mt-1 font-body">Silakan verifikasi di loket FO</p>
+                            @endif
                         </div>
                     </div>
 
@@ -90,14 +105,31 @@
                     <div class="space-y-4">
                         <h4 class="text-xs font-bold text-muted dark:text-on-dark-soft uppercase tracking-wider font-display">Status Perjalanan Antrean</h4>
                         
+                        @php
+                            $step = 1;
+                            if ($activeBooking->queue) {
+                                $step = 2; // Check-In FO
+                                if ($activeBooking->queue->status === 'Serving') {
+                                    $step = 3; // Menunggu Panggilan
+                                } elseif (in_array($activeBooking->queue->status, ['Completed', 'Skipped'])) {
+                                    $step = 4; // Dilayani / Selesai
+                                }
+                            }
+                            $width = match($step) {
+                                1 => '12.5%',
+                                2 => '37.5%',
+                                3 => '62.5%',
+                                4 => '87.5%',
+                            };
+                        @endphp
                         <div class="relative flex flex-col md:flex-row justify-between items-start md:items-center gap-4 md:gap-2">
                             <!-- Stepper Line Connector (Desktop Only) -->
                             <div class="hidden md:block absolute top-[18px] left-[5%] right-[5%] h-1 bg-surface-strong dark:bg-gray-700 z-0">
-                                <div class="h-full bg-primary dark:bg-accent-teal transition-all duration-500" id="stepper-progress-line" style="width: 33.33%;"></div>
+                                <div id="stepper-progress-line" class="h-full bg-primary dark:bg-accent-teal transition-all duration-500" style="width: {{ $width }};"></div>
                             </div>
 
                             <!-- Step 1: Terbooking -->
-                            <div class="flex items-center md:flex-col md:text-center gap-3 md:gap-2 z-10 flex-1 w-full" id="step-1-el">
+                            <div class="flex items-center md:flex-col md:text-center gap-3 md:gap-2 z-10 flex-1 w-full">
                                 <div class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm bg-green-100 dark:bg-green-900/40 text-green-600 dark:text-green-400 border-2 border-green-500 transition-all duration-300">
                                     <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg>
                                 </div>
@@ -108,9 +140,13 @@
                             </div>
 
                             <!-- Step 2: Terkonfirmasi FO -->
-                            <div class="flex items-center md:flex-col md:text-center gap-3 md:gap-2 z-10 flex-1 w-full" id="step-2-el">
-                                <div class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm bg-green-100 dark:bg-green-900/40 text-green-600 dark:text-green-400 border-2 border-green-500 transition-all duration-300" id="step-2-badge">
-                                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg>
+                            <div class="flex items-center md:flex-col md:text-center gap-3 md:gap-2 z-10 flex-1 w-full">
+                                <div class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm transition-all duration-300 {{ $step >= 2 ? 'bg-green-100 dark:bg-green-900/40 text-green-600 dark:text-green-400 border-2 border-green-500' : 'bg-surface-strong dark:bg-gray-700 text-muted border-2 border-hairline dark:border-gray-600' }}">
+                                    @if($step >= 2)
+                                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg>
+                                    @else
+                                        2
+                                    @endif
                                 </div>
                                 <div>
                                     <p class="text-xs font-bold text-ink dark:text-white leading-tight font-display">Check-In FO</p>
@@ -119,23 +155,27 @@
                             </div>
 
                             <!-- Step 3: Menunggu Panggilan -->
-                            <div class="flex items-center md:flex-col md:text-center gap-3 md:gap-2 z-10 flex-1 w-full" id="step-3-el">
-                                <div class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm bg-primary/10 dark:bg-primary/20 text-primary dark:text-accent-teal border-2 border-primary animate-pulse transition-all duration-300" id="step-3-badge">
-                                    3
+                            <div class="flex items-center md:flex-col md:text-center gap-3 md:gap-2 z-10 flex-1 w-full">
+                                <div id="step-3-badge" class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm transition-all duration-300 {{ $step >= 3 ? 'bg-green-100 dark:bg-green-900/40 text-green-600 dark:text-green-400 border-2 border-green-500' : ($step == 2 ? 'bg-primary/10 dark:bg-primary/20 text-primary dark:text-accent-teal border-2 border-primary animate-pulse' : 'bg-surface-strong dark:bg-gray-700 text-muted border-2 border-hairline dark:border-gray-600') }}">
+                                    @if($step >= 3)
+                                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg>
+                                    @else
+                                        3
+                                    @endif
                                 </div>
                                 <div>
-                                    <p class="text-xs font-bold text-primary dark:text-accent-teal leading-tight font-display">Menunggu</p>
+                                    <p class="text-xs font-bold text-ink dark:text-white leading-tight font-display">Menunggu</p>
                                     <p class="text-[10px] text-muted dark:text-on-dark-soft font-medium font-body">Panggilan Gerai</p>
                                 </div>
                             </div>
 
                             <!-- Step 4: Sedang Dilayani -->
-                            <div class="flex items-center md:flex-col md:text-center gap-3 md:gap-2 z-10 flex-1 w-full" id="step-4-el">
-                                <div class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm bg-surface-strong dark:bg-gray-700 text-muted border-2 border-hairline dark:border-gray-600 transition-all duration-300" id="step-4-badge">
+                            <div class="flex items-center md:flex-col md:text-center gap-3 md:gap-2 z-10 flex-1 w-full">
+                                <div id="step-4-badge" class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm transition-all duration-300 {{ $step >= 4 ? 'bg-green-100 dark:bg-green-900/40 text-green-600 dark:text-green-400 border-2 border-green-500' : ($step == 3 ? 'bg-primary/10 dark:bg-primary/20 text-primary dark:text-accent-teal border-2 border-primary animate-pulse' : 'bg-surface-strong dark:bg-gray-700 text-muted border-2 border-hairline dark:border-gray-600') }}">
                                     4
                                 </div>
                                 <div>
-                                    <p class="text-xs font-bold text-muted dark:text-gray-500 leading-tight font-display">Dilayani</p>
+                                    <p class="text-xs font-bold text-ink dark:text-white leading-tight font-display">Dilayani</p>
                                     <p class="text-[10px] text-muted dark:text-on-dark-soft font-medium font-body">Di Gerai Instansi</p>
                                 </div>
                             </div>
@@ -150,30 +190,38 @@
                             </svg>
                             Tampilkan QR Code / Kode Unik FO
                         </button>
-                        <div class="flex items-center justify-between gap-3">
-                            <button type="button" onclick="rescheduleQueue()" class="flex-1 h-11 flex items-center justify-center gap-1.5 px-4 bg-surface-soft hover:bg-surface-strong text-ink dark:text-white dark:bg-white/5 dark:hover:bg-white/10 border border-hairline dark:border-white/10 rounded-pill text-xs font-semibold transition-all focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-accent-teal cursor-pointer">
-                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                </svg>
-                                Ubah Jadwal
-                            </button>
-                            <button type="button" onclick="cancelQueue()" class="flex-1 h-11 flex items-center justify-center gap-1.5 px-4 text-status-skipped hover:underline text-xs font-semibold transition-all rounded-pill focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-status-skipped/50 cursor-pointer">
-                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-                                </svg>
-                                Batalkan Antrean
-                            </button>
-                        </div>
                     </div>
                 </div>
             </div>
+            @else
+            <!-- Empty State Card -->
+            <div class="bg-canvas dark:bg-surface-dark-elevated rounded-lg border border-hairline dark:border-white/10 shadow-sm p-8 text-center space-y-6">
+                <div class="w-16 h-16 bg-primary/10 dark:bg-primary/20 text-primary dark:text-accent-teal rounded-full flex items-center justify-center mx-auto border border-hairline dark:border-white/5">
+                    <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" />
+                    </svg>
+                </div>
+                <div class="max-w-md mx-auto space-y-2">
+                    <h4 class="text-xl font-bold text-ink dark:text-white font-display">Tidak Ada Antrean Aktif</h4>
+                    <p class="text-sm text-muted dark:text-on-dark-soft font-body">Anda belum memiliki tiket atau reservasi antrean aktif untuk hari ini. Silakan buat booking pelayanan baru terlebih dahulu.</p>
+                </div>
+                <div>
+                    <a href="{{ route('booking.create') }}" class="inline-flex h-11 items-center justify-center gap-2 px-6 bg-primary hover:bg-primary-hover text-white font-semibold rounded-pill shadow-md hover:shadow-lg transition-all focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-accent-teal cursor-pointer">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+                        </svg>
+                        Ambil Nomor Antrean Sekarang
+                    </a>
+                </div>
+            </div>
+            @endif
 
             <!-- Quick Actions Grid -->
             <div class="space-y-4">
                 <h3 class="text-lg font-bold text-ink dark:text-white font-display">Pintasan Aksi Utama</h3>
                 <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
                     <!-- Booking Baru -->
-                    <a href="#" class="bg-canvas dark:bg-surface-dark-elevated p-5 rounded-lg border border-hairline dark:border-white/10 shadow-xs hover:shadow-md hover:-translate-y-1 transition-all duration-300 group flex flex-col items-center text-center focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-accent-teal">
+                    <a href="{{ route('booking.create') }}" class="bg-canvas dark:bg-surface-dark-elevated p-5 rounded-lg border border-hairline dark:border-white/10 shadow-xs hover:shadow-md hover:-translate-y-1 transition-all duration-300 group flex flex-col items-center text-center focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-accent-teal">
                         <div class="w-12 h-12 bg-surface-soft dark:bg-white/5 text-primary dark:text-accent-teal rounded-lg flex items-center justify-center mb-3 group-hover:scale-110 group-hover:bg-primary group-hover:text-white transition-all border border-hairline dark:border-white/5">
                             <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
@@ -183,7 +231,7 @@
                         <p class="text-[10px] text-muted dark:text-on-dark-soft mt-0.5 font-body">Booking layanan baru</p>
                     </a>
                     <!-- Riwayat -->
-                    <a href="#" class="bg-canvas dark:bg-surface-dark-elevated p-5 rounded-lg border border-hairline dark:border-white/10 shadow-xs hover:shadow-md hover:-translate-y-1 transition-all duration-300 group flex flex-col items-center text-center focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-accent-teal">
+                    <a href="{{ route('booking.index') }}" class="bg-canvas dark:bg-surface-dark-elevated p-5 rounded-lg border border-hairline dark:border-white/10 shadow-xs hover:shadow-md hover:-translate-y-1 transition-all duration-300 group flex flex-col items-center text-center focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-accent-teal">
                         <div class="w-12 h-12 bg-surface-soft dark:bg-white/5 text-indigo-600 dark:text-indigo-400 rounded-lg flex items-center justify-center mb-3 group-hover:scale-110 group-hover:bg-indigo-600 group-hover:text-white transition-all border border-hairline dark:border-white/5">
                             <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -327,6 +375,7 @@
     </div>
 </div>
 
+@if($activeBooking)
 <!-- Custom QR Code Modal Overlay -->
 <div id="qr-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 opacity-0 transition-opacity duration-300 hidden">
     <div class="bg-canvas dark:bg-surface-dark-elevated rounded-lg p-6 md:p-8 max-w-sm w-full border border-hairline dark:border-white/10 shadow-2xl relative transform scale-95 transition-transform duration-300" id="qr-modal-card">
@@ -400,17 +449,25 @@
 
             <div class="space-y-1.5">
                 <div class="text-[10px] text-muted font-bold uppercase tracking-wider font-display">KODE BOOKING</div>
-                <div class="text-3xl font-extrabold text-ink tracking-wider font-mono">A-015</div>
+                <div class="text-2xl font-extrabold text-ink tracking-wider font-mono">{{ $activeBooking->booking_code }}</div>
+                @if($activeBooking->status === 'Checked-In')
                 <div class="inline-flex items-center gap-1.5 px-3 py-1 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 rounded-full text-xs font-bold border border-green-200/50">
                     <span class="w-1.5 h-1.5 rounded-full bg-green-500 animate-ping"></span>
                     Telah Terkonfirmasi FO
                 </div>
+                @else
+                <div class="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 rounded-full text-xs font-bold border border-amber-200/50">
+                    <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                    Menunggu Check-In FO
+                </div>
+                @endif
             </div>
 
             <p class="text-xs text-muted dark:text-on-dark-soft max-w-[240px] mx-auto leading-relaxed font-body">Dekatkan layar ponsel Anda ke alat pemindai kode di loket Front Office.</p>
         </div>
     </div>
 </div>
+@endif
 
 <!-- Custom Notification Audio Alert -->
 <audio id="notif-sound" src="https://assets.mixkit.co/active_storage/sfx/2568/2568-84.wav" preload="auto"></audio>
@@ -489,16 +546,26 @@
         
         // Reset stepper visual elements
         const step3Badge = document.getElementById('step-3-badge');
-        step3Badge.className = "w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm bg-primary/10 dark:bg-primary/20 text-primary dark:text-accent-teal border-2 border-primary animate-pulse transition-all duration-300";
-        step3Badge.innerText = "3";
+        if (step3Badge) {
+            step3Badge.className = "w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm bg-primary/10 dark:bg-primary/20 text-primary dark:text-accent-teal border-2 border-primary animate-pulse transition-all duration-300";
+            step3Badge.innerText = "3";
+        }
         
         const step4Badge = document.getElementById('step-4-badge');
-        step4Badge.className = "w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm bg-surface-strong dark:bg-gray-700 text-muted border-2 border-hairline dark:border-gray-600 transition-all duration-300";
-        step4Badge.innerText = "4";
+        if (step4Badge) {
+            step4Badge.className = "w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm bg-surface-strong dark:bg-gray-700 text-muted border-2 border-hairline dark:border-gray-600 transition-all duration-300";
+            step4Badge.innerText = "4";
+        }
         
-        document.getElementById('stepper-progress-line').style.width = "33.33%";
+        const stepperLine = document.getElementById('stepper-progress-line');
+        if (stepperLine) {
+            stepperLine.style.width = "33.33%";
+        }
         
-        document.getElementById('sim-status-log').innerText = "Status: Reset ke A-010";
+        const simStatusLog = document.getElementById('sim-status-log');
+        if (simStatusLog) {
+            simStatusLog.innerText = "Status: Reset ke A-010";
+        }
     }
 
     // Increment queue
@@ -513,31 +580,46 @@
             updateDOM();
             triggerAlertSound();
             
-            document.getElementById('sim-status-log').innerText = `Status: Antrean dipanggil -> A-0${simState.currentQueue}`;
+            const simStatusLog = document.getElementById('sim-status-log');
+            if (simStatusLog) {
+                simStatusLog.innerText = `Status: Antrean dipanggil -> A-0${simState.currentQueue}`;
+            }
             
             // When it reaches user's queue
             if (simState.currentQueue === simState.userQueue) {
                 // Change stepper state to "Sedang Dilayani"
-                document.getElementById('stepper-progress-line').style.width = "100%";
+                const stepperLine = document.getElementById('stepper-progress-line');
+                if (stepperLine) {
+                    stepperLine.style.width = "100%";
+                }
                 
                 const step3Badge = document.getElementById('step-3-badge');
-                step3Badge.className = "w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm bg-green-100 dark:bg-green-900/40 text-green-600 dark:text-green-400 border-2 border-green-500 transition-all duration-300";
-                step3Badge.innerHTML = `<svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg>`;
+                if (step3Badge) {
+                    step3Badge.className = "w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm bg-green-100 dark:bg-green-900/40 text-green-600 dark:text-green-400 border-2 border-green-500 transition-all duration-300";
+                    step3Badge.innerHTML = `<svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg>`;
+                }
                 
                 const step4Badge = document.getElementById('step-4-badge');
-                step4Badge.className = "w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm bg-primary/10 dark:bg-primary/20 text-primary dark:text-accent-teal border-2 border-primary animate-pulse transition-all duration-300";
-                step4Badge.innerText = "4";
+                if (step4Badge) {
+                    step4Badge.className = "w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm bg-primary/10 dark:bg-primary/20 text-primary dark:text-accent-teal border-2 border-primary animate-pulse transition-all duration-300";
+                    step4Badge.innerText = "4";
+                }
                 
                 // Notify user via browser toast/alert
                 setTimeout(() => {
                     alert("🔔 GILIRAN ANDA! Nomor antrean A-015 dipanggil ke Gerai Disdukcapil.");
                 }, 500);
                 
-                document.getElementById('sim-status-log').innerText = "Status: Giliran Anda!";
+                if (simStatusLog) {
+                    simStatusLog.innerText = "Status: Giliran Anda!";
+                }
                 stopSimTimer();
             }
         } else {
-            document.getElementById('sim-status-log').innerText = "Status: Mencapai batas antrean";
+            const simStatusLog = document.getElementById('sim-status-log');
+            if (simStatusLog) {
+                simStatusLog.innerText = "Status: Mencapai batas antrean";
+            }
         }
     }
 
@@ -546,53 +628,64 @@
         if (simState.currentQueue === 0) return;
         
         // Update queue counters
-        document.getElementById('live-current-queue').innerText = `A-0${simState.currentQueue}`;
-        document.getElementById('live-remaining-queues').innerText = `${simState.totalRemaining} Orang`;
+        const liveCurrent = document.getElementById('live-current-queue');
+        if (liveCurrent) liveCurrent.innerText = `A-0${simState.currentQueue}`;
+        
+        const liveRemaining = document.getElementById('live-remaining-queues');
+        if (liveRemaining) liveRemaining.innerText = `${simState.totalRemaining} Orang`;
         
         // Update estimated waiting time
         const waitTime = simState.totalRemaining * 3;
-        document.getElementById('live-waiting-time').innerText = `Estimasi: ±${waitTime} Menit`;
+        const liveWaitingTime = document.getElementById('live-waiting-time');
+        if (liveWaitingTime) liveWaitingTime.innerText = `Estimasi: ±${waitTime} Menit`;
         
         // Update density gauge elements
         const percent = simState.buildingDensity;
-        document.getElementById('density-percentage-text').innerText = `${percent}%`;
+        const densityPercentText = document.getElementById('density-percentage-text');
+        if (densityPercentText) densityPercentText.innerText = `${percent}%`;
         
         const circle = document.getElementById('density-gauge-circle');
-        circle.setAttribute('stroke-dasharray', `${percent}, 100`);
+        if (circle) circle.setAttribute('stroke-dasharray', `${percent}, 100`);
         
         const dot = document.getElementById('density-status-dot');
         const text = document.getElementById('density-status-text');
         const desc = document.getElementById('density-status-desc');
         
         if (percent < 40) {
-            text.innerText = 'Sepi';
-            dot.className = 'inline-block w-2.5 h-2.5 rounded-full bg-emerald-500';
-            circle.className = 'text-emerald-500 transition-all duration-1000 ease-out';
-            desc.innerText = 'Kondisi senggang, tidak ada antrean berarti.';
+            if (text) text.innerText = 'Sepi';
+            if (dot) dot.className = 'inline-block w-2.5 h-2.5 rounded-full bg-emerald-500';
+            if (circle) circle.className = 'text-emerald-500 transition-all duration-1000 ease-out';
+            if (desc) desc.innerText = 'Kondisi senggang, tidak ada antrean berarti.';
         } else if (percent < 70) {
-            text.innerText = 'Normal';
-            dot.className = 'inline-block w-2.5 h-2.5 rounded-full bg-primary';
-            circle.className = 'text-primary dark:text-accent-teal transition-all duration-1000 ease-out';
-            desc.innerText = 'Kondisi kondusif, waktu antrean singkat.';
+            if (text) text.innerText = 'Normal';
+            if (dot) dot.className = 'inline-block w-2.5 h-2.5 rounded-full bg-primary';
+            if (circle) circle.className = 'text-primary dark:text-accent-teal transition-all duration-1000 ease-out';
+            if (desc) desc.innerText = 'Kondisi kondusif, waktu antrean singkat.';
         } else {
-            text.innerText = 'Sangat Ramai';
-            dot.className = 'inline-block w-2.5 h-2.5 rounded-full bg-rose-500 animate-pulse';
-            circle.className = 'text-rose-500 transition-all duration-1000 ease-out';
-            desc.innerText = 'Gedung padat, waktu tunggu lebih lama.';
+            if (text) text.innerText = 'Sangat Ramai';
+            if (dot) dot.className = 'inline-block w-2.5 h-2.5 rounded-full bg-rose-500 animate-pulse';
+            if (circle) circle.className = 'text-rose-500 transition-all duration-1000 ease-out';
+            if (desc) desc.innerText = 'Gedung padat, waktu tunggu lebih lama.';
         }
         
         // Tenant fluctuations
         const t1 = Math.max(1, 18 + Math.floor(Math.random() * 5) - 2);
-        document.getElementById('tenant-1-counter').innerText = `${t1} Antrean`;
-        document.getElementById('tenant-1-progress').style.width = `${Math.min(100, Math.floor(t1 / 22 * 100))}%`;
+        const tenant1Counter = document.getElementById('tenant-1-counter');
+        if (tenant1Counter) tenant1Counter.innerText = `${t1} Antrean`;
+        const tenant1Progress = document.getElementById('tenant-1-progress');
+        if (tenant1Progress) tenant1Progress.style.width = `${Math.min(100, Math.floor(t1 / 22 * 100))}%`;
 
         const t2 = Math.max(1, 12 + Math.floor(Math.random() * 3) - 1);
-        document.getElementById('tenant-2-counter').innerText = `${t2} Antrean`;
-        document.getElementById('tenant-2-progress').style.width = `${Math.min(100, Math.floor(t2 / 20 * 100))}%`;
+        const tenant2Counter = document.getElementById('tenant-2-counter');
+        if (tenant2Counter) tenant2Counter.innerText = `${t2} Antrean`;
+        const tenant2Progress = document.getElementById('tenant-2-progress');
+        if (tenant2Progress) tenant2Progress.style.width = `${Math.min(100, Math.floor(t2 / 20 * 100))}%`;
 
         const t3 = Math.max(1, 6 + Math.floor(Math.random() * 3) - 1);
-        document.getElementById('tenant-3-counter').innerText = `${t3} Antrean`;
-        document.getElementById('tenant-3-progress').style.width = `${Math.min(100, Math.floor(t3 / 15 * 100))}%`;
+        const tenant3Counter = document.getElementById('tenant-3-counter');
+        if (tenant3Counter) tenant3Counter.innerText = `${t3} Antrean`;
+        const tenant3Progress = document.getElementById('tenant-3-progress');
+        if (tenant3Progress) tenant3Progress.style.width = `${Math.min(100, Math.floor(t3 / 15 * 100))}%`;
     }
 
     // Play chime sound

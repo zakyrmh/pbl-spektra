@@ -241,9 +241,16 @@
                                         <span class="w-1.5 h-1.5 rounded-full bg-primary dark:bg-accent-teal animate-ping"></span>Sedang Dilayani
                                     </span>
                                 @elseif ($q->status === 'Completed')
-                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-full text-[10px] font-bold border border-emerald-500/20">
-                                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>Selesai
-                                    </span>
+                                    <div class="flex items-center gap-2">
+                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-full text-[10px] font-bold border border-emerald-500/20">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>Selesai
+                                        </span>
+                                        @if ($q->booking_id === null && !$q->feedback)
+                                            <a href="{{ route('feedback.create', ['queue_id' => $q->id]) }}" class="inline-flex items-center gap-1 px-2.5 py-1 bg-primary/10 text-primary dark:text-accent-teal hover:bg-primary/20 rounded-full text-[10px] font-bold transition-all">
+                                                Tulis Ulasan
+                                            </a>
+                                        @endif
+                                    </div>
                                 @elseif ($q->status === 'Skipped')
                                     <span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-rose-500/10 text-status-skipped rounded-full text-[10px] font-bold border border-rose-500/20">
                                         <span class="w-1.5 h-1.5 rounded-full bg-status-skipped"></span>Terlewat

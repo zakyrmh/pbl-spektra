@@ -5,8 +5,11 @@ use App\Http\Controllers\Admin\FO\CheckInController;
 use App\Http\Controllers\Admin\FO\QueueCallController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BookingController;
+use App\Http\Controllers\CounterController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\FeedbackController;
 use App\Http\Controllers\GeraiLoketController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PublicController;
 use App\Http\Controllers\QueueMonitorController;
@@ -70,6 +73,18 @@ Route::middleware('auth')->group(function () {
     // Dashboard Utama
     Route::get('/dashboard', [DashboardController::class, 'index'])
         ->name('dashboard');
+
+    // Pusat Notifikasi
+    Route::get('/notifikasi', [NotificationController::class, 'index'])
+        ->name('notifications.index');
+    Route::get('/notifikasi/{notification}', [NotificationController::class, 'show'])
+        ->name('notifications.show');
+
+    // Feedback & Rating Pelayanan
+    Route::get('/feedback/create', [FeedbackController::class, 'create'])
+        ->name('feedback.create');
+    Route::post('/feedback', [FeedbackController::class, 'store'])
+        ->name('feedback.store');
 
     // Profil Pengunjung
     Route::get('/profil', [ProfileController::class, 'edit'])

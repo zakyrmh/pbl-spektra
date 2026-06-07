@@ -286,7 +286,11 @@
         
         // Auto play chime if session has play_chime
         @if (session('play_chime'))
-            triggerChime();
+            try {
+                triggerChime();
+            } catch (e) {
+                console.warn('Autoplay chime failed:', e);
+            }
         @endif
 
         // Hook chime trigger on button click to have instant UI feedback
@@ -295,27 +299,52 @@
 
         if (btnNext) {
             btnNext.addEventListener('click', () => {
-                triggerChime();
+                try {
+                    triggerChime();
+                } catch (e) {
+                    console.warn('Chime failed on next button click:', e);
+                }
             });
         }
         if (btnRecall) {
             btnRecall.addEventListener('click', () => {
-                triggerChime();
+                try {
+                    triggerChime();
+                } catch (e) {
+                    console.warn('Chime failed on recall button click:', e);
+                }
             });
         }
     });
 
     // Chime play function
     function triggerChime() {
-        const audio = document.getElementById('chime-audio');
-        if (audio) {
-            audio.play().catch(e => {
-                console.log('HTML5 Audio blocked or failed, falling back to Web Audio API: ' + e);
-                // Fallback to synthesizing chime sound programmatically
+        try {
+            const audio = document.getElementById('chime-audio');
+            if (audio) {
+                const playPromise = audio.play();
+                if (playPromise !== undefined && typeof playPromise.catch === 'function') {
+                    playPromise.catch(e => {
+                        console.log('HTML5 Audio blocked or failed, falling back to Web Audio API: ' + e);
+                        try {
+                            synthesizeChime();
+                        } catch (err) {
+                            console.warn('Synthesizer fallback failed:', err);
+                        }
+                    });
+                } else {
+                    // Fallback for older engines/environments that don't return play promise
+                }
+            } else {
                 synthesizeChime();
-            });
-        } else {
-            synthesizeChime();
+            }
+        } catch (e) {
+            console.log('HTML5 Audio failed synchronously, falling back to Web Audio API: ' + e);
+            try {
+                synthesizeChime();
+            } catch (err) {
+                console.warn('Synthesizer fallback failed:', err);
+            }
         }
     }
 
@@ -363,13 +392,13 @@
 
     // Toast Generator
     @if (session('success'))
-        createToast('Sukses', '{!! session('success') !!}', 'success');
+        createToast('Sukses', {!! json_encode(session('success')) !!}, 'success');
     @endif
     @if (session('warning'))
-        createToast('Peringatan', '{!! session('warning') !!}', 'warning');
+        createToast('Peringatan', {!! json_encode(session('warning')) !!}, 'warning');
     @endif
     @if (session('error'))
-        createToast('Gagal', '{!! session('error') !!}', 'error');
+        createToast('Gagal', {!! json_encode(session('error')) !!}, 'error');
     @endif
 
     function createToast(title, message, type = 'success') {

@@ -4,7 +4,7 @@
             <tr class="border-b border-hairline">
                 <th class="px-5 py-3.5 text-left text-xs font-bold text-muted dark:text-on-dark-soft uppercase tracking-wider font-display">Pengguna</th>
                 <th class="px-5 py-3.5 text-left text-xs font-bold text-muted dark:text-on-dark-soft uppercase tracking-wider font-display">Peran</th>
-                <th class="px-5 py-3.5 text-left text-xs font-bold text-muted dark:text-on-dark-soft uppercase tracking-wider hidden lg:table-cell font-display">Instansi / Loket</th>
+                <th class="px-5 py-3.5 text-left text-xs font-bold text-muted dark:text-on-dark-soft uppercase tracking-wider hidden lg:table-cell font-display">Instansi / Gerai</th>
                 <th class="px-5 py-3.5 text-left text-xs font-bold text-muted dark:text-on-dark-soft uppercase tracking-wider hidden md:table-cell font-display">Status</th>
                 <th class="px-5 py-3.5 text-left text-xs font-bold text-muted dark:text-on-dark-soft uppercase tracking-wider hidden xl:table-cell font-display">Last Login</th>
                 <th class="px-5 py-3.5 text-right text-xs font-bold text-muted dark:text-on-dark-soft uppercase tracking-wider font-display">Aksi</th>
@@ -47,10 +47,10 @@
                         </span>
                     </td>
 
-                    {{-- Kolom: Instansi / Loket --}}
+                    {{-- Kolom: Instansi / Gerai --}}
                     <td class="px-5 py-4 hidden lg:table-cell">
-                        @if($user->instansi)
-                            <p class="text-xs font-semibold text-body dark:text-on-dark-soft">{{ $user->instansi_label }}</p>
+                        @if($user->department)
+                            <p class="text-xs font-semibold text-body dark:text-on-dark-soft">{{ $user->department->name }}</p>
                             @if($user->nomor_loket)
                                 <p class="text-[10px] text-muted mt-0.5">Loket {{ $user->nomor_loket }}</p>
                             @endif

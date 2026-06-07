@@ -227,7 +227,7 @@
 ════════════════════════════════════════════════════════════ --}}
 <div
     id="user-modal"
-    class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+    class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 items-center justify-center p-4 hidden"
     aria-modal="true"
     role="dialog"
     aria-labelledby="modal-title"
@@ -331,12 +331,12 @@
                 </select>
             </div>
 
-            {{-- Instansi & Loket (muncul hanya saat role = admin_gerai) --}}
+            {{-- Instansi (muncul hanya saat role = admin_gerai) --}}
             <div id="field-instansi-loket" class="hidden space-y-4">
                 <div class="p-4 bg-violet-50 dark:bg-violet-900/20 border border-violet-200 dark:border-violet-800/50 rounded-xl">
                     <p class="text-xs font-semibold text-violet-700 dark:text-violet-400 flex items-center gap-1.5">
                         <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                        Operator Loket wajib dipetakan ke instansi dan nomor loket spesifik.
+                        Operator Loket wajib dipetakan ke instansi / gerai yang dikelola.
                     </p>
                 </div>
                 <div>
@@ -353,19 +353,6 @@
                             <option value="{{ $key }}">{{ $label }}</option>
                         @endforeach
                     </select>
-                </div>
-                <div>
-                    <label for="f-nomor-loket" class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1.5">
-                        Nomor Loket <span class="text-red-500">*</span>
-                    </label>
-                    <input
-                        type="text"
-                        id="f-nomor-loket"
-                        name="nomor_loket"
-                        maxlength="10"
-                        placeholder="Contoh: L1, L2A, 03"
-                        class="w-full px-4 py-2.5 text-sm border border-gray-200 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700/50 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400 transition-all font-mono"
-                    >
                 </div>
             </div>
 
@@ -620,7 +607,7 @@
         document.getElementById('f-no-telp').value = userData.no_telp || '';
         document.getElementById('f-role').value    = userData.role    || '';
 
-        handleRoleChange(userData.role, userData.instansi, userData.nomor_loket);
+        handleRoleChange(userData.role, userData.instansi);
 
         showModal();
     }
@@ -629,6 +616,7 @@
         const overlay = document.getElementById('user-modal');
         const card    = document.getElementById('user-modal-card');
         overlay.classList.remove('hidden');
+        overlay.classList.add('flex');        // aktifkan flexbox setelah hidden dihapus
         setTimeout(() => {
             overlay.style.opacity = '1';
             card.classList.remove('scale-95');
@@ -644,6 +632,7 @@
         card.classList.remove('scale-100');
         card.classList.add('scale-95');
         setTimeout(() => {
+            overlay.classList.remove('flex'); // hapus flex sebelum hidden ditambahkan
             overlay.classList.add('hidden');
             document.body.style.overflow = '';
         }, 200);
@@ -660,26 +649,23 @@
     });
 
     // ── Role Change Handler ───────────────────────────────────
-    function handleRoleChange(role, instansiVal = null, loketVal = null) {
+    function handleRoleChange(role, instansiVal = null) {
         const fieldInstansiLoket = document.getElementById('field-instansi-loket');
         const fInstansi          = document.getElementById('f-instansi');
-        const fLoket             = document.getElementById('f-nomor-loket');
         const fieldNikNoTelp     = document.getElementById('field-nik-notelp');
         const fNik               = document.getElementById('f-nik');
         const fNoTelp            = document.getElementById('f-no-telp');
 
-        // ── Instansi & Loket: hanya untuk Operator Loket ──────────
+        // ── Instansi: hanya untuk Operator Loket ─────────────
         if (role === 'admin_gerai') {
             fieldInstansiLoket.classList.remove('hidden');
             fInstansi.required = true;
-            fLoket.required    = true;
         } else {
             fieldInstansiLoket.classList.add('hidden');
             fInstansi.required = false;
-            fLoket.required    = false;
         }
 
-        // ── NIK & No Telp: hanya untuk Pengunjung ─────────────────
+        // ── NIK & No Telp: hanya untuk Pengunjung ────────────
         if (role === 'pengunjung') {
             fieldNikNoTelp.classList.remove('hidden');
         } else {
@@ -689,7 +675,6 @@
         }
 
         if (instansiVal) fInstansi.value = instansiVal;
-        if (loketVal)    fLoket.value    = loketVal;
     }
 
     // ── Reset Form ────────────────────────────────────────────
@@ -697,7 +682,6 @@
         document.getElementById('user-form').reset();
         document.getElementById('field-instansi-loket').classList.add('hidden');
         document.getElementById('f-instansi').required = false;
-        document.getElementById('f-nomor-loket').required = false;
         document.getElementById('field-nik-notelp').classList.add('hidden');
     }
 

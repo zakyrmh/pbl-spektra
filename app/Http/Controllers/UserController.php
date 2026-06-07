@@ -91,7 +91,7 @@ class UserController extends Controller
             'no_telp' => ['nullable', 'string', 'max:15'],
             'role' => ['required', Rule::in(UserRole::values())],
             'instansi' => ['nullable', 'string', 'max:100', Rule::requiredIf($request->role === UserRole::AdminGerai->value)],
-            'nomor_loket' => ['nullable', 'string', 'max:10',  Rule::requiredIf($request->role === UserRole::AdminGerai->value)],
+            'nomor_loket' => ['nullable', 'string', 'max:10'],
             'password' => ['required', Password::min(8)->mixedCase()->numbers()],
         ]);
 
@@ -131,7 +131,7 @@ class UserController extends Controller
             'no_telp' => ['nullable', 'string', 'max:15'],
             'role' => ['required', Rule::in(UserRole::values())],
             'instansi' => ['nullable', 'string', 'max:100', Rule::requiredIf($request->role === UserRole::AdminGerai->value)],
-            'nomor_loket' => ['nullable', 'string', 'max:10',  Rule::requiredIf($request->role === UserRole::AdminGerai->value)],
+            'nomor_loket' => ['nullable', 'string', 'max:10'],
         ]);
 
         $user->update($validated);

@@ -53,7 +53,7 @@ test('guests are redirected to login when accessing booking pages', function () 
 test('authenticated visitor can access booking index and create form', function () {
     $response = $this->actingAs($this->visitor)->get(route('booking.index'));
     $response->assertStatus(200);
-    $response->assertSee('Riwayat &amp; Status Antrean');
+    $response->assertSee('Riwayat & Status Antrean', false);
 
     $response = $this->actingAs($this->visitor)->get(route('booking.create'));
     $response->assertStatus(200);
@@ -103,9 +103,9 @@ test('visitor can book a slot successfully', function () {
     expect($foNotif->title)->toBe('Booking Baru Masuk');
 
     // Verify activity logs
-    $log = ActivityLog::where('event', 'CREATE_BOOKING')->first();
+    $log = ActivityLog::where('action', 'CREATE_BOOKING')->first();
     expect($log)->not->toBeNull();
-    expect($log->causer_id)->toBe($this->visitor->id);
+    expect($log->user_id)->toBe($this->visitor->id);
     expect($log->description)->toContain($booking->booking_code);
 });
 

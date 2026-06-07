@@ -14,10 +14,10 @@ return new class extends Migration
         Schema::create('settings', function (Blueprint $table) {
             $table->id();
             $table->string('key', 100)->unique();
-            $table->text('value');
+            $table->text('value')->nullable();
             $table->string('description', 255)->nullable();
             $table->foreignId('updated_by')->nullable()->constrained('users')->onDelete('set null');
-            $table->timestamps();
+            $table->timestamp('updated_at')->nullable();
         });
     }
 

@@ -34,7 +34,7 @@ test('user can register with valid data', function (string $phoneNumber) {
         'name' => 'Ahmad Fauzi',
         'nik' => '1234567890123456',
         'email' => 'ahmad.fauzi@example.com',
-        'phone_number' => $phoneNumber,
+        'no_telp' => $phoneNumber,
         'role' => 'pengunjung',
     ]);
 

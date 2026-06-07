@@ -58,7 +58,7 @@ class BookingService
             // BR-06: Satu NIK = maks 1 booking aktif (Pending) per layanan per hari
             $existingBooking = Booking::where('user_id', $user->id)
                 ->where('service_id', $serviceId)
-                ->where('booking_date', $schedule->date->toDateString())
+                ->whereDate('booking_date', $schedule->date->toDateString())
                 ->where('status', 'Pending')
                 ->exists();
 

@@ -46,4 +46,12 @@ class Report extends Model
     {
         return $this->belongsTo(User::class, 'created_by');
     }
+
+    /**
+     * Cek apakah laporan telah dikunci (status Terkirim).
+     */
+    public function isLocked(): bool
+    {
+        return $this->status === 'Terkirim';
+    }
 }

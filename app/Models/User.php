@@ -15,7 +15,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-#[Fillable(['name', 'nik', 'email', 'phone_number', 'avatar_path', 'ktp_photo_path', 'password', 'role', 'instansi', 'nomor_loket', 'is_active', 'last_login_at'])]
+#[Fillable(['name', 'nik', 'email', 'phone_number', 'no_telp', 'avatar_path', 'ktp_photo_path', 'password', 'role', 'instansi', 'nomor_loket', 'is_active', 'last_login_at'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -207,19 +207,19 @@ class User extends Authenticatable
     }
 
     /**
-     * Accessor untuk keselarasan dengan form no_telp.
+     * Accessor untuk keselarasan dengan attribute lama phone_number.
      */
-    public function getNoTelpAttribute(): ?string
+    public function getPhoneNumberAttribute(): ?string
     {
-        return $this->phone_number;
+        return $this->no_telp;
     }
 
     /**
-     * Mutator untuk keselarasan dengan form no_telp.
+     * Mutator untuk keselarasan dengan attribute lama phone_number.
      */
-    public function setNoTelpAttribute(?string $value): void
+    public function setPhoneNumberAttribute(?string $value): void
     {
-        $this->attributes['phone_number'] = $value;
+        $this->attributes['no_telp'] = $value;
     }
 
     /**

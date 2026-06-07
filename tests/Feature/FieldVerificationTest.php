@@ -130,7 +130,8 @@ test('submitting NIK updates visitor profile and displays verification panel', f
     // Verify activity log for NIK update
     $log = ActivityLog::where('action', 'UPDATE_NIK')->first();
     expect($log)->not->toBeNull();
-    expect($log->user_id)->toBe($this->visitor->id);
+    expect($log->user_id)->toBe($this->foAdmin->id);
+    expect($log->model_id)->toBe($this->visitor->id);
 });
 
 test('FO admin can approve checkin and issue a queue number', function () {

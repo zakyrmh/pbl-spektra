@@ -25,7 +25,7 @@ class CancelExpiredBookings extends Command
         $today = now()->toDateString();
 
         $expiredBookings = Booking::where('status', 'Pending')
-            ->where('booking_date', '<=', $today)
+            ->whereDate('booking_date', '<=', $today)
             ->with(['user', 'service.department'])
             ->get();
 

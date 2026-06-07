@@ -9,7 +9,6 @@ use App\Services\ProfileService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Validation\Rules\File;
 use Illuminate\View\View;
 
 class ProfileController extends Controller
@@ -39,18 +38,8 @@ class ProfileController extends Controller
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'phone_number' => ['required', 'string', 'regex:/^08[0-9]{8,13}$/'],
-            'avatar' => [
-                'nullable',
-                File::image()
-                    ->max(2048)
-                    ->types(['jpeg', 'jpg', 'png']),
-            ],
-            'ktp_photo' => [
-                'nullable',
-                File::image()
-                    ->max(2048)
-                    ->types(['jpeg', 'jpg', 'png']),
-            ],
+            'avatar' => ['nullable', 'image', 'mimes:jpeg,jpg,png', 'max:2048'],
+            'ktp_photo' => ['nullable', 'image', 'mimes:jpeg,jpg,png', 'max:2048'],
         ], [
             'phone_number.regex' => 'Format nomor HP tidak valid (harus diawali 08 dan berisi 10-15 angka).',
             'avatar.max' => 'Ukuran foto profil tidak boleh melebihi 2MB.',

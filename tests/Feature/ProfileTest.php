@@ -47,7 +47,7 @@ test('validation fails for wrong image type and oversized files', function () {
     // Create a fake txt file and name it as image
     $fakeTextFile = UploadedFile::fake()->create('document.txt', 100);
     // Create an oversized image (3MB)
-    $largeImageFile = UploadedFile::fake()->image('large.png')->size(3000);
+    $largeImageFile = UploadedFile::fake()->create('large.png', 3000, 'image/png');
 
     $response = $this->actingAs($user)->put(route('profile.update'), [
         'name' => 'New Name',

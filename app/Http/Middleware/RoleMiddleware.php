@@ -26,6 +26,10 @@ class RoleMiddleware
         $userRole = Auth::user()->role;
         $roleValue = $userRole instanceof \BackedEnum ? $userRole->value : $userRole;
 
+        if ($roleValue === 'super_admin') {
+            return $next($request);
+        }
+
         if (! in_array($roleValue, $roles)) {
             abort(403, 'Anda tidak memiliki akses ke halaman ini.');
         }

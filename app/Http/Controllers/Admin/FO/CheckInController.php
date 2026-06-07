@@ -100,11 +100,12 @@ class CheckInController extends Controller
                     ->exists();
 
                 if ($nikSudahAda) {
-                    return back()
-                        ->withInput()
-                        ->with('error', "NIK <strong>{$nikBaru}</strong> sudah terdaftar di sistem untuk pengguna lain.")
-                        ->with('booking', $booking)
-                        ->with('nik_required', true);
+                    session()->flash('error', "NIK <strong>{$nikBaru}</strong> sudah terdaftar di sistem untuk pengguna lain.");
+
+                    return view('admin.fo.checkin', [
+                        'booking' => $booking,
+                        'nik_required' => true,
+                    ]);
                 }
 
                 $user->update(['nik' => $nikBaru]);
@@ -117,11 +118,11 @@ class CheckInController extends Controller
                     actorUserId: Auth::id(),
                 );
             } else {
-                // NIK masih kosong & FO belum mengisi → kembalikan dengan flag untuk tampil form NIK
-                return back()
-                    ->withInput()
-                    ->with('booking', $booking)
-                    ->with('nik_required', true);
+                // NIK masih kosong & FO belum mengisi → tampilkan form NIK
+                return view('admin.fo.checkin', [
+                    'booking' => $booking,
+                    'nik_required' => true,
+                ]);
             }
         }
 

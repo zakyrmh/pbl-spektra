@@ -216,7 +216,7 @@
     {{-- ══════════════════════════════════════════
          TABEL PENGGUNA
     ══════════════════════════════════════════ --}}
-    <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700/50 shadow-sm overflow-hidden relative transition-all duration-200" id="users-table-container">
+    <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700/50 shadow-sm md:overflow-visible overflow-hidden relative transition-all duration-200" id="users-table-container">
         @include('super_admin.users.table')
     </div>
 

@@ -58,6 +58,15 @@ class UserController extends Controller
 
         $users = $query->paginate(10)->withQueryString();
 
+        if ($request->ajax() || $request->has('ajax') || $request->expectsJson()) {
+            return response()->json([
+                'html' => view('super_admin.users.table', compact('users'))->render(),
+                'info' => $users->total() > 0
+                    ? 'Menampilkan <strong class="text-gray-700 dark:text-gray-300">'.$users->firstItem().'–'.$users->lastItem().'</strong> dari <strong class="text-gray-700 dark:text-gray-300">'.$users->total().'</strong> pengguna'
+                    : '',
+            ]);
+        }
+
         return view('super_admin.users.index', compact(
             'users',
             'totalUsers',

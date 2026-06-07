@@ -227,7 +227,7 @@
 ════════════════════════════════════════════════════════════ --}}
 <div
     id="user-modal"
-    class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden"
+    class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
     aria-modal="true"
     role="dialog"
     aria-labelledby="modal-title"
@@ -284,8 +284,8 @@
                 >
             </div>
 
-            {{-- NIK & No Telp (grid) --}}
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {{-- NIK & No Telp: hanya tampil untuk role Pengunjung --}}
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4" id="field-nik-notelp">
                 <div>
                     <label for="f-nik" class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1.5">NIK (16 digit)</label>
                     <input
@@ -664,7 +664,11 @@
         const fieldInstansiLoket = document.getElementById('field-instansi-loket');
         const fInstansi          = document.getElementById('f-instansi');
         const fLoket             = document.getElementById('f-nomor-loket');
+        const fieldNikNoTelp     = document.getElementById('field-nik-notelp');
+        const fNik               = document.getElementById('f-nik');
+        const fNoTelp            = document.getElementById('f-no-telp');
 
+        // ── Instansi & Loket: hanya untuk Operator Loket ──────────
         if (role === 'admin_gerai') {
             fieldInstansiLoket.classList.remove('hidden');
             fInstansi.required = true;
@@ -673,6 +677,15 @@
             fieldInstansiLoket.classList.add('hidden');
             fInstansi.required = false;
             fLoket.required    = false;
+        }
+
+        // ── NIK & No Telp: hanya untuk Pengunjung ─────────────────
+        if (role === 'pengunjung') {
+            fieldNikNoTelp.classList.remove('hidden');
+        } else {
+            fieldNikNoTelp.classList.add('hidden');
+            fNik.value    = '';
+            fNoTelp.value = '';
         }
 
         if (instansiVal) fInstansi.value = instansiVal;
@@ -685,6 +698,7 @@
         document.getElementById('field-instansi-loket').classList.add('hidden');
         document.getElementById('f-instansi').required = false;
         document.getElementById('f-nomor-loket').required = false;
+        document.getElementById('field-nik-notelp').classList.add('hidden');
     }
 
     // ── Generate Password ─────────────────────────────────────

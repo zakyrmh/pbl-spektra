@@ -14,7 +14,7 @@ uses(RefreshDatabase::class);
 test('operator with no counter is shown warning page', function () {
     $operator = User::factory()->create([
         'role' => 'admin_gerai',
-        'counter_id' => null,
+        'departments_id' => null,
     ]);
 
     $response = $this->actingAs($operator)->get(route('antrean.index'));
@@ -37,7 +37,7 @@ test('operator with counter can view the dashboard and see their counter info', 
 
     $operator = User::factory()->create([
         'role' => 'admin_gerai',
-        'counter_id' => $counter->id,
+        'departments_id' => $counter->department_id,
     ]);
 
     $response = $this->actingAs($operator)->get(route('antrean.index'));
@@ -61,7 +61,7 @@ test('operator can update their counter status', function () {
 
     $operator = User::factory()->create([
         'role' => 'admin_gerai',
-        'counter_id' => $counter->id,
+        'departments_id' => $counter->department_id,
     ]);
 
     $response = $this->actingAs($operator)->post(route('gerai.status'), [
@@ -99,7 +99,7 @@ test('operator can call next queue and complete it', function () {
 
     $operator = User::factory()->create([
         'role' => 'admin_gerai',
-        'counter_id' => $counter->id,
+        'departments_id' => $counter->department_id,
     ]);
 
     $queue = Queue::create([
@@ -142,7 +142,7 @@ test('operator cannot manage queue belonging to another department', function ()
 
     $operatorA = User::factory()->create([
         'role' => 'admin_gerai',
-        'counter_id' => $counterA->id,
+        'departments_id' => $counterA->department_id,
     ]);
 
     $queueB = Queue::create([

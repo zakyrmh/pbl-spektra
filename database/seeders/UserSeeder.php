@@ -43,7 +43,7 @@ class UserSeeder extends Seeder
                 'email' => 'gerai@mpp-sawahlunto.id',
                 'password' => Hash::make('password'),
                 'role' => 'admin_gerai',
-                'counter_id' => $counter ? $counter->id : null,
+                'departments_id' => $counter ? $counter->department_id : null,
             ]
         );
 

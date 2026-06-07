@@ -15,33 +15,12 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-#[Fillable(['name', 'nik', 'email', 'phone_number', 'no_telp', 'avatar_path', 'ktp_photo_path', 'password', 'role', 'instansi', 'nomor_loket', 'is_active', 'last_login_at'])]
+#[Fillable(['name', 'nik', 'email', 'phone_number', 'no_telp', 'avatar_path', 'ktp_photo_path', 'password', 'role', 'departments_id', 'nomor_loket', 'is_active', 'last_login_at'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable, SoftDeletes;
-
-    /**
-     * Daftar instansi/gerai yang tersedia di MPP Sawahlunto.
-     *
-     * @var array<string, string>
-     */
-    public static array $instansiList = [
-        'Disdukcapil' => 'Dinas Kependudukan & Pencatatan Sipil',
-        'Imigrasi' => 'Kantor Imigrasi',
-        'Samsat' => 'Samsat / Bapenda',
-        'DPMPTSP' => 'Dinas Penanaman Modal & PTSP',
-        'BPJS_Kesehatan' => 'BPJS Kesehatan',
-        'BPJS_Ketenagakerjaan' => 'BPJS Ketenagakerjaan',
-        'BPN' => 'Badan Pertanahan Nasional',
-        'Disnaker' => 'Dinas Ketenagakerjaan',
-        'Dinas_Pendidikan' => 'Dinas Pendidikan',
-        'Dinas_Kesehatan' => 'Dinas Kesehatan',
-        'PLN' => 'PLN',
-        'PDAM' => 'PDAM',
-        'Front_Office' => 'Front Office MPP',
-    ];
 
     /**
      * Cast kolom model ke tipe yang tepat.
@@ -82,9 +61,9 @@ class User extends Authenticatable
      *
      * @param  Builder  $query
      */
-    public function scopeByInstansi($query, string $instansi): void
+    public function scopeByInstansi($query, $departments_id): void
     {
-        $query->where('instansi', $instansi);
+        $query->where('departments_id', $departments_id);
     }
 
     /** Filter hanya akun aktif. */
@@ -129,7 +108,7 @@ class User extends Authenticatable
      */
     public function getInstansiLabelAttribute(): string
     {
-        return self::$instansiList[$this->instansi] ?? ($this->instansi ?? '-');
+        return $this->department ? $this->department->name : '-';
     }
 
     /**
@@ -223,11 +202,31 @@ class User extends Authenticatable
     }
 
     /**
-     * Sesi loket fisik petugas.
+     * Get the department that owns this user.
      */
-    public function counter(): BelongsTo
+    public function department(): BelongsTo
     {
-        return $this->belongsTo(Counter::class);
+        return $this->belongsTo(Department::class, 'departments_id');
+    }
+
+    /**
+     * Sesi loket fisik petugas secara dinamis dari departemennya.
+     */
+    public function getCounterAttribute(): ?Counter
+    {
+        if (! $this->departments_id) {
+            return null;
+        }
+
+        return Counter::where('department_id', $this->departments_id)->first();
+    }
+
+    /**
+     * Dapatkan ID loket secara dinamis.
+     */
+    public function getCounterIdAttribute(): ?int
+    {
+        return $this->counter?->id;
     }
 
     /**

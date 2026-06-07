@@ -147,14 +147,14 @@
                 {{-- Filter Instansi --}}
                 <div>
                     <select
-                        name="instansi"
+                        name="departments_id"
                         id="filter-instansi"
                         onchange="fetchUsers()"
                         class="w-full h-12 px-3.5 text-sm bg-canvas text-ink border border-hairline rounded-md focus:border-primary focus:outline-none focus:ring-4 focus:ring-primary/12 transition-all appearance-none cursor-pointer"
                     >
                         <option value="">Semua Instansi</option>
                         @foreach(\App\Models\Department::orderBy('name')->get() as $dept)
-                            <option value="{{ $dept->name }}" {{ request('instansi') === $dept->name ? 'selected' : '' }}>
+                            <option value="{{ $dept->id }}" {{ request('departments_id') == $dept->id ? 'selected' : '' }}>
                                 {{ $dept->name }}
                             </option>
                         @endforeach
@@ -191,7 +191,7 @@
                     </select>
 
                     {{-- Tombol reset filter --}}
-                    <a href="{{ route('users.index') }}" id="btn-reset-filters" class="inline-flex items-center justify-center w-12 h-12 bg-surface-soft dark:bg-white/5 border border-hairline text-muted hover:text-ink hover:bg-surface-strong dark:hover:bg-white/10 rounded-md transition-colors text-xs font-semibold cursor-pointer" title="Reset Filter" style="display: {{ request()->hasAny(['search', 'instansi', 'role', 'status']) ? 'inline-flex' : 'none' }};">
+                    <a href="{{ route('users.index') }}" id="btn-reset-filters" class="inline-flex items-center justify-center w-12 h-12 bg-surface-soft dark:bg-white/5 border border-hairline text-muted hover:text-ink hover:bg-surface-strong dark:hover:bg-white/10 rounded-md transition-colors text-xs font-semibold cursor-pointer" title="Reset Filter" style="display: {{ request()->hasAny(['search', 'instansi', 'departments_id', 'role', 'status']) ? 'inline-flex' : 'none' }};">
                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
                     </a>
                 </div>
@@ -346,12 +346,12 @@
                     </label>
                     <select
                         id="f-instansi"
-                        name="instansi"
+                        name="departments_id"
                         class="w-full px-4 h-12 text-sm border border-hairline rounded-md bg-canvas text-ink focus:outline-none focus:ring-4 focus:ring-primary/12 focus:border-primary transition-all appearance-none cursor-pointer"
                     >
                         <option value="">— Pilih Instansi —</option>
                         @foreach(\App\Models\Department::orderBy('name')->get() as $dept)
-                            <option value="{{ $dept->name }}">{{ $dept->name }}</option>
+                            <option value="{{ $dept->id }}">{{ $dept->name }}</option>
                         @endforeach
                     </select>
                 </div>
@@ -447,7 +447,7 @@
         url.searchParams.set('ajax', '1');
         
         // Toggle reset button visibility
-        const hasFilters = url.searchParams.has('search') || url.searchParams.has('instansi') || url.searchParams.has('role') || url.searchParams.has('status');
+        const hasFilters = url.searchParams.has('search') || url.searchParams.has('departments_id') || url.searchParams.has('instansi') || url.searchParams.has('role') || url.searchParams.has('status');
         if (btnReset) {
             btnReset.style.display = hasFilters ? 'inline-flex' : 'none';
         }
@@ -533,7 +533,7 @@
             tableContainer.addEventListener('click', function(e) {
                 const link = e.target.closest('a');
                 if (link && link.href) {
-                    if (link.href.includes('page=') || link.href.includes('search=') || link.href.includes('role=') || link.href.includes('instansi=') || link.href.includes('status=')) {
+                    if (link.href.includes('page=') || link.href.includes('search=') || link.href.includes('role=') || link.href.includes('instansi=') || link.href.includes('departments_id=') || link.href.includes('status=')) {
                         e.preventDefault();
                         fetchUsers(link.href);
                     }
@@ -583,7 +583,7 @@
                     document.getElementById('f-no-telp').value = @json(old('no_telp') ?? '');
                     document.getElementById('f-role').value    = @json(old('role') ?? '');
 
-                    handleRoleChange(@json(old('role')), @json(old('instansi')));
+                    handleRoleChange(@json(old('role')), @json(old('departments_id') ?? old('instansi')));
 
                     showModal();
                 })();
@@ -609,7 +609,7 @@
                     document.getElementById('f-no-telp').value = @json(old('no_telp') ?? '');
                     document.getElementById('f-role').value    = @json(old('role') ?? '');
 
-                    handleRoleChange(@json(old('role')), @json(old('instansi')));
+                    handleRoleChange(@json(old('role')), @json(old('departments_id') ?? old('instansi')));
 
                     showModal();
                 })();
@@ -662,7 +662,7 @@
         document.getElementById('f-no-telp').value = userData.no_telp || '';
         document.getElementById('f-role').value    = userData.role    || '';
 
-        handleRoleChange(userData.role, userData.instansi);
+        handleRoleChange(userData.role, userData.departments_id || userData.instansi);
 
         showModal();
     }

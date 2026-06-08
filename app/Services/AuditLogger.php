@@ -79,7 +79,7 @@ class AuditLogger
                     'name' => $newUser->name,
                     'email' => $newUser->email,
                     'role' => $newUser->role->value,
-                    'instansi' => $newUser->instansi,
+                    'departments_id' => $newUser->departments_id,
                     'nomor_loket' => $newUser->nomor_loket,
                 ],
             ],
@@ -143,7 +143,7 @@ class AuditLogger
                     'name' => $user->name,
                     'email' => $user->email,
                     'role' => $user->role->value,
-                    'instansi' => $user->instansi,
+                    'departments_id' => $user->departments_id,
                 ],
             ],
         );

@@ -62,7 +62,7 @@ test('super admin can store a new user and map no_telp to phone_number', functio
         'name' => 'Petugas Baru',
         'email' => 'petugas@sawahlunto.go.id',
         'nik' => '1234567890123456',
-        'phone_number' => '08123456789', // Mapped from no_telp
+        'no_telp' => '08123456789', // Mapped from no_telp
         'role' => 'admin_fo',
     ]);
 });

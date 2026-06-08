@@ -28,11 +28,11 @@ class Counter extends Model
     }
 
     /**
-     * Get the users (officers) assigned to this counter.
+     * Get the users (officers) assigned to this counter's department.
      */
     public function users(): HasMany
     {
-        return $this->hasMany(User::class);
+        return $this->hasMany(User::class, 'departments_id', 'department_id');
     }
 
     /**

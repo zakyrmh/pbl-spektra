@@ -10,7 +10,7 @@
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Geist:wght@100..900&family=Geist+Mono:wght@100..900&display=swap"
         rel="stylesheet">
 
     <!-- Styles / Scripts -->
@@ -30,7 +30,7 @@
     <link rel="icon" href="{{ asset('favicon.ico') }}">
 </head>
 
-<body class="antialiased" style="font-family: 'Plus Jakarta Sans', sans-serif;">
+<body class="antialiased font-body bg-canvas text-body">
     <div id="app">
         @yield('base_content')
     </div>

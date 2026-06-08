@@ -39,4 +39,14 @@ class Department extends Model
     {
         return $this->hasManyThrough(Queue::class, Counter::class);
     }
+
+    /**
+     * Get the users (officers) belonging to this department.
+     *
+     * @return HasMany<User, $this>
+     */
+    public function users(): HasMany
+    {
+        return $this->hasMany(User::class, 'departments_id');
+    }
 }

@@ -6,9 +6,20 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\Cache;
 
 class Setting extends Model
 {
+    /**
+     * Matikan timestamp created_at karena hanya ada updated_at di tabel settings.
+     */
+    public const CREATED_AT = null;
+
+    /**
+     * Atribut yang dapat diisi secara massal.
+     *
+     * @var list<string>
+     */
     protected $fillable = [
         'key',
         'value',
@@ -17,9 +28,9 @@ class Setting extends Model
     ];
 
     /**
-     * Get the user who last updated this setting.
+     * User yang terakhir kali memperbarui pengaturan ini.
      *
-     * @return BelongsTo<User, $this>
+     * @return BelongsTo<User, self>
      */
     public function updatedBy(): BelongsTo
     {
@@ -27,12 +38,35 @@ class Setting extends Model
     }
 
     /**
-     * Helper to get a setting value.
+     * Ambil nilai pengaturan berdasarkan key.
+     * Menggunakan Laravel Cache (rememberForever) untuk optimalisasi performa.
      */
-    public static function getValue(string $key, mixed $default = null): mixed
+    public static function getVal(string $key, ?string $default = null): ?string
     {
-        $setting = self::where('key', $key)->first();
+        return Cache::rememberForever("setting.{$key}", function () use ($key, $default) {
+            $setting = self::where('key', $key)->first();
 
-        return $setting ? $setting->value : $default;
+            return $setting ? $setting->value : $default;
+        });
+    }
+
+    /**
+     * Simpan atau perbarui nilai pengaturan, lalu bersihkan cache terkait.
+     */
+    public static function setVal(string $key, ?string $value, ?string $description = null): self
+    {
+        $setting = self::updateOrCreate(
+            ['key' => $key],
+            [
+                'value' => $value,
+                'description' => $description,
+                'updated_by' => auth()->id(),
+            ]
+        );
+
+        // Hapus cache agar nilai baru langsung terbaca
+        Cache::forget("setting.{$key}");
+
+        return $setting;
     }
 }

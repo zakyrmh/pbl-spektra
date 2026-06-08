@@ -195,8 +195,8 @@ class GeraiLoketController extends Controller
 
         // Plotting Petugas (Officer Assignment)
         if ($request->filled('officer_id')) {
-            // Lepas petugas terpilih dari loket lamanya (jika ada)
-            User::query()->where('id', '=', $validated['officer_id'], 'and')->update(['counter_id' => $counter->id]);
+            // Lepas petugas terpilih dari loket lamanya (jika ada) dengan menset departments_id baru
+            User::query()->where('id', '=', $validated['officer_id'], 'and')->update(['departments_id' => $counter->department_id]);
         }
 
         AuditLogger::log(
@@ -242,11 +242,11 @@ class GeraiLoketController extends Controller
 
         // Plotting Petugas (Officer Assignment)
         // Reset petugas yang sebelumnya ditugaskan di loket ini
-        User::query()->where('counter_id', '=', $counter->id, 'and')->update(['counter_id' => null]);
+        User::query()->where('departments_id', '=', $counter->department_id, 'and')->update(['departments_id' => null]);
 
         if ($request->filled('officer_id')) {
             // Plotting petugas terpilih ke loket ini
-            User::query()->where('id', '=', $validated['officer_id'], 'and')->update(['counter_id' => $counter->id]);
+            User::query()->where('id', '=', $validated['officer_id'], 'and')->update(['departments_id' => $counter->department_id]);
         }
 
         AuditLogger::log(
@@ -272,7 +272,7 @@ class GeraiLoketController extends Controller
         $name = $counter->name;
 
         // Reset petugas yang sedang aktif di loket ini
-        User::query()->where('counter_id', '=', $counter->id, 'and')->update(['counter_id' => null]);
+        User::query()->where('departments_id', '=', $counter->department_id, 'and')->update(['departments_id' => null]);
 
         AuditLogger::log(
             event: 'counter_deleted',

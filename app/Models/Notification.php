@@ -21,7 +21,7 @@ class Notification extends Model
     ];
 
     /**
-     * Get the user who received this notification.
+     * Get the user that owns the notification.
      *
      * @return BelongsTo<User, $this>
      */

@@ -4,9 +4,11 @@ namespace App\Http\Controllers\Admin\FO;
 
 use App\Events\QueueCreated;
 use App\Http\Controllers\Controller;
+use App\Mail\BookingCancelledMail;
 use App\Models\ActivityLog;
 use App\Models\Booking;
 use App\Models\Counter;
+use App\Models\Notification;
 use App\Models\Queue;
 use App\Models\Service;
 use App\Models\User;
@@ -14,12 +16,16 @@ use App\Models\Visitor;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 
 /**
  * CheckInController — Verifikasi & Check-In Booking Online
  *
  * Rute   : admin.fo.checkin        → GET  /fo/check-in
  * Rute   : admin.fo.checkin.verify → POST /fo/check-in/verify
+ * Rute   : admin.fo.checkin.approve → POST /fo/check-in/{booking}/approve
+ * Rute   : admin.fo.checkin.reject  → POST /fo/check-in/{booking}/reject
  *
  * Business Rules (AGENT.md §7):
  *  BR-02 Nomor antrian aktif hanya diterbitkan oleh front_office.
@@ -37,7 +43,7 @@ class CheckInController extends Controller
     }
 
     /**
-     * Verifikasi kode booking & lakukan check-in.
+     * Verifikasi kode booking & tampilkan detail untuk persetujuan.
      * POST /fo/check-in/verify
      *
      * Request fields:
@@ -55,7 +61,7 @@ class CheckInController extends Controller
 
         // ── 1. Cari booking berdasarkan booking_code ──────────────────
         $booking = Booking::where('booking_code', $code)
-            ->with('user')
+            ->with(['user', 'service.department', 'schedule'])
             ->first();
 
         if (! $booking) {
@@ -94,11 +100,12 @@ class CheckInController extends Controller
                     ->exists();
 
                 if ($nikSudahAda) {
-                    return back()
-                        ->withInput()
-                        ->with('error', "NIK <strong>{$nikBaru}</strong> sudah terdaftar di sistem untuk pengguna lain.")
-                        ->with('booking', $booking)
-                        ->with('nik_required', true);
+                    session()->flash('error', "NIK <strong>{$nikBaru}</strong> sudah terdaftar di sistem untuk pengguna lain.");
+
+                    return view('admin.fo.checkin', [
+                        'booking' => $booking,
+                        'nik_required' => true,
+                    ]);
                 }
 
                 $user->update(['nik' => $nikBaru]);
@@ -107,38 +114,168 @@ class CheckInController extends Controller
                     action: 'UPDATE_NIK',
                     modelType: 'User',
                     modelId: $user->id,
-                    description: "Admin FO ({$user->id}) mengisi NIK warga {$user->name} → {$nikBaru} saat proses check-in booking {$booking->booking_code}.",
+                    description: "Admin FO mengisi NIK warga {$user->name} → {$nikBaru} saat proses check-in booking {$booking->booking_code}.",
                     actorUserId: Auth::id(),
                 );
             } else {
-                // NIK masih kosong & FO belum mengisi → kembalikan dengan flag untuk tampil form NIK
-                return back()
-                    ->withInput()
-                    ->with('booking', $booking)
-                    ->with('nik_required', true);
+                // NIK masih kosong & FO belum mengisi → tampilkan form NIK
+                return view('admin.fo.checkin', [
+                    'booking' => $booking,
+                    'nik_required' => true,
+                ]);
             }
         }
 
-        // ── 4. Lakukan Check-In dalam satu transaksi ──────────────────
-        DB::transaction(function () use ($booking) {
-            $booking->update([
-                'status' => 'Checked-In',
-                'checked_in_at' => now(),
-            ]);
+        // ── 4. Tampilkan halaman konfirmasi detail dokumen ────────────
+        return view('admin.fo.checkin', [
+            'booking' => $booking,
+            'nik_required' => false,
+        ]);
+    }
 
-            // Catat di activity_logs (AGENT.md §8 — Auditability)
-            ActivityLog::record(
-                action: 'VERIFY_CHECKIN',
-                modelType: 'Booking',
-                modelId: $booking->id,
-                description: "Admin FO berhasil check-in booking {$booking->booking_code} atas nama {$booking->user->name}.",
-                actorUserId: Auth::id(),
-            );
-        });
+    /**
+     * Setujui verifikasi dokumen dan terbitkan nomor antrean.
+     * POST /fo/check-in/{booking}/approve
+     */
+    public function approve(Request $request, Booking $booking)
+    {
+        // Pastikan booking bisa dicheck-in
+        if (! $booking->canBeCheckedIn()) {
+            return redirect()->route('admin.fo.checkin')
+                ->with('warning', 'Booking ini tidak dapat diproses.');
+        }
 
-        return redirect()->route('admin.fo.checkin')
-            ->with('success', "Check-in berhasil! Warga <strong>{$booking->user->name}</strong> ({$booking->booking_code}) telah tercatat hadir.")
-            ->with('checkin_result', $booking->fresh(['user']));
+        // Pastikan NIK sudah diisi
+        if (empty($booking->user->nik)) {
+            return redirect()->route('admin.fo.checkin')
+                ->with('booking', $booking)
+                ->with('nik_required', true)
+                ->with('error', 'NIK wajib diisi sebelum menyetujui check-in.');
+        }
+
+        $today = now()->toDateString();
+
+        try {
+            $queue = DB::transaction(function () use ($booking, $today) {
+                // UPDATE status booking
+                $booking->update([
+                    'status' => 'Checked-In',
+                    'checked_in_at' => now(),
+                ]);
+
+                // Cari loket berdasarkan instansi/departemen layanan
+                $counter = Counter::where('department_id', $booking->service->department_id)->first();
+                if (! $counter) {
+                    throw new \Exception('Belum ada loket/counter yang terdaftar untuk instansi '.$booking->service->department->name.'.');
+                }
+
+                // Ambil nomor urut antrean terakhir hari ini
+                $existingCount = Queue::where('counter_id', $counter->id)
+                    ->whereDate('queue_date', $today)
+                    ->lockForUpdate()
+                    ->count();
+
+                $nextNumber = $existingCount + 1;
+                $prefix = $counter->department->inisial ?: 'Q';
+                $queueNumber = $prefix.'-'.str_pad((string) $nextNumber, 3, '0', STR_PAD_LEFT);
+
+                // Buat data Antrean Baru
+                $queue = Queue::create([
+                    'booking_id' => $booking->id,
+                    'visitor_id' => null,
+                    'counter_id' => $counter->id,
+                    'service_id' => $booking->service_id,
+                    'queue_number' => $queueNumber,
+                    'status' => 'Waiting',
+                    'queue_date' => $today,
+                ]);
+
+                // Catat di activity log
+                ActivityLog::record(
+                    action: 'VERIFY_CHECKIN',
+                    modelType: 'Booking',
+                    modelId: $booking->id,
+                    description: "Admin FO berhasil menyetujui dokumen & check-in booking {$booking->booking_code} atas nama {$booking->user->name}. Nomor antrean {$queueNumber} diterbitkan.",
+                    actorUserId: Auth::id(),
+                );
+
+                return $queue;
+            });
+
+            // Broadcast event QueueCreated
+            event(new QueueCreated($queue));
+
+            return redirect()->route('admin.fo.checkin')
+                ->with('success', "Check-in berhasil! Warga <strong>{$booking->user->name}</strong> telah terverifikasi.")
+                ->with('checkin_result', $booking->fresh(['user', 'queue.counter.department', 'service']));
+        } catch (\Exception $e) {
+            return redirect()->route('admin.fo.checkin')
+                ->withInput()
+                ->with('error', 'Gagal memproses check-in: '.$e->getMessage());
+        }
+    }
+
+    /**
+     * Tolak verifikasi dokumen warga (batalkan booking).
+     * POST /fo/check-in/{booking}/reject
+     */
+    public function reject(Request $request, Booking $booking)
+    {
+        // Pastikan booking bisa dicheck-in
+        if (! $booking->canBeCheckedIn()) {
+            return redirect()->route('admin.fo.checkin')
+                ->with('warning', 'Booking ini tidak dapat diproses.');
+        }
+
+        $request->validate([
+            'reason' => ['required', 'string', 'min:5', 'max:255'],
+        ], [
+            'reason.required' => 'Alasan penolakan wajib diisi.',
+            'reason.min' => 'Alasan penolakan minimal harus 5 karakter.',
+            'reason.max' => 'Alasan penolakan maksimal 255 karakter.',
+        ]);
+
+        $reason = trim($request->input('reason'));
+
+        try {
+            DB::transaction(function () use ($booking, $reason) {
+                // Update booking status
+                $booking->update([
+                    'status' => 'Cancelled',
+                    'cancel_reason' => $reason,
+                ]);
+
+                // Buat notifikasi sistem
+                Notification::create([
+                    'user_id' => $booking->user_id,
+                    'title' => 'Booking Ditolak FO',
+                    'message' => "Reservasi antrean untuk layanan {$booking->service->name} pada {$booking->booking_date->translatedFormat('d F Y')} ditolak oleh petugas Front Office dengan alasan: {$reason}.",
+                ]);
+
+                // Catat di activity log
+                ActivityLog::record(
+                    action: 'REJECT_BOOKING',
+                    modelType: 'Booking',
+                    modelId: $booking->id,
+                    description: "Admin FO menolak booking {$booking->booking_code} milik {$booking->user->name} karena dokumen fisik tidak lengkap/tidak sesuai. Alasan: {$reason}.",
+                    actorUserId: Auth::id(),
+                );
+            });
+
+            // Kirim email pembatalan ke customer
+            try {
+                Mail::to($booking->user->email)->send(new BookingCancelledMail($booking));
+            } catch (\Exception $e) {
+                Log::warning("REJECT_BOOKING: Gagal mengirim email ke {$booking->user->email} untuk booking {$booking->booking_code}: ".$e->getMessage());
+            }
+
+            return redirect()->route('admin.fo.checkin')
+                ->with('success', "Booking <strong>{$booking->booking_code}</strong> atas nama <strong>{$booking->user->name}</strong> berhasil ditolak.");
+        } catch (\Exception $e) {
+            return redirect()->route('admin.fo.checkin')
+                ->withInput()
+                ->with('error', 'Gagal memproses penolakan: '.$e->getMessage());
+        }
     }
 
     /**
@@ -192,7 +329,7 @@ class CheckInController extends Controller
             $queue = DB::transaction(function () use ($booking, $today) {
                 // UPDATE status booking
                 $booking->update([
-                    'status' => 'Confirmed',
+                    'status' => 'Checked-In',
                     'checked_in_at' => now(),
                 ]);
 

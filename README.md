@@ -1,58 +1,147 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Sistem Antrean Mal Pelayanan Publik Kota Sawahlunto - Spektra
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Sistem Antrean Digital Mal Pelayanan Publik (MPP) Kota Sawahlunto adalah sebuah platform berbasis web yang dikembangkan untuk mendigitalisasi proses antrean fisik di lingkungan MPP Kota Sawahlunto. Platform ini dirancang khusus untuk mengatasi penumpukan antrean fisik di berbagai loket instansi pemerintah, meningkatkan efisiensi operasional petugas, serta menyajikan transparansi estimasi waktu tunggu bagi masyarakat secara real-time.
 
-## About Laravel
+Sistem ini dikembangkan sebagai bagian dari proyek Project-Based Learning (PBL) oleh tim **SPEKTRA** untuk memenuhi kebutuhan administrasi publik yang modern, andal, dan ramah pengguna (Civic-Digital).
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+---
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## 🚀 Fitur Utama
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+Sistem ini terdiri dari beberapa modul inti yang terintegrasi secara harmonis:
 
-## Learning Laravel
+1. **Autentikasi & Otorisasi Multi-Role**: Sistem registrasi mandiri untuk Pengunjung (Warga), serta akses terproteksi menggunakan Role-Based Access Control (RBAC) untuk peran `super_admin`, `admin_fo` (Front Office), `admin_gerai` (Operator Gerai), dan `pengunjung`.
+2. **Booking Mandiri (Reservasi Online)**: Pengunjung dapat memesan slot antrean secara online sebelum datang ke lokasi, mendapatkan kode booking unik berbasis UUID v4, serta menerima konfirmasi informasi kuota dan syarat dokumen secara detail.
+3. **Verifikasi Lapangan & Check-In**: Petugas Front Office memverifikasi kode booking pengunjung (manual maupun scan QR code) dan mengonversinya menjadi nomor antrean aktif.
+4. **Registrasi Walk-In (Tiket Mandiri)**: Penerbitan tiket antrean secara langsung oleh petugas Front Office bagi pengunjung yang datang tanpa melakukan booking online sebelumnya (khususnya untuk warga tanpa perangkat pintar).
+5. **Pemanggilan Antrean Real-Time**: Antarmuka papan pemanggil dinamis bagi operator gerai untuk memanggil (`call`), melayani (`serving`), menyelesaikan (`completed`), atau melewatkan (`skipped`) antrean, dilengkapi fitur penyiaran suara bel pemanggilan antrean otomatis.
+6. **Layar Monitor Antrean Publik**: Halaman display utama (`/display`) yang dapat diakses tanpa login untuk dipajang di ruang tunggu MPP, memperbarui data nomor antrean secara instan melalui WebSockets.
+7. **Laporan & Analitik**: Modul khusus Super Admin untuk melihat statistik kunjungan harian, melacak performa gerai, dan mengekspor laporan rekapitulasi data ke format PDF dan Excel.
+8. **Pengisian Feedback & Rating**: Pengunjung dapat memberikan penilaian bintang 1-5 dan ulasan performa pelayanan sebagai bahan evaluasi internal manajemen MPP.
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+---
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+## 🛠️ Tech Stack & Dependencies
 
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
+Sistem ini dibangun menggunakan arsitektur modern dalam ekosistem PHP dan Laravel:
 
-## Agentic Development
+- **Framework**: Laravel 13.x
+- **Database**: MySQL 8.0+
+- **CSS Styling**: TailwindCSS 4.x
+- **Real-Time Engine**: Pusher / Soketi (WebSocket Broadcasting)
+- **Ekspor Dokumen**:
+    - `barryvdh/laravel-dompdf` (Format PDF)
+    - `maatwebsite/excel` (Format Excel)
+- **Manajemen Akses**: `spatie/laravel-permission` (RBAC)
+- **Lingkungan Pengembangan (Dev Environment)**: Windows dengan Laragon
 
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+---
+
+## 💻 Instalasi Cepat
+
+Ikuti langkah-langkah di bawah ini untuk menjalankan proyek di lingkungan lokal Anda (disarankan menggunakan Laragon di Windows):
+
+### 1. Kloning Repositori
 
 ```bash
-composer require laravel/boost --dev
-
-php artisan boost:install
+git clone https://github.com/zakyrmh/pbl-spektra.git
+cd pbl-spektra
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+### 2. Instalasi Dependency
 
-## Contributing
+Instal seluruh package PHP yang dibutuhkan aplikasi:
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+```bash
+composer install
+```
 
-## Code of Conduct
+Instal package Javascript untuk front-end aset:
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+```bash
+npm install
+```
 
-## Security Vulnerabilities
+### 3. Konfigurasi Lingkungan (.env)
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+Salin file konfigurasi lingkungan dari template `.env.example`:
 
-## License
+```bash
+cp .env.example .env
+```
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+Buka file `.env` yang baru dibuat dan sesuaikan konfigurasi database Anda (DB_DATABASE, DB_USERNAME, DB_PASSWORD), serta konfigurasi kredensial **Pusher** untuk mendukung broadcasting antrean real-time.
+
+### 4. Generate Application Key
+
+```bash
+php artisan key:generate
+```
+
+### 5. Migrasi & Seeding Database
+
+Jalankan migrasi tabel beserta data awal bawaan (seeds) untuk role, instansi gerai, dan pengguna demo:
+
+```bash
+php artisan migrate --seed
+```
+
+### 6. Kompilasi Aset Front-End
+
+Jalankan bundler Vite untuk development:
+
+```bash
+npm run dev
+```
+
+### 7. Jalankan Server Lokal
+
+Jika Anda tidak menggunakan virtual host bawaan Laragon, Anda dapat menjalankan server bawaan Laravel:
+
+```bash
+php artisan serve
+```
+
+Aplikasi akan dapat diakses melalui browser pada alamat [http://127.0.0.1:8000](http://127.0.0.1:8000).
+
+---
+
+## 📸 Screenshots & Antarmuka Aplikasi
+
+Berikut adalah pratinjau beberapa halaman utama aplikasi:
+
+### 1. Halaman Login Utama
+
+![Halaman Login](docs/screenshots/login.png)
+_Antarmuka masuk bagi pengunjung maupun petugas dengan sistem verifikasi email dan reset password terintegrasi._
+
+### 2. Halaman Ambil Nomor Antrean (Reservasi Mandiri)
+
+![Ambil Antrean](docs/screenshots/booking.png)
+_Halaman bagi pengunjung terdaftar untuk memilih instansi gerai, tanggal kunjungan, serta melihat kuota sisa layanan._
+
+### 3. Panel Dashboard Operator Front Office
+
+![Dashboard Front Office](docs/screenshots/front-office.png)
+_Antarmuka kerja petugas Front Office untuk melakukan check-in verifikasi kode booking dan pendaftaran tiket walk-in._
+
+### 4. Papan Pemanggilan Antrean Gerai
+
+![Papan Panggil Gerai](docs/screenshots/gerai-caller.png)
+_Tampilan operator gerai untuk memproses siklus hidup antrean pengunjung (Call, Serve, Complete, Skip)._
+
+### 5. Tampilan Layar Monitor Ruang Tunggu (Display Publik)
+
+![Layar Monitor](docs/screenshots/display.png)
+_Layar monitor publik real-time tanpa autentikasi yang menampilkan nomor antrean aktif per loket._
+
+---
+
+## 👥 Tim Pengembang (SPEKTRA)
+
+Proyek ini dibangun dan dikembangkan oleh tim SPEKTRA TRPL 2C Politeknik Negeri Padang:
+
+- **Zaky Ramadhan** — _Project Manager_
+- **Naufal Khalil Aldeza** — _System Analysis_
+- **Zahwa Rahmadhani** — _Lead Programming_
+- **Vanisa Virsy** — _Quality Assurance_

@@ -12,12 +12,13 @@ use Illuminate\Support\Facades\Mail;
 uses(RefreshDatabase::class);
 
 test('operator with no counter is shown warning page', function () {
+    /** @var User $operator */
     $operator = User::factory()->create([
         'role' => 'admin_gerai',
         'departments_id' => null,
     ]);
 
-    $response = $this->actingAs($operator)->get(route('antrean.index'));
+    $response = test()->actingAs($operator)->get(route('antrean.index'));
 
     $response->assertStatus(200);
     $response->assertSee('Loket Belum Ditugaskan');
@@ -35,12 +36,13 @@ test('operator with counter can view the dashboard and see their counter info', 
         'status' => 'aktif',
     ]);
 
+    /** @var User $operator */
     $operator = User::factory()->create([
         'role' => 'admin_gerai',
         'departments_id' => $counter->department_id,
     ]);
 
-    $response = $this->actingAs($operator)->get(route('antrean.index'));
+    $response = test()->actingAs($operator)->get(route('antrean.index'));
 
     $response->assertStatus(200);
     $response->assertSee('Loket Loket 01');
@@ -59,12 +61,13 @@ test('operator can update their counter status', function () {
         'status' => 'aktif',
     ]);
 
+    /** @var User $operator */
     $operator = User::factory()->create([
         'role' => 'admin_gerai',
         'departments_id' => $counter->department_id,
     ]);
 
-    $response = $this->actingAs($operator)->post(route('gerai.status'), [
+    $response = test()->actingAs($operator)->post(route('gerai.status'), [
         'status' => 'istirahat',
     ]);
 
@@ -74,7 +77,7 @@ test('operator can update their counter status', function () {
         'status' => 'istirahat',
     ]);
 
-    $this->assertEquals('istirahat', $counter->fresh()->status);
+    test()->assertEquals('istirahat', $counter->fresh()->status);
 });
 
 test('operator can call next queue and complete it', function () {
@@ -97,6 +100,7 @@ test('operator can call next queue and complete it', function () {
         'name' => 'Cetak KTP',
     ]);
 
+    /** @var User $operator */
     $operator = User::factory()->create([
         'role' => 'admin_gerai',
         'departments_id' => $counter->department_id,
@@ -111,26 +115,26 @@ test('operator can call next queue and complete it', function () {
     ]);
 
     // Panggil antrean berikutnya
-    $response = $this->actingAs($operator)->post(route('gerai.call-next'));
+    $response = test()->actingAs($operator)->post(route('gerai.call-next'));
 
     $response->assertStatus(200);
     $response->assertJson([
         'success' => true,
     ]);
 
-    $this->assertEquals('Serving', $queue->fresh()->status);
-    $this->assertNotNull($queue->fresh()->called_at);
+    test()->assertEquals('Serving', $queue->fresh()->status);
+    test()->assertNotNull($queue->fresh()->called_at);
 
     // Selesaikan antrean
-    $response = $this->actingAs($operator)->post(route('gerai.finish', $queue->id));
+    $response = test()->actingAs($operator)->post(route('gerai.finish', $queue->id));
 
     $response->assertStatus(200);
     $response->assertJson([
         'success' => true,
     ]);
 
-    $this->assertEquals('Completed', $queue->fresh()->status);
-    $this->assertNotNull($queue->fresh()->completed_at);
+    test()->assertEquals('Completed', $queue->fresh()->status);
+    test()->assertNotNull($queue->fresh()->completed_at);
 });
 
 test('operator cannot manage queue belonging to another department', function () {
@@ -140,6 +144,7 @@ test('operator cannot manage queue belonging to another department', function ()
     $counterA = Counter::create(['department_id' => $deptA->id, 'name' => 'Loket DDK']);
     $counterB = Counter::create(['department_id' => $deptB->id, 'name' => 'Loket SMST']);
 
+    /** @var User $operatorA */
     $operatorA = User::factory()->create([
         'role' => 'admin_gerai',
         'departments_id' => $counterA->department_id,
@@ -153,7 +158,7 @@ test('operator cannot manage queue belonging to another department', function ()
     ]);
 
     // Coba panggil antrean milik loket B dengan operator A
-    $response = $this->actingAs($operatorA)->post(route('gerai.call', $queueB->id));
+    $response = test()->actingAs($operatorA)->post(route('gerai.call', $queueB->id));
 
     $response->assertStatus(403);
 });

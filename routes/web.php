@@ -246,6 +246,12 @@ Route::middleware('auth')->group(function () {
         Route::get('/admin/log-pelayanan/export', [LogPelayananController::class, 'export'])
             ->name('admin.log-pelayanan.export');
 
+        // Toggle Schedule Status
+        Route::post('/admin/schedules/{schedule}/toggle-status', [DashboardController::class, 'toggleScheduleStatus'])
+            ->name('admin.schedules.toggle-status');
+        Route::post('/admin/schedules/toggle-all', [DashboardController::class, 'toggleAllSchedulesStatus'])
+            ->name('admin.schedules.toggle-all');
+
         // API Endpoints for Gerai operations
         Route::post('/api/counter/status', [CounterController::class, 'updateStatus'])
             ->name('gerai.status');

@@ -1,3 +1,455 @@
+@if(isset($isStatsDashboard) && $isStatsDashboard)
+<div class="space-y-6 pb-16">
+    {{-- Header Banner --}}
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-canvas dark:bg-surface-dark-elevated p-6 rounded-lg border border-hairline dark:border-white/10 shadow-xs">
+        <div class="flex flex-col sm:flex-row sm:items-center gap-6">
+            <div>
+                <h1 class="text-2xl font-bold text-ink dark:text-white font-display tracking-tight">Dashboard Gerai</h1>
+                <p class="text-sm text-muted dark:text-on-dark-soft font-body mt-1">
+                    Ringkasan statistik real-time dan analisis pelayanan untuk Instansi <span class="font-semibold text-primary dark:text-accent-teal">{{ Auth::user()->department ? Auth::user()->department->name : '-' }}</span>
+                </p>
+            </div>
+            <!-- Buka/Tutup Gerai Toggle Switch -->
+            <div class="flex items-center gap-3 bg-surface-soft dark:bg-white/5 border border-hairline dark:border-white/10 p-2.5 rounded-lg shrink-0 font-body">
+                <span class="text-xs font-bold text-ink dark:text-white font-display">Status Gerai:</span>
+                <span id="geraiStatusText" class="px-2.5 py-0.5 rounded-pill text-xs font-bold {{ $isGeraiOpen ? 'bg-green-100 text-green-800 dark:bg-green-950/40 dark:text-green-300' : 'bg-rose-100 text-rose-800 dark:bg-rose-950/40 dark:text-rose-300' }}">
+                    {{ $isGeraiOpen ? 'BUKA' : 'TUTUP' }}
+                </span>
+                <label class="relative inline-flex items-center cursor-pointer select-none">
+                    <input type="checkbox" 
+                           id="geraiToggleCheckbox"
+                           class="sr-only peer" 
+                           {{ $isGeraiOpen ? 'checked' : '' }} 
+                           onchange="confirmToggleGerai(this)">
+                    <div class="w-11 h-6 bg-gray-200 dark:bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600 dark:peer-checked:bg-green-500"></div>
+                </label>
+            </div>
+        </div>
+        <div class="flex items-center gap-3 shrink-0">
+            <a href="{{ route('admin.daftar-tunggu') }}" class="h-11 px-5 bg-primary hover:bg-primary-hover text-white font-semibold rounded-pill flex items-center gap-2 text-sm shadow-md transition-all cursor-pointer">
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                </svg>
+                Daftar Tunggu Gerai
+            </a>
+            <a href="{{ route('admin.papan-panggil') }}" class="h-11 px-5 bg-canvas border border-hairline text-ink dark:text-white dark:border-white/15 hover:bg-surface-soft dark:hover:bg-white/10 font-semibold rounded-pill flex items-center gap-2 text-sm transition-all cursor-pointer">
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
+                Papan Panggil (Loket)
+            </a>
+        </div>
+    </div>
+
+    {{-- Cards Summary --}}
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 font-body">
+        <!-- Total Antrean -->
+        <div class="bg-canvas dark:bg-surface-dark-elevated p-5 rounded-lg border border-hairline dark:border-white/10 shadow-xs flex justify-between items-center relative overflow-hidden">
+            <div class="space-y-1">
+                <span class="text-xs font-bold text-muted dark:text-on-dark-soft uppercase tracking-wider font-display">Total Antrean</span>
+                <span class="text-3xl font-black text-ink dark:text-white block font-mono">{{ $totalAntrean }}</span>
+                <span class="text-[10px] text-muted dark:text-on-dark-soft block">Kuota terpakai hari ini</span>
+            </div>
+            <div class="p-3 bg-surface-soft dark:bg-white/5 text-primary dark:text-accent-teal rounded-lg">
+                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2" />
+                </svg>
+            </div>
+        </div>
+
+        <!-- Sisa Antrean Menunggu -->
+        <div class="bg-canvas dark:bg-surface-dark-elevated p-5 rounded-lg border border-hairline dark:border-white/10 shadow-xs flex justify-between items-center relative overflow-hidden">
+            <div class="space-y-1">
+                <span class="text-xs font-bold text-status-waiting uppercase tracking-wider font-display">Sisa Antrean</span>
+                <span class="text-3xl font-black text-ink dark:text-white block font-mono">{{ $sisaAntrean }}</span>
+                <span class="text-[10px] text-muted dark:text-on-dark-soft block">Status Checked-In</span>
+            </div>
+            <div class="p-3 bg-status-waiting/10 text-status-waiting rounded-lg">
+                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+            </div>
+        </div>
+
+        <!-- Sukses Dilayani -->
+        <div class="bg-canvas dark:bg-surface-dark-elevated p-5 rounded-lg border border-hairline dark:border-white/10 shadow-xs flex justify-between items-center relative overflow-hidden">
+            <div class="space-y-1">
+                <span class="text-xs font-bold text-status-serving uppercase tracking-wider font-display">Sukses Dilayani</span>
+                <span class="text-3xl font-black text-ink dark:text-white block font-mono">{{ $suksesDilayani }}</span>
+                <span class="text-[10px] text-muted dark:text-on-dark-soft block">Status Completed</span>
+            </div>
+            <div class="p-3 bg-status-serving/10 text-status-serving rounded-lg">
+                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+            </div>
+        </div>
+
+        <!-- Terlewat -->
+        <div class="bg-canvas dark:bg-surface-dark-elevated p-5 rounded-lg border border-hairline dark:border-white/10 shadow-xs flex justify-between items-center relative overflow-hidden">
+            <div class="space-y-1">
+                <span class="text-xs font-bold text-status-skipped uppercase tracking-wider font-display">Antrean Batal</span>
+                <span class="text-3xl font-black text-ink dark:text-white block font-mono">{{ $terlewat }}</span>
+                <span class="text-[10px] text-muted dark:text-on-dark-soft block">Status Cancelled</span>
+            </div>
+            <div class="p-3 bg-status-skipped/10 text-status-skipped rounded-lg">
+                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+            </div>
+        </div>
+    </div>
+
+    {{-- Main Grid Content --}}
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 font-body">
+        <!-- Left: Table (Spans 7 cols) -->
+        <div class="lg:col-span-7 bg-canvas dark:bg-surface-dark-elevated p-6 rounded-lg border border-hairline dark:border-white/10 shadow-xs space-y-4">
+            <h3 class="text-lg font-bold text-ink dark:text-white font-display border-b border-hairline dark:border-white/10 pb-2">Kemajuan Kuota Sesi & Status Operasional</h3>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-surface-soft dark:bg-white/5 border-b border-hairline dark:border-white/15 text-xs font-bold uppercase tracking-wider text-ink dark:text-white font-display">
+                            <th class="p-4">Layanan</th>
+                            <th class="p-4">Sesi</th>
+                            <th class="p-4">Kemajuan Kuota</th>
+                            <th class="p-4">Status Sesi</th>
+                            <th class="p-4 text-center">Buka/Tutup Sesi</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-hairline dark:divide-white/10 text-body-sm text-ink dark:text-on-dark-soft">
+                        @forelse($schedules as $sched)
+                            <tr class="hover:bg-black/2 dark:hover:bg-white/2 transition-colors">
+                                <td class="p-4 font-semibold">{{ $sched->service ? $sched->service->name : '-' }}</td>
+                                <td class="p-4 font-mono font-bold">{{ $sched->session_name }}</td>
+                                <td class="p-4">
+                                    <div class="flex items-center gap-2">
+                                        <span class="font-mono font-bold text-primary dark:text-accent-teal">{{ $sched->quota_used }}</span>
+                                        <span class="text-xs text-muted">/ {{ $sched->quota_total }}</span>
+                                        @php
+                                            $percentage = $sched->quota_total > 0 ? min(100, round(($sched->quota_used / $sched->quota_total) * 100)) : 0;
+                                        @endphp
+                                        <div class="w-24 bg-surface-soft dark:bg-white/10 h-2 rounded-full overflow-hidden shrink-0">
+                                            <div class="bg-primary dark:bg-accent-teal h-full" style="width: {{ $percentage }}%"></div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="p-4">
+                                    <span id="scheduleStatusLabel-{{ $sched->id }}" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-pill text-caption font-semibold {{ $sched->is_open ? 'bg-status-serving/10 text-status-serving border border-status-serving/15' : 'bg-status-skipped/10 text-status-skipped border border-status-skipped/15' }}">
+                                        <span class="w-2 h-2 rounded-full {{ $sched->is_open ? 'bg-status-serving' : 'bg-status-skipped' }}"></span>
+                                        {{ $sched->is_open ? 'Buka' : 'Tutup' }}
+                                    </span>
+                                </td>
+                                <td class="p-4 text-center">
+                                    <!-- Toggle Switch -->
+                                    <label class="relative inline-flex items-center cursor-pointer select-none">
+                                        <input type="checkbox" 
+                                               class="sr-only peer" 
+                                               {{ $sched->is_open ? 'checked' : '' }} 
+                                               onchange="toggleSchedule({{ $sched->id }})">
+                                        <div class="w-11 h-6 bg-gray-200 dark:bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary dark:peer-checked:bg-accent-teal"></div>
+                                    </label>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="5" class="p-8 text-center text-muted dark:text-on-dark-soft">
+                                    Tidak ada jadwal pelayanan terdaftar hari ini.
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Right: Chart (Spans 5 cols) -->
+        <div class="lg:col-span-5 bg-canvas dark:bg-surface-dark-elevated p-6 rounded-lg border border-hairline dark:border-white/10 shadow-xs space-y-4">
+            <h3 class="text-lg font-bold text-ink dark:text-white font-display border-b border-hairline dark:border-white/10 pb-2">Tren Sukses vs Batal Hari Ini</h3>
+            <div class="relative h-72">
+                <canvas id="hourlyTrendChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="statsToastContainer" class="fixed bottom-6 right-6 z-50 flex flex-col gap-3 max-w-sm w-full pointer-events-none"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    function toggleSchedule(scheduleId) {
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}';
+        
+        fetch(`/admin/schedules/${scheduleId}/toggle-status`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': csrfToken,
+                'Accept': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const label = document.getElementById(`scheduleStatusLabel-${scheduleId}`);
+                if (data.is_open) {
+                    label.className = 'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-pill text-caption font-semibold bg-status-serving/10 text-status-serving border border-status-serving/15';
+                    label.innerHTML = '<span class="w-2 h-2 rounded-full bg-status-serving"></span>Buka';
+                    showStatsToast('Sukses', 'Sesi pelayanan berhasil dibuka.', 'success');
+                } else {
+                    label.className = 'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-pill text-caption font-semibold bg-status-skipped/10 text-status-skipped border border-status-skipped/15';
+                    label.innerHTML = '<span class="w-2 h-2 rounded-full bg-status-skipped"></span>Tutup';
+                    showStatsToast('Sukses', 'Sesi pelayanan berhasil ditutup.', 'warning');
+                }
+            } else {
+                showStatsToast('Gagal', data.message || 'Gagal mengubah status sesi.', 'warning');
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            showStatsToast('Error', 'Terjadi kesalahan sistem.', 'danger');
+        });
+    }
+
+    function showStatsToast(title, message, type) {
+        const container = document.getElementById('statsToastContainer');
+        if (!container) return;
+
+        let borderClass = 'border-gray-500';
+        let bgDot = 'bg-gray-500';
+        if (type === 'success') {
+            borderClass = 'border-green-500';
+            bgDot = 'bg-green-500';
+        } else if (type === 'warning') {
+            borderClass = 'border-yellow-500';
+            bgDot = 'bg-yellow-500';
+        } else if (type === 'danger') {
+            borderClass = 'border-red-500';
+            bgDot = 'bg-red-500';
+        }
+
+        const toast = document.createElement('div');
+        toast.className = `bg-canvas dark:bg-surface-dark-elevated text-ink dark:text-white rounded-lg border-l-4 border-solid ${borderClass} p-4 shadow-md flex items-start gap-3 w-80 pointer-events-auto transition-all duration-300 opacity-0 translate-y-2`;
+        toast.innerHTML = `
+            <span class="w-2.5 h-2.5 rounded-full ${bgDot} mt-1.5 shrink-0"></span>
+            <div class="flex-grow">
+                <strong class="text-xs font-bold block">${title}</strong>
+                <span class="text-caption text-muted dark:text-on-dark-soft mt-0.5 block">${message}</span>
+            </div>
+        `;
+        container.appendChild(toast);
+
+        setTimeout(() => {
+            toast.classList.remove('opacity-0', 'translate-y-2');
+        }, 10);
+
+        setTimeout(() => {
+            toast.classList.add('opacity-0', 'translate-y-2');
+            setTimeout(() => toast.remove(), 300);
+        }, 4000);
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const ctx = document.getElementById('hourlyTrendChart').getContext('2d');
+        const chartData = @json($chartTrenData);
+
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: chartData.categories,
+                datasets: [
+                    {
+                        label: 'Sukses Dilayani',
+                        data: chartData.sukses,
+                        backgroundColor: '#059669',
+                        borderRadius: 4
+                    },
+                    {
+                        label: 'Pelayanan Batal',
+                        data: chartData.batal,
+                        backgroundColor: '#DC2626',
+                        borderRadius: 4
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1,
+                            color: '#6B7280'
+                        },
+                        grid: {
+                            color: 'rgba(107, 114, 128, 0.1)'
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            color: '#6B7280'
+                        },
+                        grid: {
+                            display: false
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            color: '#6B7280',
+                            font: {
+                                family: 'Geist Sans'
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    });
+</script>
+
+<!-- Custom Modal Konfirmasi Buka/Tutup Gerai -->
+<div id="confirmGeraiModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs hidden" role="dialog" aria-modal="true">
+    <div class="bg-canvas dark:bg-surface-dark-elevated rounded-xl p-8 border border-hairline dark:border-white/10 shadow-xl max-w-md w-full space-y-6 transform scale-95 opacity-0 transition-all duration-300" id="confirmGeraiModalContent">
+        <div class="flex justify-between items-start border-b border-hairline dark:border-white/10 pb-4">
+            <h3 class="text-xl font-bold text-ink dark:text-white font-display" id="confirmGeraiTitle">Konfirmasi Ubah Status</h3>
+            <button type="button" onclick="closeConfirmGeraiModal()" class="text-muted hover:text-ink dark:hover:text-white cursor-pointer transition-colors">
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+        <div class="text-body-md text-muted dark:text-on-dark-soft font-body" id="confirmGeraiMessage">
+            Apakah Anda yakin ingin mengubah status operasional gerai ini?
+        </div>
+        <div class="flex justify-end gap-3 pt-4 border-t border-hairline dark:border-white/10">
+            <button type="button" onclick="closeConfirmGeraiModal()" class="h-11 px-5 font-semibold text-ink dark:text-white bg-canvas hover:bg-surface-soft dark:bg-white/5 dark:hover:bg-white/10 rounded-pill border border-hairline dark:border-white/15 flex items-center transition-all cursor-pointer">
+                Batal
+            </button>
+            <button type="button" id="confirmGeraiSubmitBtn" class="h-11 px-6 bg-primary hover:bg-primary-hover text-white font-semibold rounded-pill flex items-center gap-2 text-sm focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-accent-teal transition-all cursor-pointer">
+                Ya, Ubah Status
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    let pendingToggleCheckbox = null;
+    let currentToggleState = false;
+
+    function confirmToggleGerai(checkbox) {
+        pendingToggleCheckbox = checkbox;
+        currentToggleState = checkbox.checked;
+        
+        // Revert visually until confirmed
+        checkbox.checked = !currentToggleState;
+        
+        const modal = document.getElementById('confirmGeraiModal');
+        const content = document.getElementById('confirmGeraiModalContent');
+        const title = document.getElementById('confirmGeraiTitle');
+        const message = document.getElementById('confirmGeraiMessage');
+        const btn = document.getElementById('confirmGeraiSubmitBtn');
+        
+        if (currentToggleState) {
+            title.innerText = 'Buka Operasional Gerai?';
+            message.innerText = 'Semua sesi layanan untuk instansi Anda hari ini akan diaktifkan kembali dan warga dapat melakukan check-in.';
+            btn.innerText = 'Ya, Buka Gerai';
+            btn.className = 'h-11 px-6 bg-primary hover:bg-primary-hover text-white font-semibold rounded-pill flex items-center gap-2 text-sm focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-accent-teal transition-all cursor-pointer';
+        } else {
+            title.innerText = 'Tutup Operasional Gerai?';
+            message.innerText = 'Semua sesi layanan untuk instansi Anda hari ini akan dinonaktifkan (ditutup). Petugas tidak dapat melayani antrean baru hingga gerai dibuka kembali.';
+            btn.innerText = 'Ya, Tutup Gerai';
+            btn.className = 'h-11 px-6 bg-status-skipped hover:bg-status-skipped/90 text-white font-semibold rounded-pill flex items-center gap-2 text-sm focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-status-skipped transition-all cursor-pointer';
+        }
+        
+        // Show modal
+        modal.classList.remove('hidden');
+        setTimeout(() => {
+            content.classList.remove('scale-95', 'opacity-0');
+        }, 10);
+    }
+
+    function closeConfirmGeraiModal() {
+        const modal = document.getElementById('confirmGeraiModal');
+        const content = document.getElementById('confirmGeraiModalContent');
+        
+        content.classList.add('scale-95', 'opacity-0');
+        setTimeout(() => {
+            modal.classList.add('hidden');
+            pendingToggleCheckbox = null;
+        }, 300);
+    }
+
+    document.getElementById('confirmGeraiSubmitBtn').addEventListener('click', function() {
+        if (!pendingToggleCheckbox) return;
+        
+        const targetState = currentToggleState;
+        const checkbox = pendingToggleCheckbox;
+        
+        // Close modal
+        closeConfirmGeraiModal();
+        
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}';
+        
+        fetch('/admin/schedules/toggle-all', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': csrfToken,
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({ is_open: targetState ? 1 : 0 })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                checkbox.checked = targetState;
+                
+                const statusText = document.getElementById('geraiStatusText');
+                if (targetState) {
+                    statusText.className = 'px-2.5 py-0.5 rounded-pill text-xs font-bold bg-green-100 text-green-800 dark:bg-green-950/40 dark:text-green-300';
+                    statusText.innerText = 'BUKA';
+                    showStatsToast('Sukses', 'Operasional gerai berhasil dibuka.', 'success');
+                } else {
+                    statusText.className = 'px-2.5 py-0.5 rounded-pill text-xs font-bold bg-rose-100 text-rose-800 dark:bg-rose-950/40 dark:text-rose-300';
+                    statusText.innerText = 'TUTUP';
+                    showStatsToast('Sukses', 'Operasional gerai berhasil ditutup.', 'warning');
+                }
+                
+                // Update individual session toggles
+                const schedulesCount = {{ $schedules->count() }};
+                if (schedulesCount > 0) {
+                    @foreach($schedules as $sched)
+                        const subLabel = document.getElementById('scheduleStatusLabel-{{ $sched->id }}');
+                        if (subLabel) {
+                            const subRow = subLabel.closest('tr');
+                            if (subRow) {
+                                const subSwitch = subRow.querySelector('input[type="checkbox"]');
+                                if (subSwitch) subSwitch.checked = targetState;
+                            }
+                            if (targetState) {
+                                subLabel.className = 'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-pill text-caption font-semibold bg-status-serving/10 text-status-serving border border-status-serving/15';
+                                subLabel.innerHTML = '<span class="w-2 h-2 rounded-full bg-status-serving"></span>Buka';
+                            } else {
+                                subLabel.className = 'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-pill text-caption font-semibold bg-status-skipped/10 text-status-skipped border border-status-skipped/15';
+                                subLabel.innerHTML = '<span class="w-2 h-2 rounded-full bg-status-skipped"></span>Tutup';
+                            }
+                        }
+                    @endforeach
+                }
+            } else {
+                showStatsToast('Gagal', data.message || 'Gagal mengubah status gerai.', 'warning');
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            showStatsToast('Error', 'Terjadi kesalahan sistem.', 'danger');
+        });
+    });
+</script>
+@else
 {{-- Admin Gerai Dashboard --}}
 @if(isset($noCounter) && $noCounter)
     <div class="flex flex-col items-center justify-center min-h-[60vh] text-center bg-canvas dark:bg-surface-dark-elevated p-8 rounded-lg border border-hairline dark:border-white/10 shadow-sm space-y-4">
@@ -759,4 +1211,5 @@
         }, 4000);
     }
 </script>
+@endif
 @endif

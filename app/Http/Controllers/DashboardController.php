@@ -6,6 +6,7 @@ use App\Models\ActivityLog;
 use App\Models\Booking;
 use App\Models\Department;
 use App\Models\Queue as QueueModel;
+use App\Models\Schedule;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -17,7 +18,90 @@ class DashboardController extends Controller
         $role = Auth::user()->role;
         $role = $role instanceof \BackedEnum ? $role->value : ($role ?? 'pengunjung');
         if ($role === 'admin_gerai') {
-            return redirect()->route('antrean.index');
+            $user = Auth::user();
+            if (! $user->departments_id) {
+                return view('dashboard.dashboard', ['noCounter' => true]);
+            }
+
+            $today = Carbon::today()->toDateString();
+
+            // Fetch schedules today with eager loading of service
+            $schedules = Schedule::whereDate('date', $today)
+                ->whereHas('service', function ($q) use ($user) {
+                    $q->where('department_id', $user->departments_id);
+                })
+                ->with('service')
+                ->get();
+
+            // Cards statistics
+            $totalAntrean = $schedules->sum('quota_used');
+
+            $sisaAntrean = Booking::whereDate('booking_date', $today)
+                ->whereHas('service', function ($q) use ($user) {
+                    $q->where('department_id', $user->departments_id);
+                })
+                ->where('status', 'Checked-In')
+                ->count();
+
+            $suksesDilayani = Booking::whereDate('booking_date', $today)
+                ->whereHas('service', function ($q) use ($user) {
+                    $q->where('department_id', $user->departments_id);
+                })
+                ->where('status', 'Completed')
+                ->count();
+
+            $terlewat = Booking::whereDate('booking_date', $today)
+                ->whereHas('service', function ($q) use ($user) {
+                    $q->where('department_id', $user->departments_id);
+                })
+                ->where('status', 'Cancelled')
+                ->count();
+
+            // Chart data: hourly completed/cancelled bookings
+            $hours = ['08', '09', '10', '11', '12', '13', '14', '15', '16'];
+            $chartCategories = array_map(fn ($h) => "$h:00", $hours);
+            $chartSukses = [];
+            $chartBatal = [];
+
+            $bookingsToday = Booking::whereDate('booking_date', $today)
+                ->whereHas('service', function ($q) use ($user) {
+                    $q->where('department_id', $user->departments_id);
+                })
+                ->whereIn('status', ['Completed', 'Cancelled'])
+                ->get();
+
+            foreach ($hours as $hour) {
+                $suksesCount = $bookingsToday->filter(function ($b) use ($hour) {
+                    return $b->status === 'Completed' && $b->updated_at && $b->updated_at->format('H') === $hour;
+                })->count();
+
+                $batalCount = $bookingsToday->filter(function ($b) use ($hour) {
+                    return $b->status === 'Cancelled' && $b->updated_at && $b->updated_at->format('H') === $hour;
+                })->count();
+
+                $chartSukses[] = $suksesCount;
+                $chartBatal[] = $batalCount;
+            }
+
+            $chartTrenData = [
+                'categories' => $chartCategories,
+                'sukses' => $chartSukses,
+                'batal' => $chartBatal,
+            ];
+
+            $isStatsDashboard = true;
+            $isGeraiOpen = $schedules->isEmpty() ? false : ($schedules->where('is_open', true)->count() > 0);
+
+            return view('dashboard.dashboard', compact(
+                'schedules',
+                'totalAntrean',
+                'sisaAntrean',
+                'suksesDilayani',
+                'terlewat',
+                'chartTrenData',
+                'isStatsDashboard',
+                'isGeraiOpen'
+            ));
         }
 
         $data = [];
@@ -312,5 +396,72 @@ class DashboardController extends Controller
     {
         // TODO: Implementasi panggil antrean berikutnya
         return back()->with('success', 'Antrean berikutnya telah dipanggil.');
+    }
+
+    /**
+     * Toggle status is_open schedule (Buka/Tutup Gerai).
+     */
+    public function toggleScheduleStatus(Request $request, Schedule $schedule)
+    {
+        $user = Auth::user();
+        if ($schedule->service->department_id !== $user->departments_id) {
+            return response()->json(['success' => false, 'message' => 'Anda tidak memiliki akses ke jadwal ini.'], 403);
+        }
+
+        $schedule->is_open = ! $schedule->is_open;
+        $schedule->save();
+
+        ActivityLog::record(
+            action: 'TOGGLE_SCHEDULE_STATUS',
+            modelType: 'Schedule',
+            modelId: $schedule->id,
+            description: "Operator mengubah status kuota layanan '{$schedule->service->name}' sesi '{$schedule->session_name}' menjadi ".($schedule->is_open ? 'Buka' : 'Tutup').'.',
+            actorUserId: $user->id
+        );
+
+        return response()->json([
+            'success' => true,
+            'is_open' => $schedule->is_open,
+            'message' => 'Status sesi berhasil diperbarui.',
+        ]);
+    }
+
+    /**
+     * Toggle status is_open for all schedules today (Buka/Tutup Gerai).
+     */
+    public function toggleAllSchedulesStatus(Request $request)
+    {
+        $request->validate([
+            'is_open' => 'required|boolean',
+        ]);
+
+        $user = Auth::user();
+        if (! $user->departments_id) {
+            return response()->json(['success' => false, 'message' => 'Anda tidak memiliki akses ke instansi mana pun.'], 403);
+        }
+
+        $isOpen = (bool) $request->input('is_open');
+        $today = Carbon::today()->toDateString();
+
+        // Update all schedules today for this department
+        $updatedCount = Schedule::whereDate('date', $today)
+            ->whereHas('service', function ($q) use ($user) {
+                $q->where('department_id', $user->departments_id);
+            })
+            ->update(['is_open' => $isOpen]);
+
+        ActivityLog::record(
+            action: 'TOGGLE_ALL_SCHEDULES',
+            modelType: 'Department',
+            modelId: $user->departments_id,
+            description: 'Operator mengubah status operasional seluruh sesi gerai hari ini menjadi '.($isOpen ? 'Buka' : 'Tutup').'.',
+            actorUserId: $user->id
+        );
+
+        return response()->json([
+            'success' => true,
+            'is_open' => $isOpen,
+            'message' => 'Status operasional gerai berhasil diperbarui.',
+        ]);
     }
 }

@@ -34,17 +34,34 @@
                     <span class="w-1.5 h-1.5 rounded-full {{ $dotClass }}" id="loketStatusDot"></span>
                     <span id="loketStatusText">{{ $statusLabel }}</span>
                 </span>
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold transition-all {{ $counter->department->is_open ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 border border-green-200/50' : 'bg-rose-50 dark:bg-rose-900/20 text-rose-700 dark:text-rose-400 border border-rose-200/50' }}" id="instansiStatusBadge">
+                    <span class="w-1.5 h-1.5 rounded-full {{ $counter->department->is_open ? 'bg-green-500' : 'bg-rose-500' }}" id="instansiStatusDot"></span>
+                    <span id="instansiStatusText">Instansi: {{ $counter->department->is_open ? 'Buka' : 'Tutup' }}</span>
+                </span>
                 <span class="text-xs text-muted dark:text-on-dark-soft font-semibold font-display">Loket {{ $counter->name }} — {{ $counter->department->name }}</span>
             </div>
             <h2 class="text-2xl font-bold text-ink dark:text-white mt-2 font-display">Papan Panggil & Layanan Gerai</h2>
             <p class="text-sm text-muted dark:text-on-dark-soft font-body">Panggil nomor antrean, verifikasi berkas fisik, dan selesaikan pelayanan warga.</p>
         </div>
-        <div class="flex items-center gap-2">
-            <span class="text-xs text-muted dark:text-on-dark-soft font-semibold font-display">Status Loket:</span>
-            <div class="inline-flex rounded-lg border border-hairline dark:border-white/10 p-1 bg-surface-soft dark:bg-white/5">
-                <button type="button" onclick="setLoketStatus('aktif')" id="btnStatusBuka" class="px-3 py-1.5 text-xs font-bold rounded-md transition-all focus-visible:outline-none cursor-pointer {{ $counter->status === 'aktif' ? 'bg-canvas dark:bg-surface-dark-elevated text-green-600 dark:text-green-400 shadow-xs' : 'text-muted dark:text-on-dark-soft hover:bg-canvas/50 dark:hover:bg-white/5' }}">Buka</button>
-                <button type="button" onclick="setLoketStatus('istirahat')" id="btnStatusIstirahat" class="px-3 py-1.5 text-xs font-bold rounded-md transition-all focus-visible:outline-none cursor-pointer {{ $counter->status === 'istirahat' ? 'bg-canvas dark:bg-surface-dark-elevated text-amber-600 dark:text-amber-400 shadow-xs' : 'text-muted dark:text-on-dark-soft hover:bg-canvas/50 dark:hover:bg-white/5' }}">Istirahat</button>
-                <button type="button" onclick="setLoketStatus('nonaktif')" id="btnStatusTutup" class="px-3 py-1.5 text-xs font-bold rounded-md transition-all focus-visible:outline-none cursor-pointer {{ $counter->status === 'nonaktif' ? 'bg-canvas dark:bg-surface-dark-elevated text-rose-600 dark:text-rose-400 shadow-xs' : 'text-muted dark:text-on-dark-soft hover:bg-canvas/50 dark:hover:bg-white/5' }}">Tutup</button>
+        <div class="flex flex-wrap items-center gap-4">
+            {{-- Status Instansi --}}
+            <div class="flex items-center gap-2">
+                <span class="text-xs text-muted dark:text-on-dark-soft font-semibold font-display">Status Instansi:</span>
+                <div class="inline-flex rounded-lg border border-hairline dark:border-white/10 p-1 bg-surface-soft dark:bg-white/5">
+                    <button type="button" onclick="toggleInstansiStatus()" id="btnInstansiStatus" class="px-3 py-1.5 text-xs font-bold rounded-md transition-all focus-visible:outline-none cursor-pointer {{ $counter->department->is_open ? 'bg-canvas dark:bg-surface-dark-elevated text-green-600 dark:text-green-400 shadow-xs' : 'bg-canvas dark:bg-surface-dark-elevated text-rose-600 dark:text-rose-400 shadow-xs' }}">
+                        {{ $counter->department->is_open ? 'BUKA (Aktif)' : 'TUTUP (Terkunci)' }}
+                    </button>
+                </div>
+            </div>
+
+            {{-- Status Loket --}}
+            <div class="flex items-center gap-2">
+                <span class="text-xs text-muted dark:text-on-dark-soft font-semibold font-display">Status Loket:</span>
+                <div class="inline-flex rounded-lg border border-hairline dark:border-white/10 p-1 bg-surface-soft dark:bg-white/5">
+                    <button type="button" onclick="setLoketStatus('aktif')" id="btnStatusBuka" class="px-3 py-1.5 text-xs font-bold rounded-md transition-all focus-visible:outline-none cursor-pointer {{ $counter->status === 'aktif' ? 'bg-canvas dark:bg-surface-dark-elevated text-green-600 dark:text-green-400 shadow-xs' : 'text-muted dark:text-on-dark-soft hover:bg-canvas/50 dark:hover:bg-white/5' }}">Buka</button>
+                    <button type="button" onclick="setLoketStatus('istirahat')" id="btnStatusIstirahat" class="px-3 py-1.5 text-xs font-bold rounded-md transition-all focus-visible:outline-none cursor-pointer {{ $counter->status === 'istirahat' ? 'bg-canvas dark:bg-surface-dark-elevated text-amber-600 dark:text-amber-400 shadow-xs' : 'text-muted dark:text-on-dark-soft hover:bg-canvas/50 dark:hover:bg-white/5' }}">Istirahat</button>
+                    <button type="button" onclick="setLoketStatus('nonaktif')" id="btnStatusTutup" class="px-3 py-1.5 text-xs font-bold rounded-md transition-all focus-visible:outline-none cursor-pointer {{ $counter->status === 'nonaktif' ? 'bg-canvas dark:bg-surface-dark-elevated text-rose-600 dark:text-rose-400 shadow-xs' : 'text-muted dark:text-on-dark-soft hover:bg-canvas/50 dark:hover:bg-white/5' }}">Tutup</button>
+                </div>
             </div>
         </div>
     </div>
@@ -272,6 +289,53 @@
             @endforeach
         ]
     };
+
+    // Toggle Instansi status via AJAX
+    function toggleInstansiStatus() {
+        fetch('{{ route("gerai.department.toggle") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': csrfToken,
+                'Accept': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const btn = document.getElementById('btnInstansiStatus');
+                const badge = document.getElementById('instansiStatusBadge');
+                const dot = document.getElementById('instansiStatusDot');
+                const text = document.getElementById('instansiStatusText');
+                
+                if (data.is_open) {
+                    btn.innerText = 'BUKA (Aktif)';
+                    btn.className = 'px-3 py-1.5 text-xs font-bold rounded-md transition-all focus-visible:outline-none cursor-pointer bg-canvas dark:bg-surface-dark-elevated text-green-600 dark:text-green-400 shadow-xs';
+                    
+                    badge.className = 'inline-flex items-center gap-1.5 px-2.5 py-1 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 rounded-full text-xs font-bold border border-green-200/50';
+                    dot.className = 'w-1.5 h-1.5 rounded-full bg-green-500';
+                    text.innerText = 'Instansi: Buka';
+                    
+                    createToast('Status Instansi', 'Instansi Anda berhasil dibuka kembali.', 'success');
+                } else {
+                    btn.innerText = 'TUTUP (Terkunci)';
+                    btn.className = 'px-3 py-1.5 text-xs font-bold rounded-md transition-all focus-visible:outline-none cursor-pointer bg-canvas dark:bg-surface-dark-elevated text-rose-600 dark:text-rose-400 shadow-xs';
+                    
+                    badge.className = 'inline-flex items-center gap-1.5 px-2.5 py-1 bg-rose-50 dark:bg-rose-900/20 text-rose-700 dark:text-rose-400 rounded-full text-xs font-bold border border-rose-200/50';
+                    dot.className = 'w-1.5 h-1.5 rounded-full bg-rose-500';
+                    text.innerText = 'Instansi: Tutup';
+                    
+                    createToast('Status Instansi', 'Instansi Anda berhasil ditutup.', 'warning');
+                }
+            } else {
+                createToast('Gagal', data.message || 'Gagal mengubah status instansi.', 'warning');
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            createToast('Eror', 'Terjadi kesalahan sistem.', 'danger');
+        });
+    }
 
     // Set Loket status via AJAX
     function setLoketStatus(newStatus) {

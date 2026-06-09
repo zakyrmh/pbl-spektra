@@ -148,12 +148,15 @@
                                 3. Pilih Tanggal Booking
                             </label>
                             <div class="relative">
-                                <input type="date" 
-                                       id="booking_date" 
-                                       name="booking_date" 
-                                       x-model="selectedDate"
-                                       :min="new Date().toISOString().split('T')[0]"
-                                       class="w-full h-12 text-sm bg-canvas dark:bg-white/5 border border-hairline dark:border-white/15 text-ink dark:text-white rounded-md px-4 focus:border-primary dark:focus:border-accent-teal focus:outline-none focus:ring-3 focus:ring-primary/12 dark:focus:ring-accent-teal/20 transition-all cursor-pointer">
+                                <select id="booking_date" 
+                                        name="booking_date" 
+                                        x-model="selectedDate"
+                                        class="w-full h-12 text-sm bg-canvas dark:bg-white/5 border border-hairline dark:border-white/15 text-ink dark:text-white rounded-md px-4 pr-10 focus:border-primary dark:focus:border-accent-teal focus:outline-none focus:ring-3 focus:ring-primary/12 dark:focus:ring-accent-teal/20 transition-all cursor-pointer">
+                                    <option value="" disabled>-- Pilih Tanggal Booking --</option>
+                                    <template x-for="d in availableDates" :key="d">
+                                        <option :value="d" x-text="formatDate(d)"></option>
+                                    </template>
+                                </select>
                             </div>
                             @error('booking_date')
                                 <p class="text-xs text-status-skipped mt-1">{{ $message }}</p>

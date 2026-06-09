@@ -37,7 +37,7 @@ class Queue extends Model
     public function calculateDuration(): ?int
     {
         if ($this->called_at && $this->completed_at) {
-            return (int) $this->completed_at->diffInSeconds($this->called_at);
+            return (int) abs($this->completed_at->diffInSeconds($this->called_at));
         }
 
         return null;

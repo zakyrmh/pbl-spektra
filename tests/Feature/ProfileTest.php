@@ -103,3 +103,42 @@ test('user can update profile and upload photos successfully', function () {
     expect($properties['before']['name'])->toBe('Old Name');
     expect($properties['after']['name'])->toBe('New Name');
 });
+
+test('old avatar and ktp photo are deleted from storage when new ones are uploaded', function () {
+    Storage::fake('public');
+
+    $user = User::factory()->create([
+        'role' => 'pengunjung',
+        'avatar_path' => 'avatars/old-avatar.jpg',
+        'ktp_photo_path' => 'ktp_photos/old-ktp.jpg',
+    ]);
+
+    // Put mock files in storage to delete
+    Storage::disk('public')->put('avatars/old-avatar.jpg', 'old content');
+    Storage::disk('public')->put('ktp_photos/old-ktp.jpg', 'old content');
+
+    Storage::disk('public')->assertExists('avatars/old-avatar.jpg');
+    Storage::disk('public')->assertExists('ktp_photos/old-ktp.jpg');
+
+    $newAvatar = UploadedFile::fake()->image('new-avatar.jpg');
+    $newKtp = UploadedFile::fake()->image('new-ktp.png');
+
+    $response = $this->actingAs($user)->put(route('profile.update'), [
+        'name' => 'Name',
+        'phone_number' => '081234567890',
+        'avatar' => $newAvatar,
+        'ktp_photo' => $newKtp,
+    ]);
+
+    $response->assertRedirect(route('profile.edit'));
+
+    $user->refresh();
+
+    // Verify old files are deleted
+    Storage::disk('public')->assertMissing('avatars/old-avatar.jpg');
+    Storage::disk('public')->assertMissing('ktp_photos/old-ktp.jpg');
+
+    // Verify new files exist
+    Storage::disk('public')->assertExists($user->avatar_path);
+    Storage::disk('public')->assertExists($user->ktp_photo_path);
+});

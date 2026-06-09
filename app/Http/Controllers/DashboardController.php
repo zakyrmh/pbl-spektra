@@ -26,18 +26,18 @@ class DashboardController extends Controller
             $today = Carbon::today()->toDateString();
 
             // 1. Total Kunjungan Hari Ini
-            $todayKunjunganCount = QueueModel::query()->where('queue_date', $today)->count('*');
+            $todayKunjunganCount = QueueModel::query()->whereDate('queue_date', $today)->count('*');
             $kunjunganPercentage = $this->calculateKunjunganPercentage($todayKunjunganCount, $today);
 
             // 2. Menunggu Konfirmasi FO (Booking online berstatus Pending hari ini)
-            $menungguFoCount = Booking::query()->where('booking_date', $today)
+            $menungguFoCount = Booking::query()->whereDate('booking_date', $today)
                 ->where('status', 'Pending')
                 ->count('*');
             $foStatus = $this->getFoConfirmationStatus($menungguFoCount);
 
             // 3. Sedang Dilayani di Gerai (Total antrean aktif: Waiting + Serving)
-            $waitingCount = QueueModel::query()->where('queue_date', $today)->where('status', 'Waiting')->count('*');
-            $servingCount = QueueModel::query()->where('queue_date', $today)->where('status', 'Serving')->count('*');
+            $waitingCount = QueueModel::query()->whereDate('queue_date', $today)->where('status', 'Waiting')->count('*');
+            $servingCount = QueueModel::query()->whereDate('queue_date', $today)->where('status', 'Serving')->count('*');
             $totalAntreanGerai = $waitingCount + $servingCount;
 
             // 4. Total Gerai Aktif (Department yang memiliki minimal 1 loket aktif)
@@ -49,7 +49,7 @@ class DashboardController extends Controller
 
             // 5. Data Live Gerai (untuk Tabel Pemantauan Live)
             $liveDepartments = Department::query()->with(['counters', 'queues' => function ($query) use ($today) {
-                $query->where('queue_date', $today);
+                $query->whereDate('queue_date', $today);
             }])->get();
 
             // 6. Live Activity Feed (dari tabel activity_logs)
@@ -63,7 +63,7 @@ class DashboardController extends Controller
             // Note: Since visitors do not register their arrival before stepping up to the FO desk,
             // the system measures the processing efficiency dynamically based on check-in volumes today.
             $checkedInBookingsCount = Booking::query()
-                ->where('booking_date', $today)
+                ->whereDate('booking_date', $today)
                 ->where('status', 'Checked-In')
                 ->whereNotNull('checked_in_at')
                 ->count();
@@ -97,19 +97,19 @@ class DashboardController extends Controller
             $today = Carbon::today()->toDateString();
             $departments = Department::with('counters')->get();
             $recentQueues = QueueModel::query()
-                ->where('queue_date', $today)
+                ->whereDate('queue_date', $today)
                 ->with(['booking.user', 'visitor', 'service.department', 'counter.department'])
                 ->latest()
                 ->take(8)
                 ->get();
 
             $todayFoQueueCount = Booking::query()
-                ->where('booking_date', $today)
+                ->whereDate('booking_date', $today)
                 ->where('status', 'Pending')
                 ->count('*');
 
             $todayTotalPrintedTickets = QueueModel::query()
-                ->where('queue_date', $today)
+                ->whereDate('queue_date', $today)
                 ->count('*');
 
             $data = [
@@ -174,13 +174,13 @@ class DashboardController extends Controller
         $yesterday = Carbon::yesterday()->toDateString();
 
         $pastDaysCount = QueueModel::query()
-            ->where('queue_date', '>=', $thirtyDaysAgo)
-            ->where('queue_date', '<=', $yesterday)
+            ->whereDate('queue_date', '>=', $thirtyDaysAgo)
+            ->whereDate('queue_date', '<=', $yesterday)
             ->count('*');
 
         $pastDaysUnique = QueueModel::query()
-            ->where('queue_date', '>=', $thirtyDaysAgo)
-            ->where('queue_date', '<=', $yesterday)
+            ->whereDate('queue_date', '>=', $thirtyDaysAgo)
+            ->whereDate('queue_date', '<=', $yesterday)
             ->distinct()
             ->count('queue_date');
 
@@ -230,7 +230,7 @@ class DashboardController extends Controller
      */
     protected function getTrenKedatanganData(string $today): array
     {
-        $queuesToday = QueueModel::query()->where('queue_date', $today)->get();
+        $queuesToday = QueueModel::query()->whereDate('queue_date', $today)->get();
         $hours = ['08', '09', '10', '11', '12', '13', '14', '15', '16'];
         $onlineData = [];
         $onsiteData = [];
@@ -266,7 +266,7 @@ class DashboardController extends Controller
     protected function getTopGeraiData(string $today): array
     {
         $departments = Department::all();
-        $queuesToday = QueueModel::query()->where('queue_date', $today)->with('counter')->get();
+        $queuesToday = QueueModel::query()->whereDate('queue_date', $today)->with('counter')->get();
 
         $data = [];
         foreach ($departments as $dept) {

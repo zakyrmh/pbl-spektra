@@ -6,6 +6,7 @@ use App\Models\Department as Instansi;
 use App\Models\Queue;
 use App\Models\Service as Layanan;
 use Carbon\Carbon;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
 
 class PublicController extends Controller
@@ -40,7 +41,7 @@ class PublicController extends Controller
                         $created = Carbon::parse($q->created_at);
                         $called = Carbon::parse($q->called_at);
                         if ($called->greaterThanOrEqualTo($created)) {
-                            $totalMinutes += $called->diffInMinutes($created);
+                            $totalMinutes += abs($called->diffInMinutes($created));
                             $count++;
                         }
                     }
@@ -63,5 +64,32 @@ class PublicController extends Controller
     public function checkQueue()
     {
         return view('pages.check-queue');
+    }
+
+    public function checkQueueProcess(Request $request)
+    {
+        $request->validate([
+            'code' => ['required', 'string', 'max:50'],
+        ]);
+
+        $code = trim($request->input('code'));
+
+        $queue = Queue::where('queue_number', $code)
+            ->orWhereHas('booking', function ($query) use ($code) {
+                $query->where('booking_code', $code);
+            })
+            ->with(['counter.department', 'service'])
+            ->first();
+
+        if (! $queue) {
+            return back()
+                ->withInput()
+                ->with('error', "Antrean dengan kode '{$code}' tidak ditemukan.");
+        }
+
+        return view('pages.check-queue', [
+            'searched' => true,
+            'queue' => $queue,
+        ]);
     }
 }

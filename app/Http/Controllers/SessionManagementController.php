@@ -112,23 +112,23 @@ class SessionManagementController extends Controller
         }
 
         // Deteksi OS
-        if (str_contains($userAgent, 'Windows')) {
+        if (str_contains($userAgent, 'Android')) {
+            $os = 'Android';
+        } elseif (str_contains($userAgent, 'iPhone') || str_contains($userAgent, 'iPad')) {
+            $os = 'iOS';
+        } elseif (str_contains($userAgent, 'Windows')) {
             $os = 'Windows';
         } elseif (str_contains($userAgent, 'Macintosh') || str_contains($userAgent, 'Mac OS')) {
             $os = 'macOS';
         } elseif (str_contains($userAgent, 'Linux')) {
             $os = 'Linux';
-        } elseif (str_contains($userAgent, 'Android')) {
-            $os = 'Android';
-        } elseif (str_contains($userAgent, 'iPhone') || str_contains($userAgent, 'iPad')) {
-            $os = 'iOS';
         }
 
         // Deteksi device
-        if (str_contains($userAgent, 'Mobile') || str_contains($userAgent, 'Android')) {
-            $device = 'Mobile';
-        } elseif (str_contains($userAgent, 'iPad') || str_contains($userAgent, 'Tablet')) {
+        if (str_contains($userAgent, 'iPad') || str_contains($userAgent, 'Tablet')) {
             $device = 'Tablet';
+        } elseif (str_contains($userAgent, 'Mobile') || str_contains($userAgent, 'Android')) {
+            $device = 'Mobile';
         }
 
         return compact('browser', 'os', 'device');

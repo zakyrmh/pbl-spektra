@@ -15,14 +15,14 @@ class FeedbackRequestMail extends Mailable
 {
     use Queueable, SerializesModels;
 
-    public Queue $queue;
+    public Queue $queueModel;
 
     /**
      * Create a new message instance.
      */
     public function __construct(Queue $queue)
     {
-        $this->queue = $queue;
+        $this->queueModel = $queue;
     }
 
     /**
@@ -31,7 +31,7 @@ class FeedbackRequestMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Pelayanan Selesai - Berikan Ulasan Anda ('.$this->queue->queue_number.')',
+            subject: 'Pelayanan Selesai - Berikan Ulasan Anda ('.$this->queueModel->queue_number.')',
         );
     }
 
@@ -42,6 +42,9 @@ class FeedbackRequestMail extends Mailable
     {
         return new Content(
             view: 'emails.feedback_request',
+            with: [
+                'queue' => $this->queueModel,
+            ],
         );
     }
 

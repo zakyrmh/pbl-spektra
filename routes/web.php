@@ -32,6 +32,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', [PublicController::class, 'index'])->name('home');
 Route::get('/cek-antrean', [PublicController::class, 'checkQueue'])->name('public.check');
+Route::post('/cek-antrean', [PublicController::class, 'checkQueueProcess'])->name('public.check.process');
 Route::get('/display', [QueueMonitorController::class, 'publicDisplay'])->name('display.index');
 Route::get('/api/display/data', [QueueMonitorController::class, 'publicDisplayData'])->name('display.data');
 

@@ -64,6 +64,21 @@ Route::middleware('guest')->group(function () {
 
 /*
 |--------------------------------------------------------------------------
+| Email Verification Routes
+|--------------------------------------------------------------------------
+*/
+Route::get('/email/verify', [AuthController::class, 'notice'])
+    ->name('verification.notice');
+
+Route::get('/email/verify/{id}/{hash}', [AuthController::class, 'verify'])
+    ->name('verification.verify');
+
+Route::post('/email/verification-notification', [AuthController::class, 'resend'])
+    ->middleware(['throttle:6,1'])
+    ->name('verification.send');
+
+/*
+|--------------------------------------------------------------------------
 | Private / Authenticated Routes
 |--------------------------------------------------------------------------
 | Hanya bisa diakses setelah login.
@@ -73,6 +88,7 @@ Route::middleware('auth')->group(function () {
 
     // Dashboard Utama
     Route::get('/dashboard', [DashboardController::class, 'index'])
+        ->middleware('verified')
         ->name('dashboard');
 
     // Pusat Notifikasi

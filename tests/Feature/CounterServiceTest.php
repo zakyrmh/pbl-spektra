@@ -9,6 +9,7 @@ use App\Models\Counter;
 use App\Models\Department;
 use App\Models\Notification;
 use App\Models\Queue;
+use App\Models\Schedule;
 use App\Models\Service;
 use App\Models\User;
 use Carbon\Carbon;
@@ -499,4 +500,157 @@ test('skipping a service updates queue status to Skipped and records log', funct
 
     // Assert Event triggered
     Event::assertDispatched(QueueFinished::class);
+});
+
+// ── Papan Panggil Booking Tests ──────────────────────────────────────────────────
+
+test('guest is redirected to login when accessing papan panggil', function () {
+    $this->get(route('admin.papan-panggil'))->assertRedirect(route('login'));
+});
+
+test('operator with counter can access papan panggil page', function () {
+    $response = $this->actingAs($this->operator)->get(route('admin.papan-panggil'));
+    $response->assertStatus(200);
+    $response->assertViewIs('admin.papan-panggil');
+    $response->assertSee('Papan Panggil Instansi');
+});
+
+test('operator can call next booking successfully', function () {
+    $schedule = Schedule::create([
+        'service_id' => $this->service->id,
+        'date' => now()->toDateString(),
+        'session_name' => 'Pagi',
+        'quota_total' => 10,
+        'quota_used' => 0,
+        'is_open' => true,
+    ]);
+
+    $booking = Booking::create([
+        'user_id' => $this->visitor->id,
+        'service_id' => $this->service->id,
+        'schedule_id' => $schedule->id,
+        'booking_code' => 'BKG12345',
+        'status' => 'Pending',
+        'booking_date' => now()->toDateString(),
+        'purpose' => 'Mengurus KTP Baru',
+    ]);
+
+    $response = $this->actingAs($this->operator)->post(route('admin.papan-panggil.next'));
+
+    $response->assertRedirect();
+    $response->assertSessionHas('success');
+
+    // Verify booking is checked in and stored in session
+    $booking->refresh();
+    expect($booking->status)->toBe('Checked-In');
+    expect($booking->checked_in_at)->not->toBeNull();
+    expect(session('papan_panggil_active_booking_id'))->toBe($booking->id);
+});
+
+test('operator next booking call returns error when no bookings left', function () {
+    $response = $this->actingAs($this->operator)->post(route('admin.papan-panggil.next'));
+
+    $response->assertRedirect();
+    $response->assertSessionHas('error', 'Tidak ada antrean tersisa untuk hari ini.');
+});
+
+test('operator can complete active booking', function () {
+    $schedule = Schedule::create([
+        'service_id' => $this->service->id,
+        'date' => now()->toDateString(),
+        'session_name' => 'Pagi',
+        'quota_total' => 10,
+        'quota_used' => 0,
+        'is_open' => true,
+    ]);
+
+    $booking = Booking::create([
+        'user_id' => $this->visitor->id,
+        'service_id' => $this->service->id,
+        'schedule_id' => $schedule->id,
+        'booking_code' => 'BKG12345',
+        'status' => 'Checked-In',
+        'booking_date' => now()->toDateString(),
+        'purpose' => 'Mengurus KTP Baru',
+        'checked_in_at' => now(),
+    ]);
+
+    session(['papan_panggil_active_booking_id' => $booking->id]);
+
+    $response = $this->actingAs($this->operator)->post(route('admin.papan-panggil.complete', $booking));
+
+    $response->assertRedirect();
+    $response->assertSessionHas('success');
+
+    $booking->refresh();
+    expect($booking->status)->toBe('Completed');
+    expect(session('papan_panggil_active_booking_id'))->toBeNull();
+});
+
+test('operator can skip active booking with reason', function () {
+    $schedule = Schedule::create([
+        'service_id' => $this->service->id,
+        'date' => now()->toDateString(),
+        'session_name' => 'Pagi',
+        'quota_total' => 10,
+        'quota_used' => 0,
+        'is_open' => true,
+    ]);
+
+    $booking = Booking::create([
+        'user_id' => $this->visitor->id,
+        'service_id' => $this->service->id,
+        'schedule_id' => $schedule->id,
+        'booking_code' => 'BKG12345',
+        'status' => 'Checked-In',
+        'booking_date' => now()->toDateString(),
+        'purpose' => 'Mengurus KTP Baru',
+        'checked_in_at' => now(),
+    ]);
+
+    session(['papan_panggil_active_booking_id' => $booking->id]);
+
+    $response = $this->actingAs($this->operator)->post(route('admin.papan-panggil.skip', $booking), [
+        'cancel_reason' => 'Pengunjung tidak hadir setelah dipanggil 3 kali',
+    ]);
+
+    $response->assertRedirect();
+    $response->assertSessionHas('success');
+
+    $booking->refresh();
+    expect($booking->status)->toBe('Cancelled');
+    expect($booking->cancel_reason)->toBe('Pengunjung tidak hadir setelah dipanggil 3 kali');
+    expect(session('papan_panggil_active_booking_id'))->toBeNull();
+});
+
+test('operator cannot skip active booking without min 5 characters reason', function () {
+    $schedule = Schedule::create([
+        'service_id' => $this->service->id,
+        'date' => now()->toDateString(),
+        'session_name' => 'Pagi',
+        'quota_total' => 10,
+        'quota_used' => 0,
+        'is_open' => true,
+    ]);
+
+    $booking = Booking::create([
+        'user_id' => $this->visitor->id,
+        'service_id' => $this->service->id,
+        'schedule_id' => $schedule->id,
+        'booking_code' => 'BKG12345',
+        'status' => 'Checked-In',
+        'booking_date' => now()->toDateString(),
+        'purpose' => 'Mengurus KTP Baru',
+        'checked_in_at' => now(),
+    ]);
+
+    session(['papan_panggil_active_booking_id' => $booking->id]);
+
+    $response = $this->actingAs($this->operator)->post(route('admin.papan-panggil.skip', $booking), [
+        'cancel_reason' => 'Btl', // too short
+    ]);
+
+    $response->assertSessionHasErrors(['cancel_reason']);
+    $booking->refresh();
+    expect($booking->status)->toBe('Checked-In'); // unchanged
 });

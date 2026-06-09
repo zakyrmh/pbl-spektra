@@ -8,6 +8,7 @@ use App\Events\QueueCalled;
 use App\Events\QueueFinished;
 use App\Mail\FeedbackRequestMail;
 use App\Models\ActivityLog;
+use App\Models\Booking;
 use App\Models\Counter;
 use App\Models\Department;
 use App\Models\Notification;
@@ -358,5 +359,135 @@ class CounterController extends Controller
             'is_open' => $department->is_open,
             'message' => 'Status operasional instansi berhasil diperbarui.',
         ]);
+    }
+
+    /**
+     * Tampilkan papan panggil khusus admin instansi.
+     */
+    public function papanPanggil(Request $request): View
+    {
+        $user = Auth::user();
+        if (! $user->departments_id) {
+            abort(403, 'Anda tidak ditugaskan ke instansi mana pun.');
+        }
+
+        $department = Department::findOrFail($user->departments_id);
+        $counter = Counter::where('department_id', $department->id)->first();
+
+        // Ambil active booking dari session
+        $activeBooking = null;
+        $activeBookingId = session('papan_panggil_active_booking_id');
+        if ($activeBookingId) {
+            $activeBooking = Booking::with('user')->find($activeBookingId);
+            // Bersihkan jika status booking sudah bukan Pending / Checked-In
+            if ($activeBooking && ! in_array($activeBooking->status, ['Pending', 'Checked-In'])) {
+                session()->forget('papan_panggil_active_booking_id');
+                $activeBooking = null;
+            }
+        }
+
+        // Live-feed sisa antrean hari ini yang berstatus Pending atau Checked-In
+        $sisaBookings = Booking::where('booking_date', Carbon::today())
+            ->whereHas('service', function ($query) use ($department) {
+                $query->where('department_id', $department->id);
+            })
+            ->whereIn('status', ['Pending', 'Checked-In'])
+            ->when($activeBooking, function ($query) use ($activeBooking) {
+                $query->where('id', '!=', $activeBooking->id);
+            })
+            ->orderBy('id', 'asc')
+            ->with('user')
+            ->get();
+
+        return view('admin.papan-panggil', compact(
+            'department',
+            'counter',
+            'activeBooking',
+            'sisaBookings'
+        ));
+    }
+
+    /**
+     * Panggil antrean berikutnya.
+     */
+    public function papanPanggilNext(Request $request)
+    {
+        $user = Auth::user();
+        if (! $user->departments_id) {
+            abort(403, 'Anda tidak memiliki hak akses.');
+        }
+
+        // Cari antrean berikutnya untuk hari ini yang Pending/Checked-In
+        $nextBooking = Booking::where('booking_date', Carbon::today())
+            ->whereHas('service', function ($query) use ($user) {
+                $query->where('department_id', $user->departments_id);
+            })
+            ->whereIn('status', ['Pending', 'Checked-In'])
+            ->orderBy('id', 'asc')
+            ->first();
+
+        if (! $nextBooking) {
+            return back()->with('error', 'Tidak ada antrean tersisa untuk hari ini.');
+        }
+
+        // Jika statusnya masih Pending, otomatis ubah menjadi Checked-In saat dipanggil
+        if ($nextBooking->status === 'Pending') {
+            $nextBooking->update([
+                'status' => 'Checked-In',
+                'checked_in_at' => now(),
+            ]);
+        }
+
+        session(['papan_panggil_active_booking_id' => $nextBooking->id]);
+
+        return back()->with('success', 'Antrean '.$nextBooking->booking_code.' berhasil dipanggil.');
+    }
+
+    /**
+     * Tandai antrean aktif sebagai selesai (Completed).
+     */
+    public function papanPanggilComplete(Booking $booking)
+    {
+        $user = Auth::user();
+        // Pastikan booking ini berasal dari instansi operator
+        if ($booking->service->department_id !== $user->departments_id) {
+            abort(403, 'Anda tidak berhak mengelola antrean instansi lain.');
+        }
+
+        $booking->update([
+            'status' => 'Completed',
+        ]);
+
+        session()->forget('papan_panggil_active_booking_id');
+
+        return back()->with('success', 'Antrean '.$booking->booking_code.' selesai dilayani.');
+    }
+
+    /**
+     * Lewati/batalkan antrean aktif (Cancelled).
+     */
+    public function papanPanggilSkip(Request $request, Booking $booking)
+    {
+        $user = Auth::user();
+        // Pastikan booking ini berasal dari instansi operator
+        if ($booking->service->department_id !== $user->departments_id) {
+            abort(403, 'Anda tidak berhak mengelola antrean instansi lain.');
+        }
+
+        $request->validate([
+            'cancel_reason' => ['required', 'string', 'min:5', 'max:255'],
+        ], [
+            'cancel_reason.required' => 'Alasan pembatalan/melewati antrean harus diisi.',
+            'cancel_reason.min' => 'Alasan pembatalan harus minimal 5 karakter.',
+        ]);
+
+        $booking->update([
+            'status' => 'Cancelled',
+            'cancel_reason' => $request->input('cancel_reason'),
+        ]);
+
+        session()->forget('papan_panggil_active_booking_id');
+
+        return back()->with('success', 'Antrean '.$booking->booking_code.' berhasil dilewati.');
     }
 }

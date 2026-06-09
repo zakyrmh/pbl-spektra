@@ -118,9 +118,9 @@
                                         x-model="selectedDepartmentId"
                                         @change="resetService()"
                                         class="w-full h-12 text-sm bg-canvas dark:bg-white/5 border border-hairline dark:border-white/15 text-ink dark:text-white rounded-md px-4 pr-10 focus:border-primary dark:focus:border-accent-teal focus:outline-none focus:ring-3 focus:ring-primary/12 dark:focus:ring-accent-teal/20 transition-all cursor-pointer">
-                                    <option value="" disabled>-- Pilih Instansi / Lembaga --</option>
+                                    <option value="" disabled class="bg-canvas dark:bg-surface-dark-elevated text-ink dark:text-white">-- Pilih Instansi / Lembaga --</option>
                                     <template x-for="dept in departments" :key="dept.id">
-                                        <option :value="dept.id" x-text="dept.name"></option>
+                                        <option :value="dept.id" x-text="dept.name" class="bg-canvas dark:bg-surface-dark-elevated text-ink dark:text-white"></option>
                                     </template>
                                 </select>
                             </div>
@@ -138,9 +138,9 @@
                                         x-model="selectedServiceId"
                                         @change="resetSchedule()"
                                         class="w-full h-12 text-sm bg-canvas dark:bg-white/5 border border-hairline dark:border-white/15 text-ink dark:text-white rounded-md px-4 pr-10 focus:border-primary dark:focus:border-accent-teal focus:outline-none focus:ring-3 focus:ring-primary/12 dark:focus:ring-accent-teal/20 transition-all cursor-pointer">
-                                    <option value="" disabled>-- Pilih Pelayanan --</option>
+                                    <option value="" disabled class="bg-canvas dark:bg-surface-dark-elevated text-ink dark:text-white">-- Pilih Pelayanan --</option>
                                     <template x-for="svc in filteredServices" :key="svc.id">
-                                        <option :value="svc.id" x-text="svc.name"></option>
+                                        <option :value="svc.id" x-text="svc.name" class="bg-canvas dark:bg-surface-dark-elevated text-ink dark:text-white"></option>
                                     </template>
                                 </select>
                             </div>
@@ -162,10 +162,11 @@
                                         name="schedule_id"
                                         x-model="selectedScheduleId"
                                         class="w-full h-12 text-sm bg-canvas dark:bg-white/5 border border-hairline dark:border-white/15 text-ink dark:text-white rounded-md px-4 pr-10 focus:border-primary dark:focus:border-accent-teal focus:outline-none focus:ring-3 focus:ring-primary/12 dark:focus:ring-accent-teal/20 transition-all cursor-pointer">
-                                    <option value="" disabled>-- Pilih Jadwal & Sesi --</option>
+                                    <option value="" disabled class="bg-canvas dark:bg-surface-dark-elevated text-ink dark:text-white">-- Pilih Jadwal & Sesi --</option>
                                     <template x-for="sch in filteredSchedules" :key="sch.id">
                                         <option :value="sch.id" 
-                                                x-text="`${formatDate(sch.date)} - Sesi ${sch.session_name || 'Umum'} (Sisa ${sch.quota_total - sch.quota_used}/${sch.quota_total} Slot)`">
+                                                x-text="`${formatDate(sch.date)} - Sesi ${sch.session_name || 'Umum'} (Sisa ${sch.quota_total - sch.quota_used}/${sch.quota_total} Slot)`"
+                                                class="bg-canvas dark:bg-surface-dark-elevated text-ink dark:text-white">
                                         </option>
                                     </template>
                                 </select>

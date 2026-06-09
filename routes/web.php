@@ -9,6 +9,7 @@ use App\Http\Controllers\CounterController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\FeedbackController;
 use App\Http\Controllers\GeraiLoketController;
+use App\Http\Controllers\LogPelayananController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PublicController;
@@ -238,6 +239,12 @@ Route::middleware('auth')->group(function () {
             ->name('admin.daftar-tunggu.check-in');
         Route::post('/admin/daftar-tunggu/{booking}/restore', [CounterController::class, 'daftarTungguRestore'])
             ->name('admin.daftar-tunggu.restore');
+
+        // Log Pelayanan
+        Route::get('/admin/log-pelayanan', [LogPelayananController::class, 'index'])
+            ->name('admin.log-pelayanan');
+        Route::get('/admin/log-pelayanan/export', [LogPelayananController::class, 'export'])
+            ->name('admin.log-pelayanan.export');
 
         // API Endpoints for Gerai operations
         Route::post('/api/counter/status', [CounterController::class, 'updateStatus'])

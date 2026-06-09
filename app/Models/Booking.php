@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
@@ -65,6 +66,20 @@ class Booking extends Model
     public function queue(): HasOne
     {
         return $this->hasOne(Queue::class);
+    }
+
+    /**
+     * Scope a query to only include bookings belonging to a specific department.
+     *
+     * @param  Builder  $query
+     * @param  int|null  $departmentId
+     * @return Builder
+     */
+    public function scopeForDepartment($query, $departmentId)
+    {
+        return $query->whereHas('service', function ($q) use ($departmentId) {
+            $q->where('department_id', $departmentId);
+        });
     }
 
     /**

@@ -1,9 +1,13 @@
 <?php
 
 use App\Models\User;
+use App\Notifications\CustomVerifyEmail;
+use Illuminate\Auth\Events\Registered;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\URL;
 
 uses(RefreshDatabase::class);
 
@@ -12,7 +16,7 @@ test('user can access registration page', function () {
     $response->assertStatus(200);
 });
 
-test('user can register with valid data', function (string $phoneNumber) {
+test('user can register with valid data but must verify email', function (string $phoneNumber) {
     $data = [
         'name' => 'Ahmad Fauzi',
         'nik' => '1234567890123456',
@@ -22,20 +26,33 @@ test('user can register with valid data', function (string $phoneNumber) {
         'password_confirmation' => 'AmanSekali123!',
     ];
 
+    // Listen to events
+    Event::fake([
+        Registered::class,
+    ]);
+
     $response = $this->post(route('register.process'), $data);
 
-    $response->assertRedirect('/dashboard');
+    // Assert redirect to verification notice
+    $response->assertRedirect(route('verification.notice'));
 
-    // Assert user is authenticated
-    expect(Auth::check())->toBeTrue();
+    // Assert Registered event was dispatched
+    Event::assertDispatched(Registered::class);
 
-    // Assert user exists in database
+    // Assert user is NOT authenticated (logout is forced or not authenticated)
+    expect(Auth::check())->toBeFalse();
+
+    // Assert email is saved in session
+    expect(session('unverified_email'))->toBe('ahmad.fauzi@example.com');
+
+    // Assert user exists in database but email is not verified
     $this->assertDatabaseHas('users', [
         'name' => 'Ahmad Fauzi',
         'nik' => '1234567890123456',
         'email' => 'ahmad.fauzi@example.com',
         'no_telp' => $phoneNumber,
         'role' => 'pengunjung',
+        'email_verified_at' => null,
     ]);
 
     // Assert password is encrypted/hashed
@@ -149,4 +166,120 @@ test('registration fails if Email is already registered', function () {
 
     $errors = session('errors')->get('email');
     expect($errors)->toContain('Alamat email sudah terdaftar.');
+});
+
+test('unverified user cannot access dashboard', function () {
+    $user = User::factory()->create([
+        'email_verified_at' => null,
+    ]);
+
+    $response = $this->actingAs($user)->get(route('dashboard'));
+
+    $response->assertRedirect(route('verification.notice'));
+});
+
+test('verified user can access dashboard', function () {
+    $user = User::factory()->create([
+        'email_verified_at' => now(),
+    ]);
+
+    $response = $this->actingAs($user)->get(route('dashboard'));
+
+    $response->assertStatus(200);
+});
+
+test('unverified user is rejected during login', function () {
+    $user = User::factory()->create([
+        'email' => 'unverified@example.com',
+        'password' => Hash::make('password123'),
+        'email_verified_at' => null,
+    ]);
+
+    $response = $this->post(route('login.process'), [
+        'email' => 'unverified@example.com',
+        'password' => 'password123',
+    ]);
+
+    // Redirect to verification notice
+    $response->assertRedirect(route('verification.notice'));
+
+    // Check email in session for resending
+    expect(session('unverified_email'))->toBe('unverified@example.com');
+
+    // Assert that the user is not authenticated
+    expect(Auth::check())->toBeFalse();
+});
+
+test('verified user can login successfully', function () {
+    $user = User::factory()->create([
+        'email' => 'verified@example.com',
+        'password' => Hash::make('password123'),
+        'email_verified_at' => now(),
+    ]);
+
+    $response = $this->post(route('login.process'), [
+        'email' => 'verified@example.com',
+        'password' => 'password123',
+    ]);
+
+    $response->assertRedirect('/dashboard');
+    expect(Auth::check())->toBeTrue();
+});
+
+test('user can verify email with valid signed url', function () {
+    $user = User::factory()->create([
+        'email_verified_at' => null,
+    ]);
+
+    $verificationUrl = URL::temporarySignedRoute(
+        'verification.verify',
+        now()->addMinutes(60),
+        ['id' => $user->id, 'hash' => sha1($user->email)]
+    );
+
+    $response = $this->get($verificationUrl);
+
+    $response->assertRedirect('/dashboard');
+
+    // Assert user is verified in DB
+    $user->refresh();
+    expect($user->hasVerifiedEmail())->toBeTrue();
+
+    // Assert user is auto-logged in
+    expect(Auth::check())->toBeTrue();
+    expect(Auth::id())->toBe($user->id);
+});
+
+test('user cannot verify email with invalid signed url', function () {
+    $user = User::factory()->create([
+        'email_verified_at' => null,
+    ]);
+
+    $verificationUrl = route('verification.verify', [
+        'id' => $user->id,
+        'hash' => sha1($user->email),
+    ]); // Plain url without signature
+
+    $response = $this->get($verificationUrl);
+
+    $response->assertStatus(401);
+
+    $user->refresh();
+    expect($user->hasVerifiedEmail())->toBeFalse();
+});
+
+test('user can request a resend of verification email', function () {
+    $user = User::factory()->create([
+        'email_verified_at' => null,
+    ]);
+
+    Illuminate\Support\Facades\Notification::fake();
+
+    $response = $this->withSession(['unverified_email' => $user->email])
+        ->post(route('verification.send'));
+
+    $response->assertRedirect();
+    $response->assertSessionHas('status', 'verification-link-sent');
+
+    Notification::assertSentTo($user, CustomVerifyEmail::class);
 });

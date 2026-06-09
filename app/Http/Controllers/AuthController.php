@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use App\Services\AuditLogger;
 use Illuminate\Auth\Events\PasswordReset;
+use Illuminate\Auth\Events\Registered;
+use Illuminate\Auth\Events\Verified;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -42,14 +44,31 @@ class AuthController extends Controller
             'email' => $request->email,
             'password' => $request->password,
         ], $request->boolean('remember'))) {
+            /** @var User $user */
+            $user = Auth::user();
+
+            // Cek apakah email sudah terverifikasi
+            if (! $user->hasVerifiedEmail()) {
+                Auth::logout();
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
+
+                // Simpan email di session untuk kirim ulang verification link
+                session(['unverified_email' => $user->email]);
+
+                return redirect()->route('verification.notice')->withErrors([
+                    'email' => 'Email Anda belum terverifikasi. Silakan cek email Anda untuk melakukan verifikasi.',
+                ]);
+            }
+
             RateLimiter::clear($throttleKey);
             $request->session()->regenerate();
 
             // Catat waktu login terakhir untuk tracking "staf aktif online"
-            Auth::user()->update(['last_login_at' => now()]);
+            $user->update(['last_login_at' => now()]);
 
             // Audit trail: catat event login
-            AuditLogger::userLoggedIn(Auth::user());
+            AuditLogger::userLoggedIn($user);
 
             return redirect()->intended('/dashboard');
         }
@@ -105,9 +124,13 @@ class AuthController extends Controller
             'role' => 'pengunjung',
         ]);
 
-        Auth::login($user);
+        // Memicu event Registered agar notifikasi verifikasi email dikirim
+        event(new Registered($user));
 
-        return redirect('/dashboard');
+        // Simpan email di session untuk konfirmasi
+        session(['unverified_email' => $user->email]);
+
+        return redirect()->route('verification.notice')->with('success', 'Registrasi berhasil. Silakan cek email Anda untuk melakukan verifikasi.');
     }
 
     // Tampilkan halaman lupa password
@@ -183,5 +206,83 @@ class AuthController extends Controller
         $request->session()->regenerateToken();
 
         return redirect('/login');
+    }
+
+    // Tampilkan halaman konfirmasi verifikasi email
+    public function notice(Request $request)
+    {
+        $email = session('unverified_email');
+
+        if (! $email && Auth::check()) {
+            $user = Auth::user();
+            if ($user->hasVerifiedEmail()) {
+                return redirect('/dashboard');
+            }
+            $email = $user->email;
+            session(['unverified_email' => $email]);
+        }
+
+        if (! $email) {
+            return redirect()->route('login');
+        }
+
+        return view('auth.verify-email', ['email' => $email]);
+    }
+
+    // Proses link verifikasi di email (Auto-Login & Redirect Dashboard)
+    public function verify(Request $request, $id, $hash)
+    {
+        if (! $request->hasValidSignature()) {
+            abort(401, 'Tautan verifikasi tidak valid atau telah kedaluwarsa.');
+        }
+
+        $user = User::findOrFail($id);
+
+        if (! hash_equals((string) $hash, sha1($user->getEmailForVerification()))) {
+            abort(401, 'Tautan verifikasi tidak valid.');
+        }
+
+        if (! $user->hasVerifiedEmail()) {
+            $user->markEmailAsVerified();
+            event(new Verified($user));
+        }
+
+        Auth::login($user);
+
+        $request->session()->regenerate();
+        $user->update(['last_login_at' => now()]);
+        AuditLogger::userLoggedIn($user);
+
+        return redirect('/dashboard')->with('success', 'Email Anda berhasil diverifikasi. Selamat datang di dashboard!');
+    }
+
+    // Kirim ulang email verifikasi
+    public function resend(Request $request)
+    {
+        $email = session('unverified_email');
+
+        if (! $email && Auth::check()) {
+            $email = Auth::user()->email;
+        }
+
+        if (! $email) {
+            return redirect()->route('login')->withErrors([
+                'email' => 'Silakan masuk terlebih dahulu atau registrasi ulang.',
+            ]);
+        }
+
+        $user = User::where('email', $email)->first();
+
+        if (! $user) {
+            return redirect()->route('login');
+        }
+
+        if ($user->hasVerifiedEmail()) {
+            return redirect('/dashboard')->with('success', 'Email Anda sudah terverifikasi.');
+        }
+
+        $user->sendEmailVerificationNotification();
+
+        return back()->with('status', 'verification-link-sent');
     }
 }

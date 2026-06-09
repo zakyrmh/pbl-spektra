@@ -2,9 +2,10 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Enums\UserRole;
+use App\Notifications\CustomVerifyEmail;
 use Database\Factories\UserFactory;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Builder;
@@ -17,7 +18,7 @@ use Illuminate\Notifications\Notifiable;
 
 #[Fillable(['name', 'nik', 'email', 'phone_number', 'no_telp', 'avatar_path', 'ktp_photo_path', 'password', 'role', 'departments_id', 'nomor_loket', 'is_active', 'last_login_at'])]
 #[Hidden(['password', 'remember_token'])]
-class User extends Authenticatable
+class User extends Authenticatable implements MustVerifyEmail
 {
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable, SoftDeletes;
@@ -118,6 +119,14 @@ class User extends Authenticatable
     {
         return $this->last_login_at !== null
             && $this->last_login_at->diffInMinutes(now()) <= 15;
+    }
+
+    /**
+     * Kirim notifikasi verifikasi email dengan kustomisasi branding.
+     */
+    public function sendEmailVerificationNotification(): void
+    {
+        $this->notify(new CustomVerifyEmail);
     }
 
     /**

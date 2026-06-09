@@ -221,6 +221,16 @@ Route::middleware('auth')->group(function () {
         Route::get('/antrean', [CounterController::class, 'dashboard'])
             ->name('antrean.index');
 
+        // Papan Panggil khusus instansi
+        Route::get('/admin/papan-panggil', [CounterController::class, 'papanPanggil'])
+            ->name('admin.papan-panggil');
+        Route::post('/admin/papan-panggil/next', [CounterController::class, 'papanPanggilNext'])
+            ->name('admin.papan-panggil.next');
+        Route::post('/admin/papan-panggil/{booking}/complete', [CounterController::class, 'papanPanggilComplete'])
+            ->name('admin.papan-panggil.complete');
+        Route::post('/admin/papan-panggil/{booking}/skip', [CounterController::class, 'papanPanggilSkip'])
+            ->name('admin.papan-panggil.skip');
+
         // API Endpoints for Gerai operations
         Route::post('/api/counter/status', [CounterController::class, 'updateStatus'])
             ->name('gerai.status');

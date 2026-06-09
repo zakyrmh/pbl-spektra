@@ -231,6 +231,14 @@ Route::middleware('auth')->group(function () {
         Route::post('/admin/papan-panggil/{booking}/skip', [CounterController::class, 'papanPanggilSkip'])
             ->name('admin.papan-panggil.skip');
 
+        // Daftar Tunggu khusus instansi
+        Route::get('/admin/daftar-tunggu', [CounterController::class, 'daftarTunggu'])
+            ->name('admin.daftar-tunggu');
+        Route::post('/admin/daftar-tunggu/{booking}/check-in', [CounterController::class, 'daftarTungguCheckIn'])
+            ->name('admin.daftar-tunggu.check-in');
+        Route::post('/admin/daftar-tunggu/{booking}/restore', [CounterController::class, 'daftarTungguRestore'])
+            ->name('admin.daftar-tunggu.restore');
+
         // API Endpoints for Gerai operations
         Route::post('/api/counter/status', [CounterController::class, 'updateStatus'])
             ->name('gerai.status');

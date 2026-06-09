@@ -654,3 +654,194 @@ test('operator cannot skip active booking without min 5 characters reason', func
     $booking->refresh();
     expect($booking->status)->toBe('Checked-In'); // unchanged
 });
+
+// ── Daftar Tunggu Gerai ─────────────────────────────────────────────────────────
+
+test('guest is redirected to login when accessing daftar tunggu', function () {
+    $response = $this->get(route('admin.daftar-tunggu'));
+    $response->assertRedirect(route('login'));
+});
+
+test('operator with counter can access daftar tunggu page and see list', function () {
+    $schedule = Schedule::create([
+        'service_id' => $this->service->id,
+        'date' => now()->toDateString(),
+        'session_name' => 'Pagi',
+        'quota_total' => 10,
+        'quota_used' => 2,
+        'is_open' => true,
+    ]);
+
+    $bookingPending = Booking::create([
+        'user_id' => $this->visitor->id,
+        'service_id' => $this->service->id,
+        'schedule_id' => $schedule->id,
+        'booking_code' => 'BKG-PEND',
+        'status' => 'Pending',
+        'booking_date' => now()->toDateString(),
+        'purpose' => 'Layanan A',
+    ]);
+
+    $bookingChecked = Booking::create([
+        'user_id' => $this->visitor->id,
+        'service_id' => $this->service->id,
+        'schedule_id' => $schedule->id,
+        'booking_code' => 'BKG-CHKD',
+        'status' => 'Checked-In',
+        'booking_date' => now()->toDateString(),
+        'purpose' => 'Layanan B',
+        'checked_in_at' => now(),
+    ]);
+
+    $bookingCancelled = Booking::create([
+        'user_id' => $this->visitor->id,
+        'service_id' => $this->service->id,
+        'schedule_id' => $schedule->id,
+        'booking_code' => 'BKG-CNCL',
+        'status' => 'Cancelled',
+        'booking_date' => now()->toDateString(),
+        'purpose' => 'Layanan C',
+        'cancel_reason' => 'Tidak hadir',
+    ]);
+
+    $response = $this->actingAs($this->operator)->get(route('admin.daftar-tunggu'));
+    $response->assertStatus(200);
+    $response->assertSee('BKG-PEND');
+    $response->assertSee('BKG-CHKD');
+    $response->assertSee('BKG-CNCL');
+    $response->assertSee('Pagi');
+});
+
+test('operator can filter daftar tunggu by service and search by booking code/name', function () {
+    $schedule = Schedule::create([
+        'service_id' => $this->service->id,
+        'date' => now()->toDateString(),
+        'session_name' => 'Pagi',
+        'quota_total' => 10,
+        'quota_used' => 2,
+        'is_open' => true,
+    ]);
+
+    $booking1 = Booking::create([
+        'user_id' => $this->visitor->id,
+        'service_id' => $this->service->id,
+        'schedule_id' => $schedule->id,
+        'booking_code' => 'BKG-SEARCH1',
+        'status' => 'Pending',
+        'booking_date' => now()->toDateString(),
+        'purpose' => 'Layanan A',
+    ]);
+
+    $booking2 = Booking::create([
+        'user_id' => $this->visitor->id,
+        'service_id' => $this->service->id,
+        'schedule_id' => $schedule->id,
+        'booking_code' => 'BKG-SEARCH2',
+        'status' => 'Pending',
+        'booking_date' => now()->toDateString(),
+        'purpose' => 'Layanan B',
+    ]);
+
+    // Search by code
+    $response = $this->actingAs($this->operator)->get(route('admin.daftar-tunggu', ['search' => 'SEARCH1']));
+    $response->assertSee('BKG-SEARCH1');
+    $response->assertDontSee('BKG-SEARCH2');
+
+    // Search by user name
+    $response = $this->actingAs($this->operator)->get(route('admin.daftar-tunggu', ['search' => $this->visitor->name]));
+    $response->assertSee('BKG-SEARCH1');
+    $response->assertSee('BKG-SEARCH2');
+});
+
+test('operator can check-in booking manual successfully', function () {
+    $schedule = Schedule::create([
+        'service_id' => $this->service->id,
+        'date' => now()->toDateString(),
+        'session_name' => 'Pagi',
+        'quota_total' => 10,
+        'quota_used' => 2,
+        'is_open' => true,
+    ]);
+
+    $booking = Booking::create([
+        'user_id' => $this->visitor->id,
+        'service_id' => $this->service->id,
+        'schedule_id' => $schedule->id,
+        'booking_code' => 'BKG-MANUAL',
+        'status' => 'Pending',
+        'booking_date' => now()->toDateString(),
+        'purpose' => 'Layanan A',
+    ]);
+
+    $response = $this->actingAs($this->operator)->post(route('admin.daftar-tunggu.check-in', $booking));
+    $response->assertRedirect();
+    $response->assertSessionHas('success');
+
+    $booking->refresh();
+    expect($booking->status)->toBe('Checked-In');
+    expect($booking->checked_in_at)->not->toBeNull();
+
+    // Verify Queue table entry
+    $this->assertDatabaseHas('queues', [
+        'booking_id' => $booking->id,
+        'service_id' => $booking->service_id,
+        'counter_id' => $this->counter->id,
+        'status' => 'Waiting',
+    ]);
+});
+
+test('operator cannot check-in non-pending booking', function () {
+    $schedule = Schedule::create([
+        'service_id' => $this->service->id,
+        'date' => now()->toDateString(),
+        'session_name' => 'Pagi',
+        'quota_total' => 10,
+        'quota_used' => 2,
+        'is_open' => true,
+    ]);
+
+    $booking = Booking::create([
+        'user_id' => $this->visitor->id,
+        'service_id' => $this->service->id,
+        'schedule_id' => $schedule->id,
+        'booking_code' => 'BKG-DOUBLE',
+        'status' => 'Checked-In',
+        'booking_date' => now()->toDateString(),
+        'purpose' => 'Layanan A',
+        'checked_in_at' => now(),
+    ]);
+
+    $response = $this->actingAs($this->operator)->post(route('admin.daftar-tunggu.check-in', $booking));
+    $response->assertRedirect();
+    $response->assertSessionHas('error');
+});
+
+test('operator can restore cancelled booking successfully', function () {
+    $schedule = Schedule::create([
+        'service_id' => $this->service->id,
+        'date' => now()->toDateString(),
+        'session_name' => 'Pagi',
+        'quota_total' => 10,
+        'quota_used' => 2,
+        'is_open' => true,
+    ]);
+
+    $booking = Booking::create([
+        'user_id' => $this->visitor->id,
+        'service_id' => $this->service->id,
+        'schedule_id' => $schedule->id,
+        'booking_code' => 'BKG-RESTORE',
+        'status' => 'Cancelled',
+        'booking_date' => now()->toDateString(),
+        'purpose' => 'Layanan A',
+        'cancel_reason' => 'Sengaja dibatalkan',
+    ]);
+
+    $response = $this->actingAs($this->operator)->post(route('admin.daftar-tunggu.restore', $booking));
+    $response->assertRedirect();
+    $response->assertSessionHas('success');
+
+    $booking->refresh();
+    expect($booking->status)->toBe('Pending');
+    expect($booking->cancel_reason)->toBeNull();
+});

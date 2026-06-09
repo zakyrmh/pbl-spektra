@@ -23,7 +23,7 @@
         $menu = [
             ['title' => 'Dashboard Gerai', 'url' => route('dashboard'), 'icon' => 'home'],
             ['title' => 'Papan Panggil', 'url' => route('admin.papan-panggil'), 'icon' => 'tv'],
-            ['title' => 'Daftar Tunggu Gerai', 'url' => '#', 'icon' => 'users'],
+            ['title' => 'Daftar Tunggu Gerai', 'url' => route('admin.daftar-tunggu'), 'icon' => 'users'],
             ['title' => 'Log Pelayanan', 'url' => '#', 'icon' => 'clipboard-list'],
         ];
     } elseif ($role === 'super_admin') {

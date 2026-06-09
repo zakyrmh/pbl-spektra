@@ -36,10 +36,10 @@ class BookingService
      *
      * @throws \Exception
      */
-    public function createBooking(User $user, int $serviceId, int $scheduleId): Booking
+    public function createBooking(User $user, int $serviceId, int $scheduleId, ?string $purpose = null): Booking
     {
         // Execute booking creation inside a transaction
-        $booking = DB::transaction(function () use ($user, $serviceId, $scheduleId) {
+        $booking = DB::transaction(function () use ($user, $serviceId, $scheduleId, $purpose) {
             // Lock schedule for update to prevent concurrent double-booking of last slot
             $schedule = Schedule::where('id', $scheduleId)->lockForUpdate()->first();
 
@@ -74,6 +74,7 @@ class BookingService
                 'user_id' => $user->id,
                 'service_id' => $serviceId,
                 'schedule_id' => $scheduleId,
+                'purpose' => $purpose,
                 'booking_code' => $bookingCode,
                 'status' => 'Pending',
                 'booking_date' => $schedule->date,

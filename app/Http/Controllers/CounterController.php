@@ -9,6 +9,7 @@ use App\Events\QueueFinished;
 use App\Mail\FeedbackRequestMail;
 use App\Models\ActivityLog;
 use App\Models\Counter;
+use App\Models\Department;
 use App\Models\Notification;
 use App\Models\Queue;
 use Carbon\Carbon;
@@ -324,6 +325,38 @@ class CounterController extends Controller
                     'name' => $loadedQueue->service ? $loadedQueue->service->name : 'Layanan Umum',
                 ],
             ],
+        ]);
+    }
+
+    /**
+     * Toggle status operasional instansi (buka/tutup) untuk instansi petugas yang bersangkutan.
+     * POST /api/department/toggle-status
+     */
+    public function toggleDepartmentStatus(Request $request): JsonResponse
+    {
+        $user = Auth::user();
+        if (! $user->departments_id) {
+            return response()->json(['message' => 'Anda tidak ditugaskan ke instansi mana pun.'], 403);
+        }
+
+        $department = Department::findOrFail($user->departments_id);
+        $oldStatus = $department->is_open;
+        $department->is_open = ! $oldStatus;
+        $department->save();
+
+        // Catat di ActivityLog
+        ActivityLog::record(
+            action: 'TOGGLE_DEPARTMENT_STATUS',
+            modelType: 'Department',
+            modelId: $department->id,
+            description: "Operator mengubah status operasional instansi '{$department->name}' dari ".($oldStatus ? "'Buka'" : "'Tutup'").' menjadi '.($department->is_open ? "'Buka'" : "'Tutup'").'.',
+            actorUserId: $user->id
+        );
+
+        return response()->json([
+            'success' => true,
+            'is_open' => $department->is_open,
+            'message' => 'Status operasional instansi berhasil diperbarui.',
         ]);
     }
 }

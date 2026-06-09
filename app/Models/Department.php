@@ -7,9 +7,13 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 
-#[Fillable(['name', 'inisial', 'logo', 'description'])]
+#[Fillable(['name', 'inisial', 'logo', 'description', 'is_open'])]
 class Department extends Model
 {
+    protected $casts = [
+        'is_open' => 'boolean',
+    ];
+
     /**
      * Get the services offered by this department.
      *

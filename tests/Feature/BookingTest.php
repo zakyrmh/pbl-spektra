@@ -68,8 +68,9 @@ test('visitor can book a slot successfully', function () {
     $foAdmin = User::factory()->create(['role' => 'admin_fo']);
 
     $response = $this->actingAs($this->visitor)->post(route('booking.store'), [
-        'service_id' => $this->service->id,
-        'schedule_id' => $this->schedule->id,
+        'department_id' => $this->department->id,
+        'keperluan' => 'Ketik keperluan di sini',
+        'booking_date' => $this->schedule->date->toDateString(),
     ]);
 
     // Should redirect to ticket show page
@@ -87,6 +88,7 @@ test('visitor can book a slot successfully', function () {
     expect($booking->service_id)->toBe($this->service->id);
     expect($booking->schedule_id)->toBe($this->schedule->id);
     expect($booking->booking_date->toDateString())->toBe($this->schedule->date->toDateString());
+    expect($booking->purpose)->toBe('Ketik keperluan di sini');
 
     // Verify confirmation email was sent
     Mail::assertSent(BookingSuccessMail::class, function ($mail) use ($booking) {
@@ -113,12 +115,13 @@ test('validation rejects missing fields', function () {
     $response = $this->actingAs($this->visitor)
         ->from(route('booking.create'))
         ->post(route('booking.store'), [
-            'service_id' => '',
-            'schedule_id' => '',
+            'department_id' => '',
+            'keperluan' => '',
+            'booking_date' => '',
         ]);
 
     $response->assertRedirect(route('booking.create'));
-    $response->assertSessionHasErrors(['service_id', 'schedule_id']);
+    $response->assertSessionHasErrors(['department_id', 'keperluan', 'booking_date']);
 });
 
 test('visitor cannot book the same service twice for the same date (BR-06)', function () {
@@ -136,8 +139,9 @@ test('visitor cannot book the same service twice for the same date (BR-06)', fun
     $response = $this->actingAs($this->visitor)
         ->from(route('booking.create'))
         ->post(route('booking.store'), [
-            'service_id' => $this->service->id,
-            'schedule_id' => $this->schedule->id,
+            'department_id' => $this->department->id,
+            'keperluan' => 'Ketik keperluan di sini',
+            'booking_date' => $this->schedule->date->toDateString(),
         ]);
 
     $response->assertRedirect(route('booking.create'));
@@ -155,15 +159,16 @@ test('visitor cannot book if schedule quota is full (BR-03)', function () {
     $response = $this->actingAs($this->visitor)
         ->from(route('booking.create'))
         ->post(route('booking.store'), [
-            'service_id' => $this->service->id,
-            'schedule_id' => $this->schedule->id,
+            'department_id' => $this->department->id,
+            'keperluan' => 'Ketik keperluan di sini',
+            'booking_date' => $this->schedule->date->toDateString(),
         ]);
 
     $response->assertRedirect(route('booking.create'));
-    $response->assertSessionHasErrors(['error']);
+    $response->assertSessionHasErrors(['booking_date']);
 
     $errors = session('errors');
-    expect($errors->first('error'))->toContain('Kuota layanan pada jadwal terpilih sudah penuh.');
+    expect($errors->first('booking_date'))->toContain('Jadwal tidak tersedia atau kuota penuh pada tanggal terpilih untuk instansi ini.');
 });
 
 test('booking ticket view has access control checks', function () {

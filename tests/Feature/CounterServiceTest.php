@@ -205,6 +205,30 @@ test('operator status update validation fails on invalid status', function () {
     $response->assertJsonValidationErrors(['status']);
 });
 
+test('operator can toggle their department operational status', function () {
+    expect($this->dept->fresh()->is_open)->toBeTrue();
+
+    $response = $this->actingAs($this->operator)->postJson(route('gerai.department.toggle'));
+
+    $response->assertStatus(200);
+    $response->assertJson([
+        'success' => true,
+        'is_open' => false,
+    ]);
+
+    expect($this->dept->fresh()->is_open)->toBeFalse();
+
+    // Toggle back
+    $response = $this->actingAs($this->operator)->postJson(route('gerai.department.toggle'));
+    $response->assertStatus(200);
+    $response->assertJson([
+        'success' => true,
+        'is_open' => true,
+    ]);
+
+    expect($this->dept->fresh()->is_open)->toBeTrue();
+});
+
 // ── Call Next ─────────────────────────────────────────────────────────────────
 
 test('operator without counter cannot call next', function () {

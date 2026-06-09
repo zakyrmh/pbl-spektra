@@ -224,6 +224,8 @@ Route::middleware('auth')->group(function () {
         // API Endpoints for Gerai operations
         Route::post('/api/counter/status', [CounterController::class, 'updateStatus'])
             ->name('gerai.status');
+        Route::post('/api/department/toggle-status', [CounterController::class, 'toggleDepartmentStatus'])
+            ->name('gerai.department.toggle');
         Route::post('/api/queues/call-next', [CounterController::class, 'callNext'])
             ->name('gerai.call-next');
         Route::post('/api/queues/{queue}/call', [CounterController::class, 'callQueue'])

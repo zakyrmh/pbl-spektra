@@ -7,11 +7,14 @@ namespace App\Http\Controllers;
 use App\Models\Booking;
 use App\Models\Department;
 use App\Models\Schedule;
+use App\Models\Service;
 use App\Models\User;
 use App\Services\BookingService;
+use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class BookingController extends Controller
@@ -40,11 +43,18 @@ class BookingController extends Controller
      */
     public function create(): View
     {
-        $departments = Department::with('services')->get();
+        // Generate/ensure schedules exist for the next 7 days with dynamic quota
+        $this->generateSchedules();
+
+        // Ambil hanya instansi yang aktif/buka
+        $departments = Department::where('is_open', true)->with('services')->get();
 
         // Get schedules grouped by service to easily filter on client side
         $schedules = Schedule::where('date', '>=', now()->toDateString())
             ->where('is_open', true)
+            ->whereHas('service.department', function ($query) {
+                $query->where('is_open', true);
+            })
             ->whereColumn('quota_used', '<', 'quota_total')
             ->orderBy('date', 'asc')
             ->get();
@@ -60,19 +70,46 @@ class BookingController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
+        // Generate/ensure schedules exist for the next 7 days
+        $this->generateSchedules();
+
         $request->validate([
-            'service_id' => ['required', 'exists:services,id'],
-            'schedule_id' => ['required', 'exists:schedules,id'],
+            'department_id' => ['required', 'exists:departments,id'],
+            'keperluan' => ['required', 'string', 'min:5', 'max:255'],
+            'booking_date' => ['required', 'date', 'after_or_equal:today'],
         ], [
-            'service_id.required' => 'Silakan pilih jenis pelayanan.',
-            'schedule_id.required' => 'Silakan pilih jadwal pelayanan.',
+            'department_id.required' => 'Silakan pilih instansi / lembaga.',
+            'department_id.exists' => 'Instansi terpilih tidak valid.',
+            'keperluan.required' => 'Silakan ketik keperluan Anda.',
+            'keperluan.min' => 'Keperluan harus minimal 5 karakter.',
+            'keperluan.max' => 'Keperluan tidak boleh lebih dari 255 karakter.',
+            'booking_date.required' => 'Silakan pilih tanggal booking.',
+            'booking_date.date' => 'Format tanggal booking tidak valid.',
+            'booking_date.after_or_equal' => 'Tanggal booking tidak boleh hari kemarin.',
         ]);
 
         try {
+            // Dapatkan semua layanan untuk instansi terpilih
+            $services = Service::where('department_id', $request->department_id)->pluck('id');
+
+            // Cari jadwal yang tersedia (open & kuota masih ada) pada tanggal tersebut untuk layanan instansi tersebut
+            $schedule = Schedule::whereIn('service_id', $services)
+                ->whereDate('date', $request->booking_date)
+                ->where('is_open', true)
+                ->whereColumn('quota_used', '<', 'quota_total')
+                ->first();
+
+            if (! $schedule) {
+                return back()
+                    ->withInput()
+                    ->withErrors(['booking_date' => 'Jadwal tidak tersedia atau kuota penuh pada tanggal terpilih untuk instansi ini.']);
+            }
+
             $booking = $this->bookingService->createBooking(
                 Auth::user(),
-                (int) $request->input('service_id'),
-                (int) $request->input('schedule_id')
+                (int) $schedule->service_id,
+                (int) $schedule->id,
+                $request->input('keperluan')
             );
 
             return redirect()
@@ -109,5 +146,75 @@ class BookingController extends Controller
             'booking' => $booking->load(['service.department', 'schedule']),
             'estimatedPosition' => $estimatedPosition,
         ]);
+    }
+
+    /**
+     * Membuat atau memastikan jadwal operasional terbuat untuk 7 hari ke depan secara otomatis
+     * dengan kuota harian yang dinamis dihitung berdasarkan durasi pelayanan loket.
+     */
+    private function generateSchedules(): void
+    {
+        $services = Service::all();
+        $startDate = now();
+        $daysToGenerate = 7;
+
+        for ($i = 0; $i < $daysToGenerate; $i++) {
+            $date = $startDate->copy()->addDays($i);
+
+            // Lewati hari Sabtu dan Minggu
+            if ($date->isWeekend()) {
+                continue;
+            }
+
+            foreach ($services as $service) {
+                $department = $service->department;
+                if ($department && $department->is_open) {
+                    // Hitung durasi rata-rata pelayanan per pengunjung (Completed queues)
+                    $queues = DB::table('queues')
+                        ->where('service_id', $service->id)
+                        ->where('status', 'Completed')
+                        ->whereNotNull('called_at')
+                        ->whereNotNull('completed_at')
+                        ->select(['called_at', 'completed_at'])
+                        ->get();
+
+                    if ($queues->isEmpty()) {
+                        $avgTimeMinutes = 15.0; // default 15 menit jika belum ada data pelayanan selesai
+                    } else {
+                        $totalSeconds = 0;
+                        foreach ($queues as $q) {
+                            $called = new Carbon($q->called_at);
+                            $completed = new Carbon($q->completed_at);
+                            $totalSeconds += $completed->diffInSeconds($called);
+                        }
+                        $avgTimeMinutes = ($totalSeconds / $queues->count()) / 60;
+                    }
+
+                    $avgTimeMinutes = max($avgTimeMinutes, 5.0); // minimal 5 menit pelayanan per pengunjung
+
+                    $operationalMinutes = 420.0; // 7 jam kerja aktif (misal 08:00 - 15:00)
+                    $quotaTotal = (int) floor($operationalMinutes / $avgTimeMinutes);
+
+                    // Pastikan kuota harian bernilai minimal 5 untuk kelancaran antrean
+                    $quotaTotal = max($quotaTotal, 5);
+
+                    // Periksa apakah jadwal sudah ada untuk tanggal dan layanan ini
+                    $schedule = Schedule::where('service_id', $service->id)
+                        ->whereDate('date', $date->toDateString())
+                        ->first();
+
+                    if (! $schedule) {
+                        Schedule::create([
+                            'service_id' => $service->id,
+                            'date' => $date->toDateString(),
+                            'quota_total' => $quotaTotal,
+                            'quota_used' => 0,
+                            'is_open' => true,
+                            'session_name' => 'Umum',
+                        ]);
+                    }
+                }
+            }
+        }
     }
 }

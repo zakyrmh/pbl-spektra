@@ -14,6 +14,7 @@ class Booking extends Model
         'user_id',
         'service_id',
         'schedule_id',
+        'purpose',
         'booking_code',
         'status',
         'cancel_reason',

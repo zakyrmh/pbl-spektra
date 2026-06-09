@@ -11,10 +11,10 @@ flowchart TD
 
     %% ALUR AKTIVITAS
     Start --> P1["Pengunjung: Buka Halaman Booking Pelayanan"]
-    P1 --> S1["Sistem: Ambil & Tampilkan Daftar Instansi (Department), Jenis Layanan, serta Slot Tanggal yang Tersedia"]
+    P1 --> S1["Sistem: Ambil & Tampilkan Daftar Instansi (Department), dan Slot Tanggal yang Tersedia"]
 
-    S1 --> P2["Pengunjung: Pilih Instansi & Jenis Layanan yang Dituju"]
-    P2 --> P3["Pengunjung: Pilih Tanggal & Sesi Jam Booking"]
+    S1 --> P2["Pengunjung: Pilih Instansi & Ketik Keperluan"]
+    P2 --> P3["Pengunjung: Pilih Tanggal Booking"]
     P3 --> P4["Pengunjung: Klik Tombol 'Booking Antrean'"]
 
     %% GERBANG VALIDASI DAN ATURAN BISNIS (BACKEND LARAVEL)

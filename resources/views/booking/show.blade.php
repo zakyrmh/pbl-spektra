@@ -178,6 +178,12 @@
                         <span class="text-muted dark:text-on-dark-soft font-medium">Pelayanan</span>
                         <span class="font-bold text-primary dark:text-accent-teal text-right">{{ $booking->service->name }}</span>
                     </div>
+                    @if($booking->purpose)
+                    <div class="flex justify-between gap-4">
+                        <span class="text-muted dark:text-on-dark-soft font-medium">Keperluan</span>
+                        <span class="font-bold text-ink dark:text-white text-right">{{ $booking->purpose }}</span>
+                    </div>
+                    @endif
                     <div class="flex justify-between gap-4">
                         <span class="text-muted dark:text-on-dark-soft font-medium">Tanggal</span>
                         <span class="font-bold text-ink dark:text-white text-right">{{ $booking->booking_date->translatedFormat('d F Y') }}</span>

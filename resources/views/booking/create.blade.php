@@ -8,32 +8,29 @@
              departments: @js($departments),
              schedules: @js($schedules),
              selectedDepartmentId: '{{ old('department_id', '') }}',
-             selectedServiceId: '{{ old('service_id', '') }}',
-             selectedScheduleId: '{{ old('schedule_id', '') }}',
+             keperluan: '{{ old('keperluan', '') }}',
+             selectedDate: '{{ old('booking_date', '') }}',
              
-             get filteredServices() {
+             get availableDates() {
                  if (!this.selectedDepartmentId) return [];
                  let dept = this.departments.find(d => d.id == this.selectedDepartmentId);
-                 return dept ? dept.services : [];
-             },
-             
-             get filteredSchedules() {
-                 if (!this.selectedServiceId) return [];
-                 return this.schedules.filter(s => s.service_id == this.selectedServiceId);
+                 if (!dept) return [];
+                 let serviceIds = dept.services.map(s => s.id);
+                 
+                 let dates = [];
+                 this.schedules.forEach(s => {
+                     if (serviceIds.includes(s.service_id)) {
+                         let dStr = s.date.split('T')[0];
+                         if (!dates.includes(dStr)) {
+                             dates.push(dStr);
+                         }
+                     }
+                 });
+                 return dates.sort();
              },
              
              get selectedDepartment() {
                  return this.departments.find(d => d.id == this.selectedDepartmentId) || null;
-             },
-             
-             get selectedService() {
-                 let services = this.filteredServices;
-                 return services.find(s => s.id == this.selectedServiceId) || null;
-             },
-             
-             get selectedSchedule() {
-                 let schedules = this.filteredSchedules;
-                 return schedules.find(s => s.id == this.selectedScheduleId) || null;
              },
              
              formatDate(dateStr) {
@@ -52,16 +49,11 @@
                  return `${days[d.getDay()]}, ${day} ${months[monthIndex]} ${year}`;
              },
              
-             resetService() {
-                 this.selectedServiceId = '';
-                 this.resetSchedule();
-             },
-             
-             resetSchedule() {
-                 this.selectedScheduleId = '';
+             resetDate() {
+                 this.selectedDate = '';
              }
          }">
-        
+         
         {{-- Header --}}
         <div class="border-b border-hairline dark:border-white/10 pb-6">
             <h1 class="text-2xl sm:text-3xl font-bold text-ink dark:text-white font-display tracking-tight">Ambil Nomor Antrean Mandiri</h1>
@@ -70,7 +62,7 @@
 
         {{-- Session Flash / Validation Alerts --}}
         @if ($errors->has('error'))
-            <div class="flex items-start gap-3 p-4 bg-status-skipped/10 border border-status-skipped/30 rounded-lg" role="alert">
+            <div class="flex items-start gap-3 p-4 bg-status-skipped/10 border border-status-skipped/30 rounded-lg animate-pulse" role="alert">
                 <svg class="w-5 h-5 text-status-skipped shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
@@ -82,7 +74,7 @@
         @endif
 
         @if ($errors->any() && !$errors->has('error'))
-            <div class="flex items-start gap-3 p-4 bg-status-skipped/10 border border-status-skipped/30 rounded-lg" role="alert">
+            <div class="flex items-start gap-3 p-4 bg-status-skipped/10 border border-status-skipped/30 rounded-lg animate-pulse" role="alert">
                 <svg class="w-5 h-5 text-status-skipped shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
@@ -116,7 +108,7 @@
                                 <select id="department_id" 
                                         name="department_id"
                                         x-model="selectedDepartmentId"
-                                        @change="resetService()"
+                                        @change="resetDate()"
                                         class="w-full h-12 text-sm bg-canvas dark:bg-white/5 border border-hairline dark:border-white/15 text-ink dark:text-white rounded-md px-4 pr-10 focus:border-primary dark:focus:border-accent-teal focus:outline-none focus:ring-3 focus:ring-primary/12 dark:focus:ring-accent-teal/20 transition-all cursor-pointer">
                                     <option value="" disabled>-- Pilih Instansi / Lembaga --</option>
                                     <template x-for="dept in departments" :key="dept.id">
@@ -124,65 +116,70 @@
                                     </template>
                                 </select>
                             </div>
+                            @error('department_id')
+                                <p class="text-xs text-status-skipped mt-1">{{ $message }}</p>
+                            @enderror
                             <p class="text-xs text-muted dark:text-on-dark-soft font-body">Instansi penyedia layanan publik di lingkungan MPP Kota Sawahlunto.</p>
                         </div>
 
-                        {{-- Field 2: Service (Cascading) --}}
-                        <div class="space-y-2" x-cloak x-show="selectedDepartmentId">
-                            <label for="service_id" class="block text-sm font-bold text-ink dark:text-white font-display">
-                                2. Pilih Jenis Pelayanan
+                        {{-- Field 2: Keperluan --}}
+                        <div class="space-y-2">
+                            <label for="keperluan" class="block text-sm font-bold text-ink dark:text-white font-display">
+                                2. Ketik Keperluan
                             </label>
                             <div class="relative">
-                                <select id="service_id" 
-                                        name="service_id"
-                                        x-model="selectedServiceId"
-                                        @change="resetSchedule()"
-                                        class="w-full h-12 text-sm bg-canvas dark:bg-white/5 border border-hairline dark:border-white/15 text-ink dark:text-white rounded-md px-4 pr-10 focus:border-primary dark:focus:border-accent-teal focus:outline-none focus:ring-3 focus:ring-primary/12 dark:focus:ring-accent-teal/20 transition-all cursor-pointer">
-                                    <option value="" disabled>-- Pilih Pelayanan --</option>
-                                    <template x-for="svc in filteredServices" :key="svc.id">
-                                        <option :value="svc.id" x-text="svc.name"></option>
-                                    </template>
-                                </select>
+                                <textarea id="keperluan" 
+                                          name="keperluan"
+                                          x-model="keperluan"
+                                          rows="3"
+                                          placeholder="Ketik keperluan kunjungan Anda secara detail..."
+                                          required
+                                          class="w-full text-sm bg-canvas dark:bg-white/5 border border-hairline dark:border-white/15 text-ink dark:text-white rounded-md p-4 focus:border-primary dark:focus:border-accent-teal focus:outline-none focus:ring-3 focus:ring-primary/12 dark:focus:ring-accent-teal/20 transition-all font-body"></textarea>
                             </div>
-                            
-                            {{-- Service Description Preview --}}
-                            <div x-show="selectedService" class="p-3 bg-surface-soft dark:bg-white/5 rounded-md border border-hairline dark:border-white/5 mt-2">
-                                <span class="text-[11px] font-bold text-muted dark:text-on-dark-soft uppercase font-display block">Deskripsi Layanan</span>
-                                <p class="text-xs text-body dark:text-on-dark-soft mt-1 leading-relaxed font-body" x-text="selectedService ? selectedService.description : '-'"></p>
-                            </div>
+                            @error('keperluan')
+                                <p class="text-xs text-status-skipped mt-1">{{ $message }}</p>
+                            @enderror
+                            <p class="text-xs text-muted dark:text-on-dark-soft font-body">Misal: Pengurusan KTP hilang, legalisir KK, dll.</p>
                         </div>
 
-                        {{-- Field 3: Schedule Slot (Cascading) --}}
-                        <div class="space-y-2" x-cloak x-show="selectedServiceId">
-                            <label for="schedule_id" class="block text-sm font-bold text-ink dark:text-white font-display">
-                                3. Pilih Hari & Sesi Waktu Pelayanan
+                        {{-- Field 3: Booking Date --}}
+                        <div class="space-y-2" x-cloak x-show="selectedDepartmentId">
+                            <label for="booking_date" class="block text-sm font-bold text-ink dark:text-white font-display">
+                                3. Pilih Tanggal Booking
                             </label>
                             <div class="relative">
-                                <select id="schedule_id" 
-                                        name="schedule_id"
-                                        x-model="selectedScheduleId"
-                                        class="w-full h-12 text-sm bg-canvas dark:bg-white/5 border border-hairline dark:border-white/15 text-ink dark:text-white rounded-md px-4 pr-10 focus:border-primary dark:focus:border-accent-teal focus:outline-none focus:ring-3 focus:ring-primary/12 dark:focus:ring-accent-teal/20 transition-all cursor-pointer">
-                                    <option value="" disabled>-- Pilih Jadwal & Sesi --</option>
-                                    <template x-for="sch in filteredSchedules" :key="sch.id">
-                                        <option :value="sch.id" 
-                                                x-text="`${formatDate(sch.date)} - Sesi ${sch.session_name || 'Umum'} (Sisa ${sch.quota_total - sch.quota_used}/${sch.quota_total} Slot)`">
-                                        </option>
+                                <input type="date" 
+                                       id="booking_date" 
+                                       name="booking_date" 
+                                       x-model="selectedDate"
+                                       :min="new Date().toISOString().split('T')[0]"
+                                       class="w-full h-12 text-sm bg-canvas dark:bg-white/5 border border-hairline dark:border-white/15 text-ink dark:text-white rounded-md px-4 focus:border-primary dark:focus:border-accent-teal focus:outline-none focus:ring-3 focus:ring-primary/12 dark:focus:ring-accent-teal/20 transition-all cursor-pointer">
+                            </div>
+                            @error('booking_date')
+                                <p class="text-xs text-status-skipped mt-1">{{ $message }}</p>
+                            @enderror
+
+                            {{-- Available Dates helper badges --}}
+                            <div class="mt-3 text-xs font-body text-muted dark:text-on-dark-soft">
+                                <span class="font-semibold block mb-2">Tanggal dengan Kuota Tersedia:</span>
+                                <div class="flex flex-wrap gap-1.5">
+                                    <template x-for="d in availableDates" :key="d">
+                                        <button type="button"
+                                                @click="selectedDate = d" 
+                                                class="px-3 py-1.5 bg-surface-soft hover:bg-primary/10 dark:bg-white/5 dark:hover:bg-accent-teal/15 rounded text-[11px] font-mono cursor-pointer transition-colors border border-hairline dark:border-white/10"
+                                                :class="selectedDate === d ? 'border-primary dark:border-accent-teal text-primary dark:text-accent-teal bg-primary/5 dark:bg-accent-teal/5 font-bold' : ''">
+                                            <span x-text="formatDate(d)"></span>
+                                        </button>
                                     </template>
-                                </select>
+                                    <template x-if="availableDates.length === 0">
+                                        <p class="text-status-skipped font-semibold">Tidak ada jadwal pelayanan terbuka dengan kuota tersedia saat ini.</p>
+                                    </template>
+                                </div>
                             </div>
-
-                            {{-- Quota indicator / alerts if empty schedules --}}
-                            <div x-show="filteredSchedules.length === 0" class="p-3 bg-status-skipped/10 rounded-md border border-status-skipped/20">
-                                <p class="text-xs text-status-skipped font-body font-semibold">Tidak ada jadwal pelayanan terbuka yang memiliki kuota tersedia untuk jenis layanan ini saat ini. Silakan coba lagi besok atau pilih layanan lain.</p>
-                            </div>
-
-                            <p class="text-xs text-muted dark:text-on-dark-soft font-body" x-show="filteredSchedules.length > 0">
-                                Hanya jadwal dengan sisa kuota yang dapat dipilih. Sesi diatur untuk menghindari penumpukan ruang tunggu.
-                            </p>
                         </div>
 
                         {{-- Submit Button --}}
-                        <div class="pt-4 border-t border-hairline dark:border-white/10" x-cloak x-show="selectedScheduleId">
+                        <div class="pt-4 border-t border-hairline dark:border-white/10" x-cloak x-show="selectedDepartmentId && selectedDate">
                             <button type="submit" class="w-full sm:w-auto h-11 inline-flex items-center justify-center gap-2 px-8 bg-primary hover:bg-primary-hover text-white font-semibold rounded-pill shadow-md hover:shadow-lg transition-all focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-accent-teal cursor-pointer">
                                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -200,10 +197,10 @@
                 
                 {{-- Live Ticket Draft Preview --}}
                 <div class="bg-canvas dark:bg-surface-dark-elevated rounded-lg border border-hairline dark:border-white/10 shadow-sm overflow-hidden"
-                     :class="selectedScheduleId ? 'border-primary dark:border-accent-teal shadow-md' : ''">
+                     :class="selectedDate ? 'border-primary dark:border-accent-teal shadow-md' : ''">
                     <div class="bg-linear-to-r from-primary to-primary-hover px-5 py-3 text-white font-display text-xs font-bold uppercase tracking-wider flex items-center justify-between">
                         <span>Preview Tiket Anda</span>
-                        <span x-show="selectedScheduleId" class="w-2.5 h-2.5 bg-green-400 rounded-full animate-pulse"></span>
+                        <span x-show="selectedDate" class="w-2.5 h-2.5 bg-green-400 rounded-full animate-pulse"></span>
                     </div>
                     
                     <div class="p-6 space-y-6">
@@ -226,19 +223,15 @@
                                     <span class="font-bold text-ink dark:text-white" x-text="selectedDepartment ? selectedDepartment.name : ''"></span>
                                 </div>
                                 
-                                <div x-show="selectedServiceId">
-                                    <span class="text-[10px] font-bold text-muted dark:text-on-dark-soft uppercase tracking-wider block font-display">Jenis Pelayanan</span>
-                                    <span class="font-bold text-primary dark:text-accent-teal" x-text="selectedService ? selectedService.name : ''"></span>
+                                <div x-show="keperluan">
+                                    <span class="text-[10px] font-bold text-muted dark:text-on-dark-soft uppercase tracking-wider block font-display">Keperluan</span>
+                                    <span class="font-bold text-ink dark:text-white break-words" x-text="keperluan"></span>
                                 </div>
                                 
-                                <div x-show="selectedScheduleId" class="pt-3 border-t border-hairline dark:border-white/10 grid grid-cols-2 gap-4">
+                                <div x-show="selectedDate" class="pt-3 border-t border-hairline dark:border-white/10">
                                     <div>
                                         <span class="text-[10px] font-bold text-muted dark:text-on-dark-soft uppercase tracking-wider block font-display">Hari & Tanggal</span>
-                                        <span class="font-semibold text-ink dark:text-white" x-text="selectedSchedule ? formatDate(selectedSchedule.date) : ''"></span>
-                                    </div>
-                                    <div>
-                                        <span class="text-[10px] font-bold text-muted dark:text-on-dark-soft uppercase tracking-wider block font-display">Sesi Waktu</span>
-                                        <span class="font-semibold text-ink dark:text-white" x-text="selectedSchedule ? `Sesi ${selectedSchedule.session_name}` : ''"></span>
+                                        <span class="font-semibold text-primary dark:text-accent-teal" x-text="formatDate(selectedDate)"></span>
                                     </div>
                                 </div>
                             </div>

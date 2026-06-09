@@ -27,7 +27,24 @@
         </div>
     @endif
 
-    <form action="{{ route('register.process') }}" method="POST" class="space-y-4">
+    <form action="{{ route('register.process') }}" method="POST" class="space-y-4"
+        x-data="{ 
+            password: '', 
+            password_confirmation: '', 
+            showRules: false,
+            get hasMinLength() { return this.password.length >= 8; },
+            get hasLetter() { return /[a-zA-Z]/.test(this.password); },
+            get hasNumber() { return /[0-9]/.test(this.password); },
+            get hasSymbol() { return /[^a-zA-Z0-9]/.test(this.password); },
+            get strengthScore() {
+                let score = 0;
+                if (this.hasMinLength) score++;
+                if (this.hasLetter) score++;
+                if (this.hasNumber) score++;
+                if (this.hasSymbol) score++;
+                return score;
+            }
+        }">
         @csrf
 
         {{-- Nama Lengkap --}}
@@ -147,6 +164,8 @@
                         : 'border border-hairline bg-canvas focus:ring-primary/12 focus:border-primary focus:border-2'; 
                 @endphp
                 <input type="password" name="password" id="password" placeholder="Minimal 8 karakter" required
+                    x-model="password"
+                    @focus="showRules = true"
                     class="w-full pl-10 pr-11 py-3 text-body-md {{ $passwordClass }} rounded-md text-ink placeholder-muted-soft focus:outline-none focus:ring-3 transition font-body">
                 <button type="button" onclick="togglePassword('password', 'eye-open-1', 'eye-closed-1')"
                     class="absolute inset-y-0 right-3.5 flex items-center text-muted hover:text-ink transition-colors cursor-pointer"
@@ -167,6 +186,118 @@
             @error('password')
                 <p class="mt-1.5 text-caption text-status-skipped font-body">{{ $message }}</p>
             @enderror
+
+            {{-- Password Strength & Rules Checker --}}
+            <div x-show="showRules || password.length > 0" 
+                 x-transition:enter="transition ease-out duration-200"
+                 x-transition:enter-start="opacity-0 transform -translate-y-2"
+                 x-transition:enter-end="opacity-100 transform translate-y-0"
+                 x-transition:leave="transition ease-in duration-150"
+                 x-transition:leave-start="opacity-100 transform translate-y-0"
+                 x-transition:leave-end="opacity-0 transform -translate-y-2"
+                 class="p-4 bg-surface-soft border border-hairline rounded-lg space-y-3 mt-2"
+                 x-cloak>
+                
+                {{-- Strength Bar --}}
+                <div class="space-y-1.5">
+                    <div class="flex justify-between items-center">
+                        <span class="text-caption font-semibold text-muted">Kekuatan Kata Sandi:</span>
+                        <span class="text-caption font-bold" 
+                              :class="{
+                                  'text-muted': strengthScore === 0,
+                                  'text-status-skipped': strengthScore === 1,
+                                  'text-status-waiting': strengthScore === 2,
+                                  'text-status-called': strengthScore === 3,
+                                  'text-status-serving': strengthScore === 4
+                              }"
+                              x-text="strengthScore === 0 ? 'Sangat Lemah' : 
+                                      strengthScore === 1 ? 'Lemah' : 
+                                      strengthScore === 2 ? 'Sedang' : 
+                                      strengthScore === 3 ? 'Kuat' : 'Sangat Kuat'">
+                        </span>
+                    </div>
+                    <div class="grid grid-cols-4 gap-1 h-1.5 rounded-full overflow-hidden bg-surface-strong">
+                        <div class="h-full rounded-full transition-all duration-300" 
+                             :class="{
+                                 'bg-status-skipped': strengthScore === 1,
+                                 'bg-status-waiting': strengthScore >= 2 && strengthScore < 3,
+                                 'bg-status-called': strengthScore >= 3 && strengthScore < 4,
+                                 'bg-status-serving': strengthScore >= 4,
+                                 'bg-transparent': strengthScore < 1
+                             }"></div>
+                        <div class="h-full rounded-full transition-all duration-300" 
+                             :class="{
+                                 'bg-status-waiting': strengthScore === 2,
+                                 'bg-status-called': strengthScore >= 3 && strengthScore < 4,
+                                 'bg-status-serving': strengthScore >= 4,
+                                 'bg-transparent': strengthScore < 2
+                             }"></div>
+                        <div class="h-full rounded-full transition-all duration-300" 
+                             :class="{
+                                 'bg-status-called': strengthScore === 3,
+                                 'bg-status-serving': strengthScore >= 4,
+                                 'bg-transparent': strengthScore < 3
+                             }"></div>
+                        <div class="h-full rounded-full transition-all duration-300" 
+                             :class="{
+                                 'bg-status-serving': strengthScore >= 4,
+                                 'bg-transparent': strengthScore < 4
+                             }"></div>
+                    </div>
+                </div>
+
+                {{-- Rules Checklist --}}
+                <ul class="space-y-1.5 text-caption font-body">
+                    <li class="flex items-center gap-2 transition-colors duration-200" 
+                        :class="hasMinLength ? 'text-status-serving font-medium' : 'text-muted'">
+                        <span class="shrink-0 transition-transform duration-300" :class="hasMinLength ? 'scale-110' : ''">
+                            <svg x-show="hasMinLength" xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-status-serving" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                            </svg>
+                            <svg x-show="!hasMinLength" xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-muted-soft" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="9" />
+                            </svg>
+                        </span>
+                        Minimal 8 karakter
+                    </li>
+                    <li class="flex items-center gap-2 transition-colors duration-200" 
+                        :class="hasLetter ? 'text-status-serving font-medium' : 'text-muted'">
+                        <span class="shrink-0 transition-transform duration-300" :class="hasLetter ? 'scale-110' : ''">
+                            <svg x-show="hasLetter" xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-status-serving" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                            </svg>
+                            <svg x-show="!hasLetter" xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-muted-soft" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="9" />
+                            </svg>
+                        </span>
+                        Mengandung minimal satu huruf
+                    </li>
+                    <li class="flex items-center gap-2 transition-colors duration-200" 
+                        :class="hasNumber ? 'text-status-serving font-medium' : 'text-muted'">
+                        <span class="shrink-0 transition-transform duration-300" :class="hasNumber ? 'scale-110' : ''">
+                            <svg x-show="hasNumber" xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-status-serving" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                            </svg>
+                            <svg x-show="!hasNumber" xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-muted-soft" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="9" />
+                            </svg>
+                        </span>
+                        Mengandung minimal satu angka
+                    </li>
+                    <li class="flex items-center gap-2 transition-colors duration-200" 
+                        :class="hasSymbol ? 'text-status-serving font-medium' : 'text-muted'">
+                        <span class="shrink-0 transition-transform duration-300" :class="hasSymbol ? 'scale-110' : ''">
+                            <svg x-show="hasSymbol" xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-status-serving" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                            </svg>
+                            <svg x-show="!hasSymbol" xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-muted-soft" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="9" />
+                            </svg>
+                        </span>
+                        Mengandung minimal satu simbol
+                    </li>
+                </ul>
+            </div>
         </div>
 
         {{-- Konfirmasi Password --}}
@@ -187,6 +318,7 @@
                 @endphp
                 <input type="password" name="password_confirmation" id="password_confirmation"
                     placeholder="Ulangi password" required
+                    x-model="password_confirmation"
                     class="w-full pl-10 pr-11 py-3 text-body-md {{ $passwordConfirmationClass }} rounded-md text-ink placeholder-muted-soft focus:outline-none focus:ring-3 transition font-body">
                 <button type="button" onclick="togglePassword('password_confirmation', 'eye-open-2', 'eye-closed-2')"
                     class="absolute inset-y-0 right-3.5 flex items-center text-muted hover:text-ink transition-colors cursor-pointer"
@@ -203,6 +335,25 @@
                             d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88" />
                     </svg>
                 </button>
+            </div>
+
+            {{-- Password Match Indicator --}}
+            <div x-show="password_confirmation.length > 0" 
+                 x-transition:enter="transition ease-out duration-150"
+                 x-transition:enter-start="opacity-0 transform -translate-y-1"
+                 x-transition:enter-end="opacity-100 transform translate-y-0"
+                 class="mt-2 text-caption font-body flex items-center gap-1.5"
+                 :class="password === password_confirmation ? 'text-status-serving' : 'text-status-skipped'"
+                 x-cloak>
+                <span class="shrink-0">
+                    <svg x-show="password === password_confirmation" xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-status-serving" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                    </svg>
+                    <svg x-show="password !== password_confirmation" xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-status-skipped" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+                    </svg>
+                </span>
+                <span x-text="password === password_confirmation ? 'Password cocok' : 'Konfirmasi password tidak cocok'"></span>
             </div>
         </div>
 

@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Models\Counter;
+use App\Models\Setting;
 use App\Services\QueueMonitorService;
+use Carbon\Carbon;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -63,6 +66,63 @@ class QueueMonitorController extends Controller
         return view('admin.fo.monitor', [
             'metrics' => $data['metrics'],
             'departments' => $data['departments'],
+        ]);
+    }
+
+    /**
+     * Tampilkan layar monitor antrean utama untuk publik.
+     * GET /display
+     */
+    public function publicDisplay(): View
+    {
+        $today = Carbon::today();
+
+        // Ambil semua loket (kecuali loket Front Office jika tidak ingin ditampilkan, tapi tampilkan semua saja agar lengkap)
+        $counters = Counter::with(['department', 'queues' => function ($query) use ($today) {
+            $query->whereDate('queue_date', $today)
+                ->where('status', 'Serving');
+        }])->get();
+
+        $marqueeText = Setting::getValue('marquee_text', 'Selamat Datang di Mal Pelayanan Publik Kota Sawahlunto.');
+        $marqueeActive = Setting::getValue('marquee_active', 'true') === 'true';
+
+        return view('public.display', compact('counters', 'marqueeText', 'marqueeActive'));
+    }
+
+    /**
+     * API JSON untuk live polling monitor antrean utama.
+     * GET /api/display/data
+     */
+    public function publicDisplayData(): JsonResponse
+    {
+        $today = Carbon::today();
+
+        $counters = Counter::with(['department', 'queues' => function ($query) use ($today) {
+            $query->whereDate('queue_date', $today)
+                ->where('status', 'Serving');
+        }])->get();
+
+        $data = $counters->map(function ($counter) {
+            $activeQueue = $counter->queues->first();
+
+            return [
+                'counter_id' => $counter->id,
+                'counter_name' => $counter->name,
+                'department_name' => $counter->department->name,
+                'status' => $counter->status,
+                'active_number' => $activeQueue ? $activeQueue->queue_number : '-',
+                'active_status' => $activeQueue ? $activeQueue->status : 'Idle',
+                'called_at' => $activeQueue && $activeQueue->called_at ? $activeQueue->called_at->toIso8601String() : null,
+            ];
+        });
+
+        $marqueeText = Setting::getValue('marquee_text', 'Selamat Datang di Mal Pelayanan Publik Kota Sawahlunto.');
+        $marqueeActive = Setting::getValue('marquee_active', 'true') === 'true';
+
+        return response()->json([
+            'counters' => $data,
+            'marquee_text' => $marqueeText,
+            'marquee_active' => $marqueeActive,
         ]);
     }
 }

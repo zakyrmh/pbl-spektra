@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
@@ -13,8 +14,11 @@ class Booking extends Model
     protected $fillable = [
         'user_id',
         'service_id',
+        'schedule_id',
+        'purpose',
         'booking_code',
         'status',
+        'cancel_reason',
         'booking_date',
         'checked_in_at',
     ];
@@ -23,6 +27,16 @@ class Booking extends Model
         'booking_date' => 'date',
         'checked_in_at' => 'datetime',
     ];
+
+    /**
+     * Get the schedule for this booking.
+     *
+     * @return BelongsTo<Schedule, $this>
+     */
+    public function schedule(): BelongsTo
+    {
+        return $this->belongsTo(Schedule::class);
+    }
 
     /**
      * Get the customer that made this booking.
@@ -52,6 +66,20 @@ class Booking extends Model
     public function queue(): HasOne
     {
         return $this->hasOne(Queue::class);
+    }
+
+    /**
+     * Scope a query to only include bookings belonging to a specific department.
+     *
+     * @param  Builder  $query
+     * @param  int|null  $departmentId
+     * @return Builder
+     */
+    public function scopeForDepartment($query, $departmentId)
+    {
+        return $query->whereHas('service', function ($q) use ($departmentId) {
+            $q->where('department_id', $departmentId);
+        });
     }
 
     /**

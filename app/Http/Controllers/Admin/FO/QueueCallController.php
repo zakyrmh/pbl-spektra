@@ -50,6 +50,7 @@ class QueueCallController extends Controller
         // Riwayat antrean hari ini
         $historyQueues = Queue::where('counter_id', $counter->id)
             ->where('queue_date', $today)
+            ->with(['visitor', 'booking.user', 'service', 'feedback'])
             ->orderBy('updated_at', 'desc')
             ->get();
 

@@ -5,32 +5,34 @@
     if ($role === 'pengunjung') {
         $menu = [
             ['title' => 'Dashboard', 'url' => route('dashboard'), 'icon' => 'home'],
-            ['title' => 'Ambil Antrean', 'url' => '#', 'icon' => 'ticket'],
-            ['title' => 'Riwayat Antrean', 'url' => '#', 'icon' => 'clock'],
+            ['title' => 'Ambil Antrean', 'url' => route('booking.create'), 'icon' => 'ticket'],
+            ['title' => 'Riwayat Antrean', 'url' => route('booking.index'), 'icon' => 'clock'],
             ['title' => 'Panduan Layanan', 'url' => '#', 'icon' => 'book-open'],
+            ['title' => 'Profil Saya', 'url' => route('profile.edit'), 'icon' => 'user'],
         ];
     } elseif ($role === 'admin_fo') {
         $menu = [
             ['title' => 'Dashboard', 'url' => route('dashboard'), 'icon' => 'home'],
             ['title' => 'Monitor Antrean', 'url' => route('admin.fo.monitor'), 'icon' => 'tv'],
             ['title' => 'Pencetakan Tiket', 'url' => route('admin.fo.ticket.create'), 'icon' => 'printer'],
-            ['title' => 'Verifikasi & Check-In', 'url' => '#', 'icon' => 'check-circle'],
-            ['title' => 'Panggilan Antrean FO', 'url' => '#', 'icon' => 'megaphone'],
+            ['title' => 'Verifikasi & Check-In', 'url' => route('admin.fo.checkin'), 'icon' => 'check-circle'],
+            ['title' => 'Panggilan Antrean FO', 'url' => route('admin.fo.call'), 'icon' => 'megaphone'],
+            ['title' => 'Kelola Laporan', 'url' => route('admin.fo.reports.index'), 'icon' => 'clipboard-list'],
         ];
     } elseif ($role === 'admin_gerai') {
         $menu = [
             ['title' => 'Dashboard Gerai', 'url' => route('dashboard'), 'icon' => 'home'],
-            ['title' => 'Papan Panggil', 'url' => '#', 'icon' => 'tv'],
-            ['title' => 'Daftar Tunggu Gerai', 'url' => '#', 'icon' => 'users'],
-            ['title' => 'Log Pelayanan', 'url' => '#', 'icon' => 'clipboard-list'],
+            ['title' => 'Papan Panggil', 'url' => route('admin.papan-panggil'), 'icon' => 'tv'],
+            ['title' => 'Daftar Tunggu Gerai', 'url' => route('admin.daftar-tunggu'), 'icon' => 'users'],
+            ['title' => 'Log Pelayanan', 'url' => route('admin.log-pelayanan'), 'icon' => 'clipboard-list'],
         ];
     } elseif ($role === 'super_admin') {
         $menu = [
             ['title' => 'Dashboard Utama', 'url' => route('dashboard'), 'icon' => 'home'],
             ['title' => 'Manajemen Pengguna', 'url' => route('users.index'), 'icon' => 'users'],
             ['title' => 'Konfigurasi Gerai', 'url' => route('config.index'), 'icon' => 'settings'],
-            ['title' => 'Pengaturan Sistem', 'url' => '#', 'icon' => 'sliders'],
-            ['title' => 'Laporan & Analitik', 'url' => '#', 'icon' => 'chart-pie'],
+            ['title' => 'Pengaturan Sistem', 'url' => route('admin.settings.index'), 'icon' => 'sliders'],
+            ['title' => 'Laporan & Analitik', 'url' => route('admin.reports.index'), 'icon' => 'chart-pie'],
         ];
     }
 @endphp
@@ -119,6 +121,11 @@
                             <path stroke-linecap="round" stroke-linejoin="round"
                                 d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
+                    @elseif($item['icon'] == 'user')
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
                     @elseif($item['icon'] == 'book-open')
                         <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round"
@@ -138,6 +145,11 @@
                         <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round"
                                 d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    @elseif($item['icon'] == 'x-circle')
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
                     @elseif($item['icon'] == 'megaphone')
                         <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">

@@ -2,6 +2,14 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+:root {
+    color-scheme: light;
+}
+
+.dark {
+    color-scheme: dark;
+}
+
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
 @source '../**/*.blade.php';
@@ -112,4 +120,8 @@
     /* Custom Border and Ring Widths */
     --border-width-3: 3px;
     --ring-width-3: 3px;
+}
+
+[x-cloak] {
+    display: none !important;
 }

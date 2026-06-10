@@ -14,7 +14,7 @@ class StoreWalkInTicketRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return auth()->check() && auth()->user()->role === 'admin_fo';
+        return auth()->check() && auth()->user()->role->value === 'admin_fo';
     }
 
     /**

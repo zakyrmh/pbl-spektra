@@ -7,9 +7,13 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 
-#[Fillable(['name', 'inisial', 'logo', 'description'])]
+#[Fillable(['name', 'inisial', 'logo', 'description', 'is_open'])]
 class Department extends Model
 {
+    protected $casts = [
+        'is_open' => 'boolean',
+    ];
+
     /**
      * Get the services offered by this department.
      *
@@ -38,5 +42,15 @@ class Department extends Model
     public function queues(): HasManyThrough
     {
         return $this->hasManyThrough(Queue::class, Counter::class);
+    }
+
+    /**
+     * Get the users (officers) belonging to this department.
+     *
+     * @return HasMany<User, $this>
+     */
+    public function users(): HasMany
+    {
+        return $this->hasMany(User::class, 'departments_id');
     }
 }

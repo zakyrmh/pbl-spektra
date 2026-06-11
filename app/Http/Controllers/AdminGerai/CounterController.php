@@ -2,10 +2,11 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\AdminGerai;
 
 use App\Events\QueueCalled;
 use App\Events\QueueFinished;
+use App\Http\Controllers\Controller;
 use App\Mail\FeedbackRequestMail;
 use App\Models\ActivityLog;
 use App\Models\Counter;

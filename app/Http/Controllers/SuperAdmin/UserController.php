@@ -1,8 +1,9 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\SuperAdmin;
 
 use App\Enums\UserRole;
+use App\Http\Controllers\Controller;
 use App\Models\ActivityLog;
 use App\Models\Booking;
 use App\Models\Queue;

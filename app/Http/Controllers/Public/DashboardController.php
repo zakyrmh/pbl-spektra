@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Controllers\Dashboard;
+namespace App\Http\Controllers\Public;
 
 use App\Http\Controllers\Controller;
 use App\Models\Booking;
@@ -10,7 +10,7 @@ use App\Models\Queue as QueueModel;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 
-class PengunjungDashboardController extends Controller
+class DashboardController extends Controller
 {
     /**
      * Tampilkan dashboard Pengunjung.

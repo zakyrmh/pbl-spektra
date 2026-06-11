@@ -2,10 +2,11 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Admin\FO;
 
 use App\Enums\UserRole;
 use App\Exports\QueuesExport;
+use App\Http\Controllers\Controller;
 use App\Models\Department;
 use App\Models\Notification;
 use App\Models\Queue;

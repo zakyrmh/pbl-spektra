@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Controllers\Dashboard;
+namespace App\Http\Controllers\AdminGerai;
 
 use App\Http\Controllers\Controller;
 use App\Models\Booking;
@@ -11,7 +11,7 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 
-class AdminGeraiDashboardController extends Controller
+class DashboardController extends Controller
 {
     /**
      * Tampilkan dashboard Admin Gerai (per-instansi).

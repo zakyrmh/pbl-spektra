@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Controllers\Dashboard;
+namespace App\Http\Controllers\Admin\FO;
 
 use App\Http\Controllers\Controller;
 use App\Models\Booking;
@@ -11,7 +11,7 @@ use App\Models\Queue as QueueModel;
 use Carbon\Carbon;
 use Illuminate\View\View;
 
-class AdminFoDashboardController extends Controller
+class DashboardController extends Controller
 {
     /**
      * Tampilkan dashboard Admin Front Office.

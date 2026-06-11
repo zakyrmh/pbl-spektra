@@ -2,8 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\AdminGerai;
 
+use App\Http\Controllers\Controller;
 use App\Models\Booking;
 use App\Models\Service;
 use Illuminate\Http\Request;

@@ -2,9 +2,10 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\SuperAdmin;
 
 use App\Enums\UserRole;
+use App\Http\Controllers\Controller;
 use App\Models\Counter;
 use App\Models\Department;
 use App\Models\Service;

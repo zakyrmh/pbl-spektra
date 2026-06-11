@@ -2,8 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Admin\FO;
 
+use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreWalkInTicketRequest;
 use App\Services\WalkInTicketService;
 use Illuminate\Contracts\View\View;

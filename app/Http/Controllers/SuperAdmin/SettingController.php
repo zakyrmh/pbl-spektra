@@ -2,9 +2,10 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\SuperAdmin;
 
 use App\Enums\UserRole;
+use App\Http\Controllers\Controller;
 use App\Models\Setting;
 use App\Services\AuditLogger;
 use Illuminate\Http\RedirectResponse;

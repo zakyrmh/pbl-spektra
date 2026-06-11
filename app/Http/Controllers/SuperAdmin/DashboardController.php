@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Controllers\Dashboard;
+namespace App\Http\Controllers\SuperAdmin;
 
 use App\Http\Controllers\Controller;
 use App\Models\ActivityLog;
@@ -12,7 +12,7 @@ use App\Models\Queue as QueueModel;
 use Carbon\Carbon;
 use Illuminate\View\View;
 
-class SuperAdminDashboardController extends Controller
+class DashboardController extends Controller
 {
     /**
      * Tampilkan dashboard Super Admin.

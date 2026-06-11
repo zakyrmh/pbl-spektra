@@ -13,103 +13,107 @@ use Illuminate\Support\Facades\DB;
 
 uses(RefreshDatabase::class);
 
-beforeEach(function () {
-    // Setup Super Admin
-    $this->superAdmin = User::factory()->create([
+// Fungsi pembantu untuk membungkus pembuatan data (menggantikan beforeEach)
+function createTestData()
+{
+    /** @var User $superAdmin */
+    $superAdmin = User::factory()->create([
         'role' => 'super_admin',
     ]);
 
-    // Setup FO Admin
-    $this->foAdmin = User::factory()->create([
+    /** @var User $foAdmin */
+    $foAdmin = User::factory()->create([
         'role' => 'admin_fo',
     ]);
 
-    // Setup regular customer for queue
-    $this->customer = User::factory()->create([
+    /** @var User $customer */
+    $customer = User::factory()->create([
         'role' => 'pengunjung',
     ]);
 
-    // Seed master data
-    $this->department = Department::create([
+    $department = Department::create([
         'name' => 'Disdukcapil',
         'inisial' => 'DDK',
         'description' => 'Kependudukan',
     ]);
 
-    $this->service = Service::create([
-        'department_id' => $this->department->id,
+    $service = Service::create([
+        'department_id' => $department->id,
         'name' => 'KTP-el',
         'description' => 'Rekam KTP',
     ]);
 
-    $this->counter = Counter::create([
-        'department_id' => $this->department->id,
+    $counter = Counter::create([
+        'department_id' => $department->id,
         'name' => 'Loket DDK 1',
         'location' => 'Lantai 1',
     ]);
 
-    // Create completed queues on past dates
-    $this->pastDate = Carbon::yesterday()->toDateString();
+    $pastDate = Carbon::yesterday()->toDateString();
 
-    $this->queue = Queue::create([
+    $queue = Queue::create([
         'visitor_id' => null,
         'booking_id' => null,
-        'counter_id' => $this->counter->id,
-        'service_id' => $this->service->id,
+        'counter_id' => $counter->id,
+        'service_id' => $service->id,
         'queue_number' => 'DDK-001',
         'status' => 'Completed',
-        'queue_date' => $this->pastDate,
+        'queue_date' => $pastDate,
         'called_at' => Carbon::yesterday()->setHour(9)->setMinute(0)->toDateTimeString(),
         'completed_at' => Carbon::yesterday()->setHour(9)->setMinute(15)->toDateTimeString(),
     ]);
 
-    DB::table('queues')->where('id', $this->queue->id)->update([
+    DB::table('queues')->where('id', $queue->id)->update([
         'created_at' => Carbon::yesterday()->setHour(8)->setMinute(45)->toDateTimeString(),
     ]);
-});
+
+    return compact('superAdmin', 'foAdmin', 'customer', 'department', 'service', 'counter', 'pastDate', 'queue');
+}
 
 test('guests are redirected to login when accessing reports routes', function () {
-    // FO Routes
-    $this->get(route('admin.fo.reports.index'))->assertRedirect(route('login'));
-    $this->post(route('admin.fo.reports.store'))->assertRedirect(route('login'));
+    createTestData(); // Jalankan seeding dasar
 
-    // Super Admin Routes
-    $this->get(route('admin.reports.index'))->assertRedirect(route('login'));
+    test()->get(route('admin.fo.reports.index'))->assertRedirect(route('login'));
+    test()->post(route('admin.fo.reports.store'))->assertRedirect(route('login'));
+    test()->get(route('admin.reports.index'))->assertRedirect(route('login'));
 });
 
 test('customer cannot access reports routes', function () {
-    // FO Routes
-    $this->actingAs($this->customer)->get(route('admin.fo.reports.index'))->assertStatus(403);
-    $this->actingAs($this->customer)->post(route('admin.fo.reports.store'))->assertStatus(403);
+    $data = createTestData();
 
-    // Super Admin Routes
-    $this->actingAs($this->customer)->get(route('admin.reports.index'))->assertStatus(403);
+    test()->actingAs($data['customer'])->get(route('admin.fo.reports.index'))->assertStatus(403);
+    test()->actingAs($data['customer'])->post(route('admin.fo.reports.store'))->assertStatus(403);
+    test()->actingAs($data['customer'])->get(route('admin.reports.index'))->assertStatus(403);
 });
 
 test('front office admin cannot access super admin reports routes', function () {
-    $this->actingAs($this->foAdmin)->get(route('admin.reports.index'))->assertStatus(403);
+    $data = createTestData();
+    test()->actingAs($data['foAdmin'])->get(route('admin.reports.index'))->assertStatus(403);
 });
 
 test('super admin cannot access front office reports routes', function () {
-    $this->actingAs($this->superAdmin)->get(route('admin.fo.reports.index'))->assertStatus(403);
+    $data = createTestData();
+    test()->actingAs($data['superAdmin'])->get(route('admin.fo.reports.index'))->assertStatus(403);
 });
 
 test('fo admin can view reports dashboard and create a new report draft', function () {
-    $response = $this->actingAs($this->foAdmin)->get(route('admin.fo.reports.index'));
+    $data = createTestData();
+
+    $response = test()->actingAs($data['foAdmin'])->get(route('admin.fo.reports.index'));
     $response->assertStatus(200);
     $response->assertSee('Kelola Laporan Kinerja');
 
-    $responseStore = $this->actingAs($this->foAdmin)
+    $responseStore = test()->actingAs($data['foAdmin'])
         ->from(route('admin.fo.reports.index'))
         ->post(route('admin.fo.reports.store'), [
             'title' => 'Laporan Kemarin',
-            'start_date' => $this->pastDate,
-            'end_date' => $this->pastDate,
+            'start_date' => $data['pastDate'],
+            'end_date' => $data['pastDate'],
         ]);
 
     $responseStore->assertRedirect(route('admin.fo.reports.index'));
 
-    $this->assertDatabaseHas('reports', [
+    test()->assertDatabaseHas('reports', [
         'title' => 'Laporan Kemarin',
         'status' => 'Belum Dikirim',
     ]);
@@ -117,14 +121,15 @@ test('fo admin can view reports dashboard and create a new report draft', functi
     $report = Report::first();
     expect($report->data_summary['total_visitors'])->toBe(1);
     expect($report->data_summary['completed_count'])->toBe(1);
-    expect($report->data_summary['avg_service_time'])->toEqual(15); // 9:00 to 9:15 = 15 mins
-    expect($report->data_summary['avg_waiting_time'])->toEqual(15); // 8:45 to 9:00 = 15 mins
+    expect($report->data_summary['avg_service_time'])->toEqual(15);
+    expect($report->data_summary['avg_waiting_time'])->toEqual(15);
 });
 
 test('creating a report fails if no queues exist in the date range', function () {
+    $data = createTestData();
     $noQueuesDate = Carbon::yesterday()->subDays(5)->toDateString();
 
-    $response = $this->actingAs($this->foAdmin)
+    $response = test()->actingAs($data['foAdmin'])
         ->from(route('admin.fo.reports.index'))
         ->post(route('admin.fo.reports.store'), [
             'title' => 'Laporan Kosong',
@@ -134,25 +139,27 @@ test('creating a report fails if no queues exist in the date range', function ()
 
     $response->assertRedirect(route('admin.fo.reports.index'));
     $response->assertSessionHas('error');
-    $this->assertDatabaseEmpty('reports');
+    test()->assertDatabaseEmpty('reports');
 });
 
 test('fo admin can update a report draft', function () {
+    $data = createTestData();
+
     $report = Report::create([
-        'created_by' => $this->foAdmin->id,
+        'created_by' => $data['foAdmin']->id,
         'title' => 'Draf Laporan Awal',
-        'start_date' => $this->pastDate,
-        'end_date' => $this->pastDate,
+        'start_date' => $data['pastDate'],
+        'end_date' => $data['pastDate'],
         'data_summary' => [],
         'status' => 'Belum Dikirim',
     ]);
 
-    $response = $this->actingAs($this->foAdmin)
+    $response = test()->actingAs($data['foAdmin'])
         ->from(route('admin.fo.reports.index'))
         ->put(route('admin.fo.reports.update', $report), [
             'title' => 'Draf Laporan Diperbarui',
-            'start_date' => $this->pastDate,
-            'end_date' => $this->pastDate,
+            'start_date' => $data['pastDate'],
+            'end_date' => $data['pastDate'],
         ]);
 
     $response->assertRedirect(route('admin.fo.reports.index'));
@@ -163,34 +170,38 @@ test('fo admin can update a report draft', function () {
 });
 
 test('fo admin can delete a report draft', function () {
+    $data = createTestData();
+
     $report = Report::create([
-        'created_by' => $this->foAdmin->id,
+        'created_by' => $data['foAdmin']->id,
         'title' => 'Laporan Mau Dihapus',
-        'start_date' => $this->pastDate,
-        'end_date' => $this->pastDate,
+        'start_date' => $data['pastDate'],
+        'end_date' => $data['pastDate'],
         'data_summary' => [],
         'status' => 'Belum Dikirim',
     ]);
 
-    $response = $this->actingAs($this->foAdmin)
+    $response = test()->actingAs($data['foAdmin'])
         ->from(route('admin.fo.reports.index'))
         ->delete(route('admin.fo.reports.destroy', $report));
 
     $response->assertRedirect(route('admin.fo.reports.index'));
-    $this->assertModelMissing($report);
+    test()->assertModelMissing($report);
 });
 
 test('fo admin can send report to super admin which locks it and notifies super admins', function () {
+    $data = createTestData();
+
     $report = Report::create([
-        'created_by' => $this->foAdmin->id,
+        'created_by' => $data['foAdmin']->id,
         'title' => 'Laporan Siap Kirim',
-        'start_date' => $this->pastDate,
-        'end_date' => $this->pastDate,
+        'start_date' => $data['pastDate'],
+        'end_date' => $data['pastDate'],
         'data_summary' => [],
         'status' => 'Belum Dikirim',
     ]);
 
-    $response = $this->actingAs($this->foAdmin)
+    $response = test()->actingAs($data['foAdmin'])
         ->from(route('admin.fo.reports.index'))
         ->post(route('admin.fo.reports.send', $report));
 
@@ -201,33 +212,35 @@ test('fo admin can send report to super admin which locks it and notifies super 
     expect($report->status)->toBe('Terkirim');
 
     // Super Admin should be notified
-    $notification = Notification::where('user_id', $this->superAdmin->id)->first();
+    $notification = Notification::where('user_id', $data['superAdmin']->id)->first();
     expect($notification)->not->toBeNull();
     expect($notification->title)->toContain('Laporan Kinerja Baru');
 
     // Attempting to edit sent report should fail
-    $this->actingAs($this->foAdmin)
+    test()->actingAs($data['foAdmin'])
         ->put(route('admin.fo.reports.update', $report), [
             'title' => 'Coba Edit',
-            'start_date' => $this->pastDate,
-            'end_date' => $this->pastDate,
+            'start_date' => $data['pastDate'],
+            'end_date' => $data['pastDate'],
         ])
         ->assertRedirect(route('admin.fo.reports.index'))
         ->assertSessionHas('error');
 
     // Attempting to delete sent report should fail
-    $this->actingAs($this->foAdmin)
+    test()->actingAs($data['foAdmin'])
         ->delete(route('admin.fo.reports.destroy', $report))
         ->assertRedirect(route('admin.fo.reports.index'))
         ->assertSessionHas('error');
 });
 
 test('super admin can view list of sent reports and detailed statistics', function () {
+    $data = createTestData();
+
     $report = Report::create([
-        'created_by' => $this->foAdmin->id,
+        'created_by' => $data['foAdmin']->id,
         'title' => 'Laporan Bulanan',
-        'start_date' => $this->pastDate,
-        'end_date' => $this->pastDate,
+        'start_date' => $data['pastDate'],
+        'end_date' => $data['pastDate'],
         'data_summary' => [
             'total_visitors' => 1,
             'completed_count' => 1,
@@ -242,23 +255,25 @@ test('super admin can view list of sent reports and detailed statistics', functi
     ]);
 
     // View index
-    $responseIndex = $this->actingAs($this->superAdmin)->get(route('admin.reports.index'));
+    $responseIndex = test()->actingAs($data['superAdmin'])->get(route('admin.reports.index'));
     $responseIndex->assertStatus(200);
     $responseIndex->assertSee('Laporan Bulanan');
 
     // View show
-    $responseShow = $this->actingAs($this->superAdmin)->get(route('admin.reports.show', $report));
+    $responseShow = test()->actingAs($data['superAdmin'])->get(route('admin.reports.show', $report));
     $responseShow->assertStatus(200);
     $responseShow->assertSee('Laporan Bulanan');
-    $responseShow->assertSee('DDK-001'); // queue number from completed queue
+    $responseShow->assertSee('DDK-001');
 });
 
 test('super admin can download reports in excel and pdf formats', function () {
+    $data = createTestData();
+
     $report = Report::create([
-        'created_by' => $this->foAdmin->id,
+        'created_by' => $data['foAdmin']->id,
         'title' => 'Laporan Ekspor',
-        'start_date' => $this->pastDate,
-        'end_date' => $this->pastDate,
+        'start_date' => $data['pastDate'],
+        'end_date' => $data['pastDate'],
         'data_summary' => [
             'total_visitors' => 1,
             'completed_count' => 1,
@@ -273,12 +288,12 @@ test('super admin can download reports in excel and pdf formats', function () {
     ]);
 
     // Excel Export
-    $responseExcel = $this->actingAs($this->superAdmin)->get(route('admin.reports.export.excel', $report));
+    $responseExcel = test()->actingAs($data['superAdmin'])->get(route('admin.reports.export.excel', $report));
     $responseExcel->assertStatus(200);
     $responseExcel->assertHeader('content-type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
 
     // PDF Export
-    $responsePdf = $this->actingAs($this->superAdmin)->get(route('admin.reports.export.pdf', $report));
+    $responsePdf = test()->actingAs($data['superAdmin'])->get(route('admin.reports.export.pdf', $report));
     $responsePdf->assertStatus(200);
     $responsePdf->assertHeader('content-type', 'application/pdf');
 });

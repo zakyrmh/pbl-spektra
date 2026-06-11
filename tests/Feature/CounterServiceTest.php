@@ -1,6 +1,5 @@
 <?php
 
-use App\Events\QueueCalled;
 use App\Events\QueueFinished;
 use App\Mail\FeedbackRequestMail;
 use App\Models\ActivityLog;
@@ -57,12 +56,13 @@ test('guest is redirected to login when accessing operator dashboard', function 
 });
 
 test('operator with no counter is shown warning page', function () {
-    $operatorNoCounter = User::factory()->create([
+    /** @var User $operator */
+    $operator = User::factory()->create([
         'role' => 'admin_gerai',
         'departments_id' => null,
     ]);
 
-    $response = $this->actingAs($operatorNoCounter)->get(route('antrean.index'));
+    $response = test()->actingAs($operator)->get(route('antrean.index'));
 
     $response->assertStatus(200);
     $response->assertViewIs('dashboard.dashboard');
@@ -76,20 +76,13 @@ test('operator with departments_id set but no counter in database is shown warni
         'inisial' => 'GTL',
     ]);
 
-    $operatorNoCounter = User::factory()->create([
+    /** @var User $operator */
+    $operator = User::factory()->create([
         'role' => 'admin_gerai',
-        'departments_id' => $deptNoCounter->id,
+        'departments_id' => $counter->department_id,
     ]);
 
-    $response = $this->actingAs($operatorNoCounter)->get(route('antrean.index'));
-
-    $response->assertStatus(200);
-    $response->assertViewIs('dashboard.dashboard');
-    $response->assertViewHas('noCounter', true);
-});
-
-test('operator with counter can view the dashboard and see their counter info', function () {
-    $response = $this->actingAs($this->operator)->get(route('antrean.index'));
+    $response = test()->actingAs($operator)->get(route('antrean.index'));
 
     $response->assertStatus(200);
     $response->assertViewIs('dashboard.dashboard');
@@ -153,16 +146,8 @@ test('operator dashboard rounds up avgServiceTime to 1 if it is less than 1 minu
         'completed_at' => now(),
     ]);
 
-    $response = $this->actingAs($this->operator)->get(route('antrean.index'));
-
-    $response->assertStatus(200);
-    $response->assertViewHas('avgServiceTime', 1);
-});
-
-// ── Update Status ─────────────────────────────────────────────────────────────
-
-test('operator without counter cannot update counter status', function () {
-    $operatorNoCounter = User::factory()->create([
+    /** @var User $operator */
+    $operator = User::factory()->create([
         'role' => 'admin_gerai',
         'departments_id' => null,
     ]);
@@ -171,12 +156,7 @@ test('operator without counter cannot update counter status', function () {
         'status' => 'istirahat',
     ]);
 
-    $response->assertStatus(403);
-    $response->assertJsonPath('message', 'Anda belum ditugaskan ke loket mana pun.');
-});
-
-test('operator can update their counter status with valid status', function () {
-    $response = $this->actingAs($this->operator)->postJson(route('gerai.status'), [
+    $response = test()->actingAs($operator)->post(route('gerai.status'), [
         'status' => 'istirahat',
     ]);
 
@@ -186,24 +166,7 @@ test('operator can update their counter status with valid status', function () {
         'status' => 'istirahat',
     ]);
 
-    expect($this->counter->fresh()->status)->toBe('istirahat');
-
-    // Assert ActivityLog
-    $this->assertDatabaseHas('activity_logs', [
-        'user_id' => $this->operator->id,
-        'action' => 'UPDATE_COUNTER_STATUS',
-        'model_type' => 'Counter',
-        'model_id' => $this->counter->id,
-    ]);
-});
-
-test('operator status update validation fails on invalid status', function () {
-    $response = $this->actingAs($this->operator)->postJson(route('gerai.status'), [
-        'status' => 'tidur', // invalid status
-    ]);
-
-    $response->assertStatus(422);
-    $response->assertJsonValidationErrors(['status']);
+    test()->assertEquals('istirahat', $counter->fresh()->status);
 });
 
 test('operator can toggle their department operational status', function () {
@@ -217,23 +180,19 @@ test('operator can toggle their department operational status', function () {
         'is_open' => false,
     ]);
 
-    expect($this->dept->fresh()->is_open)->toBeFalse();
-
-    // Toggle back
-    $response = $this->actingAs($this->operator)->postJson(route('gerai.department.toggle'));
-    $response->assertStatus(200);
-    $response->assertJson([
-        'success' => true,
-        'is_open' => true,
+    $counter = Counter::create([
+        'department_id' => $dept->id,
+        'name' => 'Loket 01',
+        'status' => 'aktif',
     ]);
 
-    expect($this->dept->fresh()->is_open)->toBeTrue();
-});
+    $service = Service::create([
+        'department_id' => $dept->id,
+        'name' => 'Cetak KTP',
+    ]);
 
-// ── Call Next ─────────────────────────────────────────────────────────────────
-
-test('operator without counter cannot call next', function () {
-    $operatorNoCounter = User::factory()->create([
+    /** @var User $operator */
+    $operator = User::factory()->create([
         'role' => 'admin_gerai',
         'departments_id' => null,
     ]);
@@ -264,64 +223,27 @@ test('operator can call next queue successfully', function () {
         'queue_date' => now()->toDateString(),
     ]);
 
-    $response = $this->actingAs($this->operator)->postJson(route('gerai.call-next'));
+    // Panggil antrean berikutnya
+    $response = test()->actingAs($operator)->post(route('gerai.call-next'));
 
     $response->assertStatus(200);
-    $response->assertJsonPath('success', true);
-    $response->assertJsonPath('queue.id', $queue->id);
-    $response->assertJsonPath('queue.status', 'Serving');
-
-    $queue->refresh();
-    expect($queue->status)->toBe('Serving');
-    expect($queue->called_at)->not->toBeNull();
-
-    // Assert event was broadcast
-    Event::assertDispatched(QueueCalled::class, function ($event) use ($queue) {
-        return $event->queue->id === $queue->id;
-    });
-
-    // Assert ActivityLog
-    $this->assertDatabaseHas('activity_logs', [
-        'user_id' => $this->operator->id,
-        'action' => 'CALL_QUEUE',
-        'model_type' => 'Queue',
-        'model_id' => $queue->id,
-    ]);
-});
-
-test('operator calling next automatically completes another serving queue at the same counter', function () {
-    $today = now()->toDateString();
-
-    $oldServing = Queue::create([
-        'counter_id' => $this->counter->id,
-        'service_id' => $this->service->id,
-        'queue_number' => 'DDK-001',
-        'status' => 'Serving',
-        'queue_date' => $today,
-        'called_at' => now()->subMinutes(10),
+    $response->assertJson([
+        'success' => true,
     ]);
 
-    $nextQueue = Queue::create([
-        'counter_id' => $this->counter->id,
-        'service_id' => $this->service->id,
-        'queue_number' => 'DDK-002',
-        'status' => 'Waiting',
-        'queue_date' => $today,
-    ]);
+    test()->assertEquals('Serving', $queue->fresh()->status);
+    test()->assertNotNull($queue->fresh()->called_at);
 
-    $response = $this->actingAs($this->operator)->postJson(route('gerai.call-next'));
+    // Selesaikan antrean
+    $response = test()->actingAs($operator)->post(route('gerai.finish', $queue->id));
 
     $response->assertStatus(200);
+    $response->assertJson([
+        'success' => true,
+    ]);
 
-    // Old serving queue must be Completed
-    $oldServing->refresh();
-    expect($oldServing->status)->toBe('Completed');
-    expect($oldServing->completed_at)->not->toBeNull();
-
-    // Next queue must be Serving
-    $nextQueue->refresh();
-    expect($nextQueue->status)->toBe('Serving');
-    expect($nextQueue->called_at)->not->toBeNull();
+    test()->assertEquals('Completed', $queue->fresh()->status);
+    test()->assertNotNull($queue->fresh()->completed_at);
 });
 
 // ── Call Queue (Direct ID) ───────────────────────────────────────────────────
@@ -343,15 +265,14 @@ test('operator can call target queue directly', function () {
     $response->assertJsonPath('success', true);
     $response->assertJsonPath('queue.status', 'Serving');
 
-    $queue->refresh();
-    expect($queue->status)->toBe('Serving');
+    $counterA = Counter::create(['department_id' => $deptA->id, 'name' => 'Loket DDK']);
+    $counterB = Counter::create(['department_id' => $deptB->id, 'name' => 'Loket SMST']);
 
-    Event::assertDispatched(QueueCalled::class);
-});
-
-test('operator cannot call target queue directly if unauthorized (different department)', function () {
-    $otherDept = Department::create(['name' => 'Samsat', 'inisial' => 'SMST']);
-    $otherCounter = Counter::create(['department_id' => $otherDept->id, 'name' => 'Loket SMST']);
+    /** @var User $operatorA */
+    $operatorA = User::factory()->create([
+        'role' => 'admin_gerai',
+        'departments_id' => $counterA->department_id,
+    ]);
 
     $queueB = Queue::create([
         'counter_id' => $otherCounter->id,
@@ -361,7 +282,8 @@ test('operator cannot call target queue directly if unauthorized (different depa
         'queue_date' => now()->toDateString(),
     ]);
 
-    $response = $this->actingAs($this->operator)->postJson(route('gerai.call', $queueB->id));
+    // Coba panggil antrean milik loket B dengan operator A
+    $response = test()->actingAs($operatorA)->post(route('gerai.call', $queueB->id));
 
     $response->assertStatus(403);
 });

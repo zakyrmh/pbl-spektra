@@ -12,7 +12,6 @@ use App\Http\Controllers\CounterController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\FeedbackController;
 use App\Http\Controllers\GeraiLoketController;
-use App\Http\Controllers\LogPelayananController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PublicController;
@@ -84,12 +83,16 @@ Route::middleware('auth')->group(function () {
         ->name('dashboard');
 
     // Pusat Notifikasi
-    Route::get('/notifikasi', [NotificationController::class, 'index'])->name('notifications.index');
-    Route::get('/notifikasi/{notification}', [NotificationController::class, 'show'])->name('notifications.show');
+    Route::get('/notifikasi', [NotificationController::class, 'index'])
+        ->name('notifications.index');
+    Route::get('/notifikasi/{notification}', [NotificationController::class, 'show'])
+        ->name('notifications.show');
 
     // Feedback & Rating Pelayanan
-    Route::get('/feedback/create', [FeedbackController::class, 'create'])->name('feedback.create');
-    Route::post('/feedback', [FeedbackController::class, 'store'])->name('feedback.store');
+    Route::get('/feedback/create', [FeedbackController::class, 'create'])
+        ->name('feedback.create');
+    Route::post('/feedback', [FeedbackController::class, 'store'])
+        ->name('feedback.store');
 
     // Profil Pengunjung
     Route::get('/profil', [ProfileController::class, 'edit'])->name('profile.edit');

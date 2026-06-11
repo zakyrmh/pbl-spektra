@@ -16,10 +16,18 @@ return new class extends Migration
             $table->string('name');
             $table->string('nik', 16)->nullable()->unique();
             $table->string('email')->unique();
-            $table->string('phone_number', 15)->nullable();
-            $table->timestamp('email_verified_at')->nullable();
+            $table->string('no_telp', 12)->nullable();
             $table->string('password');
             $table->enum('role', ['pengunjung', 'admin_fo', 'admin_gerai', 'super_admin'])->default('pengunjung');
+            $table->foreignId('department_id')
+                ->nullable()
+                ->constrained('departments')
+                ->onDelete('set null');
+            $table->string('avatar_path')->nullable();
+            $table->string('ktp_photo_path')->nullable();
+            $table->timestamp('email_verified_at')->nullable();
+            $table->boolean('is_active')->default(true);
+            $table->timestamp('last_login_at')->nullable();
             $table->rememberToken();
             $table->softDeletes();
             $table->timestamps();

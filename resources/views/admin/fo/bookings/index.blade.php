@@ -122,16 +122,16 @@
                                     <div class="text-xs text-muted dark:text-on-dark-soft mt-0.5 font-mono">NIK: {{ $booking->user->nik ?? '-' }}</div>
                                 </td>
                                 <td class="py-4 px-6">
-                                    <div class="font-semibold text-ink dark:text-white">{{ $booking->service->department->name }}</div>
-                                    <div class="text-xs text-muted dark:text-on-dark-soft mt-0.5">{{ $booking->service->name }}</div>
+                                    <div class="font-semibold text-ink dark:text-white">{{ $booking->department->name }}</div>
+                                    <div class="text-xs text-muted dark:text-on-dark-soft mt-0.5">{{ $booking->purpose }}</div>
                                 </td>
                                 <td class="py-4 px-6 whitespace-nowrap">
                                     <div class="font-semibold">{{ $booking->booking_date->translatedFormat('d M Y') }}</div>
-                                    <div class="text-xs text-muted dark:text-on-dark-soft mt-0.5">Sesi: {{ $booking->schedule->session_name ?? 'Umum' }}</div>
+                                    <div class="text-xs text-muted dark:text-on-dark-soft mt-0.5">Sesi: {{ $booking->session_name ?? 'Umum' }}</div>
                                 </td>
                                 <td class="py-4 px-6 text-right whitespace-nowrap">
                                     <button type="button" 
-                                            @click="openCancelModal('{{ route('admin.fo.bookings.cancel', $booking) }}', '{{ $booking->booking_code }}', '{{ $booking->user->name }}', '{{ $booking->service->name }}')"
+                                            @click="openCancelModal('{{ route('admin.fo.bookings.cancel', $booking) }}', '{{ $booking->booking_code }}', '{{ $booking->user->name }}', '{{ $booking->purpose }}')"
                                             class="inline-flex h-9 items-center justify-center gap-1 px-4 bg-status-skipped/10 hover:bg-status-skipped text-status-skipped hover:text-white font-bold text-xs rounded-pill border border-status-skipped/20 transition-all cursor-pointer">
                                         <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />

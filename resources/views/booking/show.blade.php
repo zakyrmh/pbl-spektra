@@ -57,10 +57,10 @@
                                 Alasan: {{ $booking->cancel_reason }}
                             </p>
                         @endif
-                    @elseif($booking->queue)
+                    @elseif($booking->queue_number)
                         <span class="text-[10px] font-bold text-muted dark:text-on-dark-soft uppercase tracking-wider block font-display">Nomor Antrean Anda</span>
                         <div class="text-4xl sm:text-5xl font-extrabold text-primary dark:text-accent-teal tracking-tight font-mono">
-                            {{ $booking->queue->queue_number }}
+                            {{ $booking->queue_number }}
                         </div>
                         <span class="inline-flex items-center gap-1 px-3 py-1 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 rounded-full text-xs font-bold border border-green-200/50">
                             <span class="w-1.5 h-1.5 rounded-full bg-green-500 animate-ping"></span>
@@ -172,28 +172,22 @@
                     </div>
                     <div class="flex justify-between gap-4">
                         <span class="text-muted dark:text-on-dark-soft font-medium">Instansi</span>
-                        <span class="font-bold text-ink dark:text-white text-right">{{ $booking->service->department->name }}</span>
+                        <span class="font-bold text-ink dark:text-white text-right">{{ $booking->department->name }}</span>
                     </div>
                     <div class="flex justify-between gap-4">
-                        <span class="text-muted dark:text-on-dark-soft font-medium">Pelayanan</span>
-                        <span class="font-bold text-primary dark:text-accent-teal text-right">{{ $booking->service->name }}</span>
+                        <span class="text-muted dark:text-on-dark-soft font-medium">Keperluan / Pelayanan</span>
+                        <span class="font-bold text-primary dark:text-accent-teal text-right">{{ $booking->purpose }}</span>
                     </div>
-                    @if($booking->purpose)
-                    <div class="flex justify-between gap-4">
-                        <span class="text-muted dark:text-on-dark-soft font-medium">Keperluan</span>
-                        <span class="font-bold text-ink dark:text-white text-right">{{ $booking->purpose }}</span>
-                    </div>
-                    @endif
                     <div class="flex justify-between gap-4">
                         <span class="text-muted dark:text-on-dark-soft font-medium">Tanggal</span>
                         <span class="font-bold text-ink dark:text-white text-right">{{ $booking->booking_date->translatedFormat('d F Y') }}</span>
                     </div>
                     <div class="flex justify-between gap-4">
                         <span class="text-muted dark:text-on-dark-soft font-medium">Sesi</span>
-                        <span class="font-bold text-ink dark:text-white text-right">{{ $booking->schedule->session_name ?? '-' }}</span>
+                        <span class="font-bold text-ink dark:text-white text-right">{{ $booking->session_name ?? '-' }}</span>
                     </div>
                     
-                    @if($booking->status !== 'Cancelled' && !$booking->queue)
+                    @if($booking->status !== 'Cancelled' && !$booking->queue_number)
                     <div class="flex justify-between gap-4 pt-3 border-t border-hairline dark:border-white/10">
                         <span class="text-muted dark:text-on-dark-soft font-medium flex items-center gap-1">
                             Estimasi Urutan

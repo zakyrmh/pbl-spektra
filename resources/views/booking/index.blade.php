@@ -119,8 +119,8 @@
 
                                     <div>
                                         <h3 class="text-sm font-semibold text-muted dark:text-on-dark-soft font-display uppercase tracking-wider">Instansi / Departemen</h3>
-                                        <h4 class="text-base font-bold text-ink dark:text-white font-display mt-0.5">{{ $booking->service->department->name }}</h4>
-                                        <p class="text-xs text-primary dark:text-accent-teal font-semibold mt-0.5 font-body">{{ $booking->service->name }}</p>
+                                        <h4 class="text-base font-bold text-ink dark:text-white font-display mt-0.5">{{ $booking->department->name }}</h4>
+                                        <p class="text-xs text-primary dark:text-accent-teal font-semibold mt-0.5 font-body">{{ $booking->purpose }}</p>
                                     </div>
 
                                     <div class="grid grid-cols-2 gap-4 text-xs bg-surface-soft dark:bg-white/5 p-3 rounded-lg border border-hairline dark:border-white/5">
@@ -130,7 +130,7 @@
                                         </div>
                                         <div>
                                             <span class="block text-muted dark:text-on-dark-soft font-semibold mb-0.5 font-display">Sesi Waktu</span>
-                                            <span class="font-bold text-ink dark:text-white font-body">{{ $booking->schedule->session_name ?? 'Fleksibel' }}</span>
+                                            <span class="font-bold text-ink dark:text-white font-body">{{ $booking->session_name ?? 'Fleksibel' }}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -192,11 +192,11 @@
                                                 {{ substr($booking->booking_code, 0, 8) }}...
                                             </td>
                                             <td class="py-4 px-6">
-                                                <div class="font-bold text-ink dark:text-white">{{ $booking->service->department->name }}</div>
-                                                <div class="text-xs text-muted dark:text-on-dark-soft mt-0.5">{{ $booking->service->name }}</div>
+                                                <div class="font-bold text-ink dark:text-white">{{ $booking->department->name }}</div>
+                                                <div class="text-xs text-muted dark:text-on-dark-soft mt-0.5">{{ $booking->purpose }}</div>
                                             </td>
                                             <td class="py-4 px-6 whitespace-nowrap">
-                                                {{ $booking->schedule->session_name ?? '-' }}
+                                                {{ $booking->session_name ?? '-' }}
                                             </td>
                                             <td class="py-4 px-6 whitespace-nowrap">
                                                 @php

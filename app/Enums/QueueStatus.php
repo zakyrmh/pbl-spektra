@@ -12,8 +12,8 @@ namespace App\Enums;
  */
 enum QueueStatus: string
 {
-    case Waiting = 'Waiting';
-    case Called = 'Called';
+    case Booked = 'Booked';
+    case CheckedIn = 'Checked-In';
     case Serving = 'Serving';
     case Completed = 'Completed';
     case Skipped = 'Skipped';

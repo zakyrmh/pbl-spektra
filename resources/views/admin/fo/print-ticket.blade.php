@@ -7,42 +7,9 @@
          x-data="{
              departments: @js($departments),
              selectedDepartmentId: '{{ old('department_id', '') }}',
-             selectedServiceId: '{{ old('service_id', '') }}',
-             selectedCounterId: '{{ old('counter_id', '') }}',
-             
-             get filteredServices() {
-                 if (!this.selectedDepartmentId) return [];
-                 let dept = this.departments.find(d => d.id == this.selectedDepartmentId);
-                 return dept ? dept.services : [];
-             },
-             
-             get filteredCounters() {
-                 if (!this.selectedDepartmentId) return [];
-                 let dept = this.departments.find(d => d.id == this.selectedDepartmentId);
-                 return dept ? dept.counters : [];
-             },
              
              get selectedDepartment() {
                  return this.departments.find(d => d.id == this.selectedDepartmentId) || null;
-             },
-             
-             get selectedService() {
-                 let services = this.filteredServices;
-                 return services.find(s => s.id == this.selectedServiceId) || null;
-             },
-
-             get selectedCounter() {
-                 let counters = this.filteredCounters;
-                 return counters.find(c => c.id == this.selectedCounterId) || null;
-             },
-             
-             resetService() {
-                 this.selectedServiceId = '';
-                 this.resetCounter();
-             },
-             
-             resetCounter() {
-                 this.selectedCounterId = '';
              }
          }">
 
@@ -138,23 +105,23 @@
                     <div class="space-y-3.5 text-sm font-body">
                         <div class="flex justify-between gap-4">
                             <span class="text-muted dark:text-on-dark-soft font-medium">Nama Pengunjung</span>
-                            <span class="font-bold text-ink dark:text-white text-right">{{ $ticket->visitor->name }}</span>
+                            <span class="font-bold text-ink dark:text-white text-right">{{ $ticket->user->name }}</span>
                         </div>
                         <div class="flex justify-between gap-4">
                             <span class="text-muted dark:text-on-dark-soft font-medium">NIK</span>
-                            <span class="font-bold text-ink dark:text-white font-mono text-right">{{ $ticket->visitor->nik }}</span>
+                            <span class="font-bold text-ink dark:text-white font-mono text-right">{{ $ticket->user->nik }}</span>
                         </div>
                         <div class="flex justify-between gap-4">
                             <span class="text-muted dark:text-on-dark-soft font-medium">Instansi</span>
-                            <span class="font-bold text-ink dark:text-white text-right">{{ $ticket->counter->department->name }}</span>
+                            <span class="font-bold text-ink dark:text-white text-right">{{ $ticket->department->name }}</span>
                         </div>
                         <div class="flex justify-between gap-4">
                             <span class="text-muted dark:text-on-dark-soft font-medium">Loket Pelayanan</span>
-                            <span class="font-bold text-primary dark:text-accent-teal text-right">{{ $ticket->counter->name }}</span>
+                            <span class="font-bold text-primary dark:text-accent-teal text-right">Loket {{ $ticket->department->nomor_loket }}</span>
                         </div>
                         <div class="flex justify-between gap-4">
-                            <span class="text-muted dark:text-on-dark-soft font-medium">Jenis Layanan</span>
-                            <span class="font-bold text-ink dark:text-white text-right">{{ $ticket->service->name }}</span>
+                            <span class="text-muted dark:text-on-dark-soft font-medium">Keperluan</span>
+                            <span class="font-bold text-ink dark:text-white text-right">{{ $ticket->purpose }}</span>
                         </div>
                         <div class="flex justify-between gap-4">
                             <span class="text-muted dark:text-on-dark-soft font-medium">Waktu Cetak</span>
@@ -221,44 +188,16 @@
                                 </svg>
                                 Destinasi Pelayanan & Gerai
                             </h3>
-
+                            
                             {{-- Department Select --}}
                             <div class="space-y-2">
                                 <label for="department_id" class="block text-sm font-bold text-ink dark:text-white font-display">Instansi / Lembaga</label>
                                 <div class="relative">
-                                    <select id="department_id" name="department_id" x-model="selectedDepartmentId" @change="resetService()" required
+                                    <select id="department_id" name="department_id" x-model="selectedDepartmentId" required
                                             class="w-full h-11 text-sm bg-canvas dark:bg-white/5 border border-hairline dark:border-white/15 text-ink dark:text-white rounded-md px-4 pr-10 focus:border-primary dark:focus:border-accent-teal focus:outline-none focus:ring-3 focus:ring-primary/12 dark:focus:ring-accent-teal/20 transition-all cursor-pointer">
                                         <option value="" disabled>-- Pilih Instansi / Lembaga --</option>
                                         <template x-for="dept in departments" :key="dept.id">
                                             <option :value="dept.id" x-text="dept.name"></option>
-                                        </template>
-                                    </select>
-                                </div>
-                            </div>
-
-                            {{-- Service Select (Cascading) --}}
-                            <div class="space-y-2" x-show="selectedDepartmentId" x-cloak>
-                                <label for="service_id" class="block text-sm font-bold text-ink dark:text-white font-display">Jenis Layanan</label>
-                                <div class="relative">
-                                    <select id="service_id" name="service_id" x-model="selectedServiceId" required
-                                            class="w-full h-11 text-sm bg-canvas dark:bg-white/5 border border-hairline dark:border-white/15 text-ink dark:text-white rounded-md px-4 pr-10 focus:border-primary dark:focus:border-accent-teal focus:outline-none focus:ring-3 focus:ring-primary/12 dark:focus:ring-accent-teal/20 transition-all cursor-pointer">
-                                        <option value="" disabled>-- Pilih Layanan --</option>
-                                        <template x-for="svc in filteredServices" :key="svc.id">
-                                            <option :value="svc.id" x-text="svc.name"></option>
-                                        </template>
-                                    </select>
-                                </div>
-                            </div>
-
-                            {{-- Counter Select (Cascading) --}}
-                            <div class="space-y-2" x-show="selectedDepartmentId" x-cloak>
-                                <label for="counter_id" class="block text-sm font-bold text-ink dark:text-white font-display">Loket / Counter Pelayanan</label>
-                                <div class="relative">
-                                    <select id="counter_id" name="counter_id" x-model="selectedCounterId" required
-                                            class="w-full h-11 text-sm bg-canvas dark:bg-white/5 border border-hairline dark:border-white/15 text-ink dark:text-white rounded-md px-4 pr-10 focus:border-primary dark:focus:border-accent-teal focus:outline-none focus:ring-3 focus:ring-primary/12 dark:focus:ring-accent-teal/20 transition-all cursor-pointer">
-                                        <option value="" disabled>-- Pilih Loket --</option>
-                                        <template x-for="cnt in filteredCounters" :key="cnt.id">
-                                            <option :value="cnt.id" x-text="`${cnt.name} (Loket ${cnt.counter_number})`"></option>
                                         </template>
                                     </select>
                                 </div>
@@ -282,10 +221,10 @@
             {{-- Draft Preview Column --}}
             <div class="space-y-6">
                 <div class="bg-canvas dark:bg-surface-dark-elevated rounded-lg border border-hairline dark:border-white/10 shadow-sm overflow-hidden"
-                     :class="selectedCounterId ? 'border-primary dark:border-accent-teal shadow-md' : ''">
+                     :class="selectedDepartmentId ? 'border-primary dark:border-accent-teal shadow-md' : ''">
                     <div class="bg-linear-to-r from-primary to-primary-hover px-5 py-3 text-white font-display text-xs font-bold uppercase tracking-wider flex items-center justify-between">
                         <span>Preview Draf Karcis</span>
-                        <span x-show="selectedCounterId" class="w-2.5 h-2.5 bg-green-400 rounded-full animate-pulse"></span>
+                        <span x-show="selectedDepartmentId" class="w-2.5 h-2.5 bg-green-400 rounded-full animate-pulse"></span>
                     </div>
                     
                     <div class="p-6 space-y-4 text-sm font-body">
@@ -299,20 +238,16 @@
                                 <p class="text-xs text-muted dark:text-on-dark-soft font-body leading-relaxed max-w-[180px] mx-auto">Lengkapi destinasi gerai untuk melihat draf karcis.</p>
                             </div>
                         </template>
-
+ 
                         <template x-if="selectedDepartmentId">
                             <div class="space-y-4">
                                 <div>
                                     <span class="text-[10px] font-bold text-muted dark:text-on-dark-soft uppercase tracking-wider block font-display">Instansi Tujuan</span>
                                     <span class="font-bold text-ink dark:text-white" x-text="selectedDepartment ? selectedDepartment.name : ''"></span>
                                 </div>
-                                <div x-show="selectedServiceId">
-                                    <span class="text-[10px] font-bold text-muted dark:text-on-dark-soft uppercase tracking-wider block font-display">Jenis Layanan</span>
-                                    <span class="font-bold text-primary dark:text-accent-teal" x-text="selectedService ? selectedService.name : ''"></span>
-                                </div>
-                                <div x-show="selectedCounterId">
-                                    <span class="text-[10px] font-bold text-muted dark:text-on-dark-soft uppercase tracking-wider block font-display">Loket / Counter</span>
-                                    <span class="font-bold text-ink dark:text-white" x-text="selectedCounter ? `${selectedCounter.name} (Loket ${selectedCounter.counter_number})` : ''"></span>
+                                <div>
+                                    <span class="text-[10px] font-bold text-muted dark:text-on-dark-soft uppercase tracking-wider block font-display">Nomor Loket</span>
+                                    <span class="font-bold text-ink dark:text-white" x-text="selectedDepartment ? 'Loket ' + selectedDepartment.nomor_loket : ''"></span>
                                 </div>
                             </div>
                         </template>

@@ -40,8 +40,8 @@
             @forelse($schedules as $sched)
                 <div class="bg-canvas dark:bg-surface-dark-elevated p-4 rounded-lg border border-hairline dark:border-white/10 shadow-xs flex justify-between items-center">
                     <div class="min-w-0 pr-2">
-                        <span class="text-caption font-semibold text-primary dark:text-accent-teal uppercase truncate block" title="{{ $sched->service->name }}">
-                            {{ $sched->service->name }}
+                        <span class="text-caption font-semibold text-primary dark:text-accent-teal uppercase truncate block" title="{{ $department->name }}">
+                            {{ $department->name }}
                         </span>
                         <span class="text-title-md font-bold text-ink dark:text-white mt-1 block">{{ $sched->session_name }}</span>
                     </div>
@@ -85,11 +85,9 @@
             <label for="service_id" class="block text-title-sm font-semibold text-ink dark:text-white mb-2">Jenis Layanan</label>
             <select id="service_id" 
                     name="service_id"
-                    class="w-full text-body-md bg-canvas dark:bg-white/5 border border-hairline dark:border-white/15 text-ink dark:text-white rounded-md px-4 h-12 focus:outline-none focus:border-primary focus:ring-3 focus:ring-primary/12 dark:focus:ring-accent-teal/20 transition-all">
+                    disabled
+                    class="w-full text-body-md bg-canvas dark:bg-white/5 border border-hairline dark:border-white/15 text-muted dark:text-on-dark-soft rounded-md px-4 h-12 focus:outline-none cursor-not-allowed opacity-50">
                 <option value="">Semua Layanan</option>
-                @foreach($services as $srv)
-                    <option value="{{ $srv->id }}" {{ request('service_id') == $srv->id ? 'selected' : '' }}>{{ $srv->name }}</option>
-                @endforeach
             </select>
         </div>
         <div class="flex gap-2">
@@ -153,10 +151,10 @@
                                         <div class="text-caption text-muted dark:text-on-dark-soft font-mono mt-0.5">NIK: {{ $bk->user ? $bk->user->nik : '-' }}</div>
                                     </td>
                                     <td class="px-4 py-4">
-                                        <div class="text-body-sm text-ink dark:text-white font-medium">{{ $bk->service ? $bk->service->name : '-' }}</div>
+                                        <div class="text-body-sm text-ink dark:text-white font-medium">{{ $bk->purpose }}</div>
                                     </td>
                                     <td class="px-4 py-4">
-                                        <div class="text-body-sm text-ink dark:text-white font-medium">{{ $bk->schedule ? $bk->schedule->session_name : '-' }}</div>
+                                        <div class="text-body-sm text-ink dark:text-white font-medium">{{ $bk->session_name ?? 'Umum' }}</div>
                                         <div class="text-caption text-muted dark:text-on-dark-soft mt-0.5">{{ $bk->booking_date->translatedFormat('d F Y') }}</div>
                                     </td>
                                     <td class="px-4 py-4 text-right">
@@ -205,7 +203,7 @@
                                         <div class="text-caption text-muted dark:text-on-dark-soft font-mono mt-0.5">NIK: {{ $bk->user ? $bk->user->nik : '-' }}</div>
                                     </td>
                                     <td class="px-4 py-4">
-                                        <div class="text-body-sm text-ink dark:text-white font-medium">{{ $bk->service ? $bk->service->name : '-' }}</div>
+                                        <div class="text-body-sm text-ink dark:text-white font-medium">{{ $bk->purpose }}</div>
                                     </td>
                                     <td class="px-4 py-4">
                                         <div class="text-body-sm text-ink dark:text-white font-semibold">
@@ -254,7 +252,7 @@
                                         <div class="text-caption text-muted dark:text-on-dark-soft font-mono mt-0.5">NIK: {{ $bk->user ? $bk->user->nik : '-' }}</div>
                                     </td>
                                     <td class="px-4 py-4">
-                                        <div class="text-body-sm text-ink dark:text-white font-medium">{{ $bk->service ? $bk->service->name : '-' }}</div>
+                                        <div class="text-body-sm text-ink dark:text-white font-medium">{{ $bk->purpose }}</div>
                                     </td>
                                     <td class="px-4 py-4">
                                         <div class="text-body-sm text-rose-700 dark:text-rose-400 font-medium max-w-[280px] break-words">

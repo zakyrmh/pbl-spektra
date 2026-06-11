@@ -7,29 +7,18 @@ namespace App\Http\Controllers\AdminGerai;
 use App\Events\QueueCalled;
 use App\Events\QueueFinished;
 use App\Http\Controllers\Controller;
-use App\Mail\FeedbackRequestMail;
 use App\Models\ActivityLog;
-use App\Models\Counter;
 use App\Models\Department;
-use App\Models\Notification;
 use App\Models\Queue;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 
-/**
- * CounterController — Operator Loket Gerai.
- *
- * Bertanggung jawab atas:
- * - Tampilan dashboard operator loket
- * - Manajemen status loket & instansi
- * - Operasi antrean: callNext, callQueue, finishService, skipQueue
- */
 class CounterController extends Controller
 {
     /**
@@ -40,37 +29,37 @@ class CounterController extends Controller
     {
         $user = Auth::user();
 
-        if (! $user->counter_id) {
+        if (! $user->departments_id) {
             return view('dashboard.dashboard', ['noCounter' => true]);
         }
 
-        $counter = Counter::with('department')->find($user->counter_id);
-        if (! $counter) {
+        $department = Department::find($user->departments_id);
+        if (! $department) {
             return view('dashboard.dashboard', ['noCounter' => true]);
         }
 
         $today = Carbon::today();
 
         // Antrean yang sedang aktif dilayani (Serving)
-        $activeQueue = Queue::where('counter_id', $counter->id)
-            ->whereDate('queue_date', $today)
+        $activeQueue = Queue::where('department_id', $department->id)
+            ->whereDate('booking_date', $today)
             ->where('status', 'Serving')
-            ->with(['booking.user', 'visitor', 'service'])
+            ->with(['user'])
             ->first();
 
-        // Daftar antrean menunggu (Waiting)
-        $waitingQueues = Queue::where('counter_id', $counter->id)
-            ->whereDate('queue_date', $today)
-            ->where('status', 'Waiting')
-            ->with(['booking.user', 'visitor', 'service'])
+        // Daftar antrean menunggu (Checked-In)
+        $waitingQueues = Queue::where('department_id', $department->id)
+            ->whereDate('booking_date', $today)
+            ->where('status', 'Checked-In')
+            ->with(['user'])
             ->orderBy('id', 'asc')
             ->get();
 
         // Daftar antrean terlewat (Skipped)
-        $skippedQueues = Queue::where('counter_id', $counter->id)
-            ->whereDate('queue_date', $today)
+        $skippedQueues = Queue::where('department_id', $department->id)
+            ->whereDate('booking_date', $today)
             ->where('status', 'Skipped')
-            ->with(['booking.user', 'visitor', 'service'])
+            ->with(['user'])
             ->orderBy('updated_at', 'desc')
             ->get();
 
@@ -78,8 +67,8 @@ class CounterController extends Controller
         $remainingCount = $waitingQueues->count();
 
         // Rata-rata durasi pelayanan (dalam menit)
-        $completedToday = Queue::where('counter_id', $counter->id)
-            ->whereDate('queue_date', $today)
+        $completedToday = Queue::where('department_id', $department->id)
+            ->whereDate('booking_date', $today)
             ->where('status', 'Completed')
             ->whereNotNull('called_at')
             ->whereNotNull('completed_at')
@@ -94,7 +83,7 @@ class CounterController extends Controller
         }
 
         return view('dashboard.dashboard', compact(
-            'counter',
+            'department',
             'activeQueue',
             'waitingQueues',
             'skippedQueues',
@@ -114,25 +103,25 @@ class CounterController extends Controller
         ]);
 
         $user = Auth::user();
-        if (! $user->counter_id) {
-            return response()->json(['message' => 'Anda belum ditugaskan ke loket mana pun.'], 403);
+        if (! $user->departments_id) {
+            return response()->json(['message' => 'Anda belum ditugaskan ke instansi mana pun.'], 403);
         }
 
-        $counter = Counter::findOrFail($user->counter_id);
-        $oldStatus = $counter->status;
-        $counter->update(['status' => $request->input('status')]);
+        $department = Department::findOrFail($user->departments_id);
+
+        Cache::put("loket_status_{$department->id}", $request->input('status'), now()->addDay());
 
         ActivityLog::record(
             action: 'UPDATE_COUNTER_STATUS',
-            modelType: 'Counter',
-            modelId: $counter->id,
-            description: "Operator mengubah status loket '{$counter->name}' dari '{$oldStatus}' menjadi '{$counter->status}'.",
+            modelType: 'Department',
+            modelId: $department->id,
+            description: "Operator mengubah status loket instansi '{$department->name}' menjadi '{$request->input('status')}'.",
             actorUserId: $user->id
         );
 
         return response()->json([
             'success' => true,
-            'status' => $counter->status,
+            'status' => $request->input('status'),
         ]);
     }
 
@@ -174,13 +163,13 @@ class CounterController extends Controller
     public function callNext(): JsonResponse
     {
         $user = Auth::user();
-        if (! $user->counter_id) {
-            return response()->json(['message' => 'Anda belum ditugaskan ke loket mana pun.'], 403);
+        if (! $user->departments_id) {
+            return response()->json(['message' => 'Anda belum ditugaskan ke instansi mana pun.'], 403);
         }
 
-        $nextQueue = Queue::where('counter_id', $user->counter_id)
-            ->whereDate('queue_date', Carbon::today())
-            ->where('status', 'Waiting')
+        $nextQueue = Queue::where('department_id', $user->departments_id)
+            ->whereDate('booking_date', Carbon::today())
+            ->where('status', 'Checked-In')
             ->orderBy('id', 'asc')
             ->first();
 
@@ -200,7 +189,9 @@ class CounterController extends Controller
      */
     public function callQueue(Queue $queue): JsonResponse
     {
-        $this->authorize('manage', $queue);
+        if ($queue->department_id !== Auth::user()->departments_id) {
+            abort(403);
+        }
 
         return $this->callQueueDirect($queue);
     }
@@ -211,7 +202,9 @@ class CounterController extends Controller
      */
     public function finishService(Queue $queue): JsonResponse
     {
-        $this->authorize('manage', $queue);
+        if ($queue->department_id !== Auth::user()->departments_id) {
+            abort(403);
+        }
 
         if ($queue->status !== 'Serving') {
             return response()->json([
@@ -226,11 +219,14 @@ class CounterController extends Controller
                 'completed_at' => now(),
             ]);
 
-            if ($queue->booking && $queue->booking->user_id) {
-                Notification::create([
-                    'user_id' => $queue->booking->user_id,
-                    'title' => 'Pelayanan Selesai',
-                    'message' => "Pelayanan untuk nomor antrean {$queue->queue_number} telah selesai. Silakan isi ulasan dan berikan feedback Anda di menu Dashboard.",
+            if ($queue->user) {
+                $queue->user->notifications()->create([
+                    'id' => Str::uuid()->toString(),
+                    'type' => 'App\Notifications\QueueFinished',
+                    'data' => [
+                        'title' => 'Pelayanan Selesai',
+                        'message' => "Pelayanan untuk nomor antrean {$queue->queue_number} telah selesai. Silakan isi ulasan dan berikan feedback Anda di menu Dashboard.",
+                    ],
                 ]);
             }
 
@@ -243,15 +239,8 @@ class CounterController extends Controller
             );
         });
 
-        event(new QueueFinished($queue));
-
-        // Kirim email notifikasi (BR-11)
-        if ($queue->booking && $queue->booking->user && $queue->booking->user->email) {
-            try {
-                Mail::to($queue->booking->user->email)->send(new FeedbackRequestMail($queue));
-            } catch (\Throwable $e) {
-                Log::error("SMTP Error: Gagal mengirim email notifikasi ulasan ke {$queue->booking->user->email}. Detil: ".$e->getMessage());
-            }
+        if (class_exists(QueueFinished::class)) {
+            event(new QueueFinished($queue));
         }
 
         return response()->json([
@@ -266,7 +255,9 @@ class CounterController extends Controller
      */
     public function skipQueue(Queue $queue): JsonResponse
     {
-        $this->authorize('manage', $queue);
+        if ($queue->department_id !== Auth::user()->departments_id) {
+            abort(403);
+        }
 
         if ($queue->status !== 'Serving') {
             return response()->json([
@@ -290,7 +281,9 @@ class CounterController extends Controller
             );
         });
 
-        event(new QueueFinished($queue));
+        if (class_exists(QueueFinished::class)) {
+            event(new QueueFinished($queue));
+        }
 
         return response()->json([
             'success' => true,
@@ -306,9 +299,9 @@ class CounterController extends Controller
         $today = Carbon::today();
 
         $updatedQueue = DB::transaction(function () use ($queue, $today) {
-            // Selesaikan antrean Serving lain di loket (cegah stuck)
-            Queue::where('counter_id', $queue->counter_id)
-                ->whereDate('queue_date', $today)
+            // Selesaikan antrean Serving lain di instansi (cegah stuck)
+            Queue::where('department_id', $queue->department_id)
+                ->whereDate('booking_date', $today)
                 ->where('status', 'Serving')
                 ->where('id', '!=', $queue->id)
                 ->update([
@@ -332,8 +325,11 @@ class CounterController extends Controller
             return $queue;
         });
 
-        $loadedQueue = $updatedQueue->load(['counter.department', 'visitor', 'booking.user', 'service']);
-        event(new QueueCalled($loadedQueue));
+        $loadedQueue = $updatedQueue->load(['department']);
+
+        if (class_exists(QueueCalled::class)) {
+            event(new QueueCalled($loadedQueue));
+        }
 
         return response()->json([
             'success' => true,
@@ -343,15 +339,11 @@ class CounterController extends Controller
                 'status' => $loadedQueue->status,
                 'called_at' => $loadedQueue->called_at?->toIso8601String(),
                 'visitor' => [
-                    'name' => $loadedQueue->visitor
-                        ? $loadedQueue->visitor->name
-                        : ($loadedQueue->booking?->user?->name ?? 'Warga'),
-                    'nik' => $loadedQueue->visitor
-                        ? $loadedQueue->visitor->nik
-                        : ($loadedQueue->booking?->user?->nik ?? '-'),
+                    'name' => $loadedQueue->user?->name ?? 'Warga',
+                    'nik' => $loadedQueue->user?->nik ?? '-',
                 ],
                 'service' => [
-                    'name' => $loadedQueue->service?->name ?? 'Layanan Umum',
+                    'name' => $loadedQueue->purpose ?? 'Layanan Umum',
                 ],
             ],
         ]);

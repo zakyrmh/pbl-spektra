@@ -4,26 +4,32 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\SuperAdmin;
 
-use App\Enums\UserRole;
+use App\Data\BoothData;
 use App\Http\Controllers\Controller;
-use App\Models\Counter;
+use App\Http\Requests\SuperAdmin\StoreBoothRequest;
+use App\Http\Requests\SuperAdmin\UpdateBoothRequest;
 use App\Models\Department;
-use App\Models\Service;
 use App\Models\User;
+use App\Services\BoothManagementService;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 /**
- * GeraiLoketController — Halaman Index Konfigurasi Gerai/Loket.
+ * GeraiLoketController — Halaman Index & CRUD Konfigurasi Gerai/Loket.
  *
- * Controller ini hanya bertanggung jawab menampilkan halaman index
- * dengan data aggregate. Operasi CRUD didelegasikan ke:
- *   - SuperAdmin\DepartmentController    (CRUD Gerai)
- *   - SuperAdmin\CounterConfigController (CRUD Loket)
- *   - SuperAdmin\ServiceController       (CRUD Layanan)
+ * Controller ini didelegasikan untuk menampilkan halaman index dengan data aggregate
+ * serta menangani operasi CRUD untuk Booth/Gerai (Department).
  */
 class GeraiLoketController extends Controller
 {
+    protected BoothManagementService $boothService;
+
+    public function __construct(BoothManagementService $boothService)
+    {
+        $this->boothService = $boothService;
+    }
+
     /**
      * Tampilkan halaman dashboard Konfigurasi Gerai / Loket.
      * GET /konfigurasi-gerai-loket
@@ -32,25 +38,54 @@ class GeraiLoketController extends Controller
     {
         $this->authorize('viewAny', User::class);
 
-        // Metrics
-        $totalDepartments = Department::query()->count('*');
-        $totalStaff = User::query()->where('role', UserRole::AdminGerai->value)->count('*');
+        $data = $this->boothService->getBoothConfigIndexData();
 
-        // Data List
-        $departments = Department::query()->withCount(['counters', 'services'])->latest()->get();
-        $counters = Counter::query()->with(['department', 'users', 'services'])->latest()->get();
-        $services = Service::query()->with('department')->latest()->get();
+        return view('super_admin.gerai.index', [
+            'totalDepartments' => $data['totalDepartments'],
+            'totalStaff' => $data['totalStaff'],
+            'departments' => $data['departments'],
+            'officers' => $data['officers'],
+        ]);
+    }
 
-        // Petugas loket untuk form penugasan
-        $officers = User::query()->where('role', UserRole::AdminGerai->value)->get();
+    /**
+     * Simpan Gerai (Department) baru.
+     * POST /konfigurasi-gerai-loket/departments
+     */
+    public function store(StoreBoothRequest $request): RedirectResponse
+    {
+        $dto = BoothData::fromRequest($request);
+        $department = $this->boothService->createBooth($dto);
 
-        return view('super_admin.gerai.index', compact(
-            'totalDepartments',
-            'totalStaff',
-            'departments',
-            'counters',
-            'services',
-            'officers'
-        ));
+        return redirect()->route('config.index', ['tab' => 'gerai'])
+            ->with('success', "Gerai {$department->name} berhasil dibuat.");
+    }
+
+    /**
+     * Perbarui data Gerai.
+     * PUT /konfigurasi-gerai-loket/departments/{department}
+     */
+    public function update(UpdateBoothRequest $request, Department $department): RedirectResponse
+    {
+        $dto = BoothData::fromRequest($request);
+        $this->boothService->updateBooth($department, $dto);
+
+        return redirect()->route('config.index', ['tab' => 'gerai'])
+            ->with('success', "Gerai {$department->name} berhasil diperbarui.");
+    }
+
+    /**
+     * Hapus Gerai.
+     * DELETE /konfigurasi-gerai-loket/departments/{department}
+     */
+    public function destroy(Department $department): RedirectResponse
+    {
+        $this->authorize('viewAny', User::class);
+
+        $name = $department->name;
+        $this->boothService->deleteBooth($department);
+
+        return redirect()->route('config.index', ['tab' => 'gerai'])
+            ->with('success', "Gerai {$name} berhasil dihapus.");
     }
 }

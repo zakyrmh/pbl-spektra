@@ -162,7 +162,7 @@
                         <select id="selWalkInDept" onchange="onWalkInDeptChange()" class="w-full h-11 bg-surface-soft dark:bg-surface-dark border border-hairline dark:border-white/10 text-ink dark:text-white rounded-md px-3 font-semibold focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-accent-teal cursor-pointer">
                             <option value="">-- Pilih Instansi --</option>
                             @foreach($departments as $dept)
-                                <option value="{{ $dept->id }}" data-services="{{ json_encode($dept->counters->pluck('name')) }}">{{ $dept->name }}</option>
+                                <option value="{{ $dept->id }}" data-services="{{ json_encode([$dept->name]) }}">{{ $dept->name }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -217,16 +217,16 @@
                     @forelse($recentQueues as $q)
                         <tr class="hover:bg-surface-soft/50 dark:hover:bg-white/5 transition-colors">
                             <td class="py-3 px-6 font-bold text-ink dark:text-white">
-                                {{ $q->booking?->user?->name ?? $q->visitor?->name ?? 'Walk-In Citizen' }}
+                                {{ $q->user?->name ?? 'Walk-In Citizen' }}
                             </td>
                             <td class="py-3 px-4 font-mono font-bold text-primary dark:text-accent-teal">
                                 {{ $q->queue_number }}
                             </td>
                             <td class="py-3 px-4 font-medium text-muted dark:text-on-dark-soft">
-                                {{ $q->service?->department?->name ?? $q->counter?->department?->name ?? '-' }}
+                                {{ $q->department?->name ?? '-' }}
                             </td>
                             <td class="py-3 px-4 text-muted dark:text-on-dark-soft">
-                                {{ $q->booking_id ? 'Online Booking' : 'Walk-In (Tiket Mandiri)' }}
+                                {{ ($q->checked_in_at && $q->created_at->diffInSeconds($q->checked_in_at) > 5) ? 'Online Booking' : 'Walk-In (Tiket Mandiri)' }}
                             </td>
                             <td class="py-3 px-4 font-mono text-muted dark:text-on-dark-soft">
                                 {{ $q->created_at->format('H:i') }}

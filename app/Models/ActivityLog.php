@@ -68,6 +68,14 @@ class ActivityLog extends Model
         return $this->morphTo('subject');
     }
 
+    /**
+     * Accessor untuk keselarasan dengan attribute lama action.
+     */
+    public function getActionAttribute(): ?string
+    {
+        return $this->event;
+    }
+
     // ──────────────────────────────────────────────────
     // Static Helper
     // ──────────────────────────────────────────────────

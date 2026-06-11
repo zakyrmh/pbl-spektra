@@ -181,18 +181,18 @@
                     <tbody class="divide-y divide-hairline dark:divide-white/15">
                         @forelse ($queues as $index => $q)
                             @php
-                                $name = $q->visitor ? $q->visitor->name : ($q->booking?->user?->name ?? '-');
-                                $nik = $q->visitor ? $q->visitor->nik : ($q->booking?->user?->nik ?? '-');
-                                $deptName = $q->service?->department?->name ?? '-';
+                                $name = $q->user?->name ?? '-';
+                                $nik = $q->user?->nik ?? '-';
+                                $deptName = $q->department?->name ?? '-';
                             @endphp
                             <tr class="hover:bg-surface-soft/40 dark:hover:bg-white/2 transition-colors text-sm">
                                 <td class="py-3.5 px-4 text-ink dark:text-white font-mono font-medium">{{ $queues->firstItem() + $index }}</td>
-                                <td class="py-3.5 px-4 text-muted dark:text-on-dark-soft font-body whitespace-nowrap">{{ $q->queue_date instanceof \Carbon\Carbon ? $q->queue_date->format('d-m-Y') : (string) $q->queue_date }}</td>
+                                <td class="py-3.5 px-4 text-muted dark:text-on-dark-soft font-body whitespace-nowrap">{{ $q->booking_date instanceof \Carbon\Carbon ? $q->booking_date->format('d-m-Y') : (string) $q->booking_date }}</td>
                                 <td class="py-3.5 px-4 font-bold text-primary dark:text-accent-teal font-mono">{{ $q->queue_number }}</td>
                                 <td class="py-3.5 px-4 text-muted dark:text-on-dark-soft font-mono">{{ $nik }}</td>
                                 <td class="py-3.5 px-4 font-semibold text-ink dark:text-white font-display">{{ $name }}</td>
                                 <td class="py-3.5 px-4 text-muted dark:text-on-dark-soft font-body">{{ $deptName }}</td>
-                                <td class="py-3.5 px-4 text-muted dark:text-on-dark-soft font-body">{{ $q->service?->name ?? '-' }}</td>
+                                <td class="py-3.5 px-4 text-muted dark:text-on-dark-soft font-body">{{ $q->purpose ?? '-' }}</td>
                                 <td class="py-3.5 px-4 text-muted dark:text-on-dark-soft font-mono whitespace-nowrap">{{ $q->called_at ? \Carbon\Carbon::parse($q->called_at)->format('H:i:s') : '—' }}</td>
                                 <td class="py-3.5 px-4 text-muted dark:text-on-dark-soft font-mono whitespace-nowrap">{{ $q->completed_at ? \Carbon\Carbon::parse($q->completed_at)->format('H:i:s') : '—' }}</td>
                             </tr>

@@ -1,3 +1,6 @@
+@php
+    $schedules = $schedules ?? collect();
+@endphp
 @if(isset($isStatsDashboard) && $isStatsDashboard)
 <div class="space-y-6 pb-16">
     {{-- Header Banner --}}
@@ -119,7 +122,7 @@
                     <tbody class="divide-y divide-hairline dark:divide-white/10 text-body-sm text-ink dark:text-on-dark-soft">
                         @forelse($schedules as $sched)
                             <tr class="hover:bg-black/2 dark:hover:bg-white/2 transition-colors">
-                                <td class="p-4 font-semibold">{{ $sched->service ? $sched->service->name : '-' }}</td>
+                                <td class="p-4 font-semibold">{{ $sched->purpose ?? '-' }}</td>
                                 <td class="p-4 font-mono font-bold">{{ $sched->session_name }}</td>
                                 <td class="p-4">
                                     <div class="flex items-center gap-2">
@@ -458,10 +461,13 @@
                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
             </svg>
         </div>
-        <h1 class="text-2xl font-bold text-ink dark:text-white font-display">Loket Belum Ditugaskan</h1>
-        <p class="text-muted dark:text-on-dark-soft max-w-md font-body">Akun Anda belum ditugaskan ke loket (counter) mana pun. Silakan hubungi Super Admin untuk memetakan akun Anda ke loket gerai pelayanan.</p>
+        <h1 class="text-2xl font-bold text-ink dark:text-white font-display">Gerai/Instansi Belum Ditugaskan</h1>
+        <p class="text-muted dark:text-on-dark-soft max-w-md font-body">Akun Anda belum ditugaskan ke instansi gerai mana pun. Silakan hubungi Super Admin untuk memetakan akun Anda ke instansi pelayanan.</p>
     </div>
 @else
+@php
+    $status = \Illuminate\Support\Facades\Cache::get("loket_status_{$department->id}", 'aktif');
+@endphp
 <div class="space-y-6 pb-16">
     <!-- Header Banner -->
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-canvas dark:bg-surface-dark-elevated p-6 rounded-lg border border-hairline dark:border-white/10 shadow-sm">
@@ -472,11 +478,11 @@
                     $dotClass = 'bg-green-500';
                     $statusLabel = 'Loket Buka (Aktif)';
 
-                    if ($counter->status === 'istirahat') {
+                    if ($status === 'istirahat') {
                         $badgeClass = 'bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 border border-amber-200/50';
                         $dotClass = 'bg-amber-500';
                         $statusLabel = 'Loket Istirahat';
-                    } elseif ($counter->status === 'nonaktif') {
+                    } elseif ($status === 'nonaktif') {
                         $badgeClass = 'bg-rose-50 dark:bg-rose-900/20 text-rose-700 dark:text-rose-400 border border-rose-200/50';
                         $dotClass = 'bg-rose-500';
                         $statusLabel = 'Loket Tutup';
@@ -486,11 +492,11 @@
                     <span class="w-1.5 h-1.5 rounded-full {{ $dotClass }}" id="loketStatusDot"></span>
                     <span id="loketStatusText">{{ $statusLabel }}</span>
                 </span>
-                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold transition-all {{ $counter->department->is_open ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 border border-green-200/50' : 'bg-rose-50 dark:bg-rose-900/20 text-rose-700 dark:text-rose-400 border border-rose-200/50' }}" id="instansiStatusBadge">
-                    <span class="w-1.5 h-1.5 rounded-full {{ $counter->department->is_open ? 'bg-green-500' : 'bg-rose-500' }}" id="instansiStatusDot"></span>
-                    <span id="instansiStatusText">Instansi: {{ $counter->department->is_open ? 'Buka' : 'Tutup' }}</span>
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold transition-all {{ $department->is_open ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 border border-green-200/50' : 'bg-rose-50 dark:bg-rose-900/20 text-rose-700 dark:text-rose-400 border border-rose-200/50' }}" id="instansiStatusBadge">
+                    <span class="w-1.5 h-1.5 rounded-full {{ $department->is_open ? 'bg-green-500' : 'bg-rose-500' }}" id="instansiStatusDot"></span>
+                    <span id="instansiStatusText">Instansi: {{ $department->is_open ? 'Buka' : 'Tutup' }}</span>
                 </span>
-                <span class="text-xs text-muted dark:text-on-dark-soft font-semibold font-display">Loket {{ $counter->name }} — {{ $counter->department->name }}</span>
+                <span class="text-xs text-muted dark:text-on-dark-soft font-semibold font-display">Loket {{ $department->nomor_loket }} — {{ $department->name }}</span>
             </div>
             <h2 class="text-2xl font-bold text-ink dark:text-white mt-2 font-display">Papan Panggil & Layanan Gerai</h2>
             <p class="text-sm text-muted dark:text-on-dark-soft font-body">Panggil nomor antrean, verifikasi berkas fisik, dan selesaikan pelayanan warga.</p>
@@ -500,8 +506,8 @@
             <div class="flex items-center gap-2">
                 <span class="text-xs text-muted dark:text-on-dark-soft font-semibold font-display">Status Instansi:</span>
                 <div class="inline-flex rounded-lg border border-hairline dark:border-white/10 p-1 bg-surface-soft dark:bg-white/5">
-                    <button type="button" onclick="toggleInstansiStatus()" id="btnInstansiStatus" class="px-3 py-1.5 text-xs font-bold rounded-md transition-all focus-visible:outline-none cursor-pointer {{ $counter->department->is_open ? 'bg-canvas dark:bg-surface-dark-elevated text-green-600 dark:text-green-400 shadow-xs' : 'bg-canvas dark:bg-surface-dark-elevated text-rose-600 dark:text-rose-400 shadow-xs' }}">
-                        {{ $counter->department->is_open ? 'BUKA (Aktif)' : 'TUTUP (Terkunci)' }}
+                    <button type="button" onclick="toggleInstansiStatus()" id="btnInstansiStatus" class="px-3 py-1.5 text-xs font-bold rounded-md transition-all focus-visible:outline-none cursor-pointer {{ $department->is_open ? 'bg-canvas dark:bg-surface-dark-elevated text-green-600 dark:text-green-400 shadow-xs' : 'bg-canvas dark:bg-surface-dark-elevated text-rose-600 dark:text-rose-400 shadow-xs' }}">
+                        {{ $department->is_open ? 'BUKA (Aktif)' : 'TUTUP (Terkunci)' }}
                     </button>
                 </div>
             </div>
@@ -510,9 +516,9 @@
             <div class="flex items-center gap-2">
                 <span class="text-xs text-muted dark:text-on-dark-soft font-semibold font-display">Status Loket:</span>
                 <div class="inline-flex rounded-lg border border-hairline dark:border-white/10 p-1 bg-surface-soft dark:bg-white/5">
-                    <button type="button" onclick="setLoketStatus('aktif')" id="btnStatusBuka" class="px-3 py-1.5 text-xs font-bold rounded-md transition-all focus-visible:outline-none cursor-pointer {{ $counter->status === 'aktif' ? 'bg-canvas dark:bg-surface-dark-elevated text-green-600 dark:text-green-400 shadow-xs' : 'text-muted dark:text-on-dark-soft hover:bg-canvas/50 dark:hover:bg-white/5' }}">Buka</button>
-                    <button type="button" onclick="setLoketStatus('istirahat')" id="btnStatusIstirahat" class="px-3 py-1.5 text-xs font-bold rounded-md transition-all focus-visible:outline-none cursor-pointer {{ $counter->status === 'istirahat' ? 'bg-canvas dark:bg-surface-dark-elevated text-amber-600 dark:text-amber-400 shadow-xs' : 'text-muted dark:text-on-dark-soft hover:bg-canvas/50 dark:hover:bg-white/5' }}">Istirahat</button>
-                    <button type="button" onclick="setLoketStatus('nonaktif')" id="btnStatusTutup" class="px-3 py-1.5 text-xs font-bold rounded-md transition-all focus-visible:outline-none cursor-pointer {{ $counter->status === 'nonaktif' ? 'bg-canvas dark:bg-surface-dark-elevated text-rose-600 dark:text-rose-400 shadow-xs' : 'text-muted dark:text-on-dark-soft hover:bg-canvas/50 dark:hover:bg-white/5' }}">Tutup</button>
+                    <button type="button" onclick="setLoketStatus('aktif')" id="btnStatusBuka" class="px-3 py-1.5 text-xs font-bold rounded-md transition-all focus-visible:outline-none cursor-pointer {{ $status === 'aktif' ? 'bg-canvas dark:bg-surface-dark-elevated text-green-600 dark:text-green-400 shadow-xs' : 'text-muted dark:text-on-dark-soft hover:bg-canvas/50 dark:hover:bg-white/5' }}">Buka</button>
+                    <button type="button" onclick="setLoketStatus('istirahat')" id="btnStatusIstirahat" class="px-3 py-1.5 text-xs font-bold rounded-md transition-all focus-visible:outline-none cursor-pointer {{ $status === 'istirahat' ? 'bg-canvas dark:bg-surface-dark-elevated text-amber-600 dark:text-amber-400 shadow-xs' : 'text-muted dark:text-on-dark-soft hover:bg-canvas/50 dark:hover:bg-white/5' }}">Istirahat</button>
+                    <button type="button" onclick="setLoketStatus('nonaktif')" id="btnStatusTutup" class="px-3 py-1.5 text-xs font-bold rounded-md transition-all focus-visible:outline-none cursor-pointer {{ $status === 'nonaktif' ? 'bg-canvas dark:bg-surface-dark-elevated text-rose-600 dark:text-rose-400 shadow-xs' : 'text-muted dark:text-on-dark-soft hover:bg-canvas/50 dark:hover:bg-white/5' }}">Tutup</button>
                 </div>
             </div>
         </div>
@@ -548,7 +554,7 @@
             <!-- Call Control Action Buttons -->
             <div class="mt-8 space-y-3">
                 @php
-                    $isNextDisabled = $counter->status !== 'aktif';
+                    $isNextDisabled = $status !== 'aktif';
                 @endphp
                 <button type="button" onclick="callNextQueue()" id="btnCallNext" {{ $isNextDisabled ? 'disabled' : '' }} class="w-full h-12 font-semibold rounded-pill text-sm transition-all focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-accent-teal cursor-pointer flex items-center justify-center gap-2 shadow-md {{ $isNextDisabled ? 'bg-gray-200 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed' : 'bg-primary hover:bg-primary-hover text-white' }}">
                     <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -587,19 +593,19 @@
                     <div class="grid grid-cols-3 gap-1">
                         <span class="text-muted dark:text-on-dark-soft">Nama Warga:</span>
                         <span id="citizenName" class="col-span-2 font-bold text-ink dark:text-white text-right">
-                            {{ $activeQueue ? ($activeQueue->visitor ? $activeQueue->visitor->name : ($activeQueue->booking && $activeQueue->booking->user ? $activeQueue->booking->user->name : 'Warga')) : '-' }}
+                            {{ $activeQueue ? ($activeQueue->user ? $activeQueue->user->name : 'Warga') : '-' }}
                         </span>
                     </div>
                     <div class="grid grid-cols-3 gap-1">
                         <span class="text-muted dark:text-on-dark-soft">NIK Warga:</span>
                         <span id="citizenNik" class="col-span-2 font-mono text-ink dark:text-white text-right">
-                            {{ $activeQueue ? ($activeQueue->visitor ? $activeQueue->visitor->nik : ($activeQueue->booking && $activeQueue->booking->user ? $activeQueue->booking->user->nik : '-')) : '-' }}
+                            {{ $activeQueue ? ($activeQueue->user ? $activeQueue->user->nik : '-') : '-' }}
                         </span>
                     </div>
                     <div class="grid grid-cols-3 gap-1">
                         <span class="text-muted dark:text-on-dark-soft">Layanan:</span>
                         <span id="citizenService" class="col-span-2 font-bold text-primary dark:text-accent-teal text-right">
-                            {{ $activeQueue ? ($activeQueue->service ? $activeQueue->service->name : 'Layanan Umum') : '-' }}
+                            {{ $activeQueue ? ($activeQueue->purpose ?? 'Layanan Umum') : '-' }}
                         </span>
                     </div>
                 </div>
@@ -611,7 +617,7 @@
                     <div class="space-y-2" id="documentChecklist">
                         @if($activeQueue)
                             @php
-                                $serviceName = strtolower($activeQueue->service ? $activeQueue->service->name : '');
+                                $serviceName = strtolower($activeQueue->purpose ?? '');
                                 $docs = ['KTP Asli / NIK Pengunjung', 'Berkas Persyaratan Layanan Utama'];
                                 if (str_contains($serviceName, 'kk') || str_contains($serviceName, 'keluarga')) {
                                     $docs = ['Fotokopi Kartu Keluarga (KK)', 'Surat Pengantar RT/RW Keterangan Rusak/Hilang', 'KTP Asli Pemohon'];
@@ -688,14 +694,14 @@
                             <tr class="hover:bg-surface-soft/50 dark:hover:bg-white/5 transition-colors" data-skipped-ticket="{{ $sq->queue_number }}">
                                 <td class="py-3 px-4 font-mono font-bold text-status-skipped">{{ $sq->queue_number }}</td>
                                 <td class="py-3 px-4 text-ink dark:text-white font-medium">
-                                    {{ $sq->visitor ? $sq->visitor->name : ($sq->booking && $sq->booking->user ? $sq->booking->user->name : 'Warga') }}
+                                    {{ $sq->user ? $sq->user->name : 'Warga' }}
                                 </td>
                                 <td class="py-3 px-4 text-muted dark:text-on-dark-soft">
-                                    {{ $sq->service ? $sq->service->name : 'Layanan Umum' }}
+                                    {{ $sq->purpose }}
                                 </td>
                                 <td class="py-3 px-4 text-status-skipped font-bold">Terlewat</td>
                                 <td class="py-3 px-4 text-center">
-                                    <button type="button" onclick="recallSkipped({{ $sq->id }}, '{{ $sq->queue_number }}', '{{ $sq->visitor ? $sq->visitor->name : ($sq->booking && $sq->booking->user ? $sq->booking->user->name : 'Warga') }}', '{{ $sq->service ? $sq->service->name : 'Layanan Umum' }}')" class="px-3 py-1.5 bg-primary/10 hover:bg-primary text-primary hover:text-white dark:text-accent-teal dark:hover:text-white dark:bg-accent-teal/10 rounded-md font-bold transition-all focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-accent-teal cursor-pointer">
+                                    <button type="button" onclick="recallSkipped({{ $sq->id }}, '{{ $sq->queue_number }}', '{{ $sq->user ? $sq->user->name : 'Warga' }}', '{{ $sq->purpose }}')" class="px-3 py-1.5 bg-primary/10 hover:bg-primary text-primary hover:text-white dark:text-accent-teal dark:hover:text-white dark:bg-accent-teal/10 rounded-md font-bold transition-all focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-accent-teal cursor-pointer">
                                         Panggil Balik
                                     </button>
                                 </td>
@@ -726,17 +732,17 @@
     let geraiState = {
         currentNumber: {{ $activeQueue ? (int)preg_replace('/[^0-9]/', '', $activeQueue->queue_number) : 0 }},
         remainingQueues: {{ $remainingCount }},
-        status: '{{ $counter->status }}', // 'aktif', 'istirahat', 'nonaktif'
+        status: '{{ $status }}', // 'aktif', 'istirahat', 'nonaktif'
         activeQueueId: {{ $activeQueue ? $activeQueue->id : 'null' }},
         queueList: [
             @foreach($waitingQueues as $q)
             {
                 id: {{ $q->id }},
                 code: '{{ $q->queue_number }}',
-                name: '{{ $q->visitor ? $q->visitor->name : ($q->booking && $q->booking->user ? $q->booking->user->name : "Warga") }}',
-                nik: '{{ $q->visitor ? $q->visitor->nik : ($q->booking && $q->booking->user ? $q->booking->user->nik : "-") }}',
-                service: '{{ $q->service ? $q->service->name : "Layanan Umum" }}',
-                docs: {!! $q->service && str_contains(strtolower($q->service->name), 'kk') ? '["KK", "Pengantar"]' : ( $q->service && str_contains(strtolower($q->service->name), 'ktp') ? '["KK", "Pengantar", "KTP Lama"]' : '["KTP Lama"]') !!}
+                name: '{{ $q->user ? $q->user->name : "Warga" }}',
+                nik: '{{ $q->user ? $q->user->nik : "-" }}',
+                service: '{{ $q->purpose }}',
+                docs: {!! $q->purpose && str_contains(strtolower($q->purpose), 'kk') ? '["KK", "Pengantar"]' : ( $q->purpose && str_contains(strtolower($q->purpose), 'ktp') ? '["KK", "Pengantar", "KTP Lama"]' : '["KTP Lama"]') !!}
             },
             @endforeach
         ]
@@ -899,14 +905,14 @@
                 // Update DOM
                 document.getElementById('activeCallNumber').innerText = q.queue_number;
                 document.getElementById('activeCallStatus').innerText = 'Sedang Dilayani';
-                document.getElementById('citizenName').innerText = q.visitor.name;
-                document.getElementById('citizenNik').innerText = q.visitor.nik;
-                document.getElementById('citizenService').innerText = q.service.name;
+                document.getElementById('citizenName').innerText = q.user ? q.user.name : 'Warga';
+                document.getElementById('citizenNik').innerText = q.user ? q.user.nik : '-';
+                document.getElementById('citizenService').innerText = q.purpose || '';
                 document.getElementById('geraiStatRemaining').innerText = geraiState.remainingQueues;
 
                 // Tentukan checklist dokumen dinamis
                 let docs = ['KTP Asli / NIK Pengunjung', 'Berkas Persyaratan Layanan Utama'];
-                const sName = q.service.name.toLowerCase();
+                const sName = (q.purpose || '').toLowerCase();
                 if (sName.includes('kk') || sName.includes('keluarga')) {
                     docs = ['Fotokopi Kartu Keluarga (KK)', 'Surat Pengantar RT/RW Keterangan Rusak/Hilang', 'KTP Asli Pemohon'];
                 } else if (sName.includes('ktp') || sName.includes('identitas')) {
@@ -916,7 +922,7 @@
                 }
                 resetChecklist(docs);
 
-                createToast('Panggilan Sukses', `Memanggil nomor ${q.queue_number} (${q.visitor.name}) ke Loket.`, 'success');
+                createToast('Panggilan Sukses', `Memanggil nomor ${q.queue_number} (${q.user ? q.user.name : 'Warga'}) ke Loket.`, 'success');
             } else {
                 createToast('Antrean Kosong', data.message || 'Tidak ada antrean tersisa.', 'warning');
             }
@@ -1092,9 +1098,9 @@
                 // Update DOM active display
                 document.getElementById('activeCallNumber').innerText = q.queue_number;
                 document.getElementById('activeCallStatus').innerText = 'Sedang Dilayani';
-                document.getElementById('citizenName').innerText = q.visitor.name;
-                document.getElementById('citizenNik').innerText = q.visitor.nik;
-                document.getElementById('citizenService').innerText = q.service.name;
+                document.getElementById('citizenName').innerText = q.user ? q.user.name : 'Warga';
+                document.getElementById('citizenNik').innerText = q.user ? q.user.nik : '-';
+                document.getElementById('citizenService').innerText = q.purpose || '';
 
                 // Hapus baris dari skipped table
                 const row = document.querySelector(`tr[data-skipped-ticket="${q.queue_number}"]`);
@@ -1113,7 +1119,7 @@
 
                 // Tentukan checklist dokumen
                 let docs = ['KTP Asli / NIK Pengunjung', 'Berkas Persyaratan Layanan Utama'];
-                const sName = q.service.name.toLowerCase();
+                const sName = (q.purpose || '').toLowerCase();
                 if (sName.includes('kk') || sName.includes('keluarga')) {
                     docs = ['Fotokopi Kartu Keluarga (KK)', 'Surat Pengantar RT/RW Keterangan Rusak/Hilang', 'KTP Asli Pemohon'];
                 } else if (sName.includes('ktp') || sName.includes('identitas')) {
@@ -1123,7 +1129,7 @@
                 }
                 resetChecklist(docs);
 
-                createToast('Panggil Balik', `Memanggil kembali warga terlewat: ${q.queue_number} (${q.visitor.name})`, 'success');
+                createToast('Panggil Balik', `Memanggil kembali warga terlewat: ${q.queue_number} (${q.user ? q.user.name : 'Warga'})`, 'success');
             } else {
                 createToast('Gagal', data.message || 'Gagal memanggil balik.', 'warning');
             }

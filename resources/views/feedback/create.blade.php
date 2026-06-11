@@ -30,7 +30,7 @@
             <div class="text-right">
                 <span class="text-[10px] font-bold text-muted dark:text-on-dark-soft uppercase tracking-widest font-display">TANGGAL</span>
                 <p class="text-sm font-semibold text-ink dark:text-white mt-1 font-body">
-                    {{ $queue->queue_date ? $queue->queue_date->format('d M Y') : '-' }}
+                    {{ $queue->booking_date ? $queue->booking_date->format('d M Y') : '-' }}
                 </p>
             </div>
         </div>
@@ -39,13 +39,13 @@
             <div>
                 <span class="text-muted dark:text-on-dark-soft block">Instansi</span>
                 <span class="font-bold text-ink dark:text-white mt-0.5 block">
-                    {{ ($queue->counter && $queue->counter->department) ? $queue->counter->department->name : '-' }}
+                    {{ $queue->department ? $queue->department->name : '-' }}
                 </span>
             </div>
             <div>
-                <span class="text-muted dark:text-on-dark-soft block">Layanan</span>
+                <span class="text-muted dark:text-on-dark-soft block">Layanan / Keperluan</span>
                 <span class="font-bold text-ink dark:text-white mt-0.5 block">
-                    {{ $queue->service ? $queue->service->name : '-' }}
+                    {{ $queue->purpose ?? '-' }}
                 </span>
             </div>
         </div>

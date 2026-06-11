@@ -100,11 +100,9 @@
                 <label for="service_id" class="block text-title-sm font-semibold text-ink dark:text-white mb-2">Jenis Layanan</label>
                 <select id="service_id" 
                         name="service_id"
-                        class="w-full text-body-md bg-canvas dark:bg-white/5 border border-hairline dark:border-white/15 text-ink dark:text-white rounded-md px-4 h-12 focus:outline-none focus:border-primary dark:focus:border-accent-teal focus:ring-3 focus:ring-primary/12 dark:focus:ring-accent-teal/20 transition-all">
+                        disabled
+                        class="w-full text-body-md bg-canvas dark:bg-white/5 border border-hairline dark:border-white/15 text-muted dark:text-on-dark-soft rounded-md px-4 h-12 focus:outline-none cursor-not-allowed opacity-50">
                     <option value="">Semua Layanan</option>
-                    @foreach($services as $srv)
-                        <option value="{{ $srv->id }}" {{ request('service_id') == $srv->id ? 'selected' : '' }}>{{ $srv->name }}</option>
-                    @endforeach
                 </select>
             </div>
 
@@ -164,7 +162,7 @@
                                 {{ $booking->purpose ?? '—' }}
                             </td>
                             <td class="p-4">
-                                {{ $booking->service ? $booking->service->name : '-' }}
+                                {{ $booking->department ? $booking->department->name : '-' }}
                             </td>
                             <td class="p-4 whitespace-nowrap">
                                 {{ $booking->checked_in_at ? $booking->checked_in_at->format('H:i:s') : '—' }}

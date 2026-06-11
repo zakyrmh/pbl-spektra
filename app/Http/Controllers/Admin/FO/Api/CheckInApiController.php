@@ -11,7 +11,7 @@ use App\Models\Booking;
 use App\Models\Counter;
 use App\Models\Queue;
 use App\Models\Service;
-use App\Models\Visitor;
+use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -217,7 +217,7 @@ class CheckInApiController extends Controller
             return response()->json(['message' => 'Format NIK tidak valid.'], 400);
         }
 
-        $visitor = Visitor::where('nik', $nik)->first();
+        $visitor = User::where('nik', $nik)->first();
 
         if ($visitor) {
             return response()->json([

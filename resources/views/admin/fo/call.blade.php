@@ -105,10 +105,10 @@
                 @if ($currentQueue)
                     <div class="mt-4 flex flex-col items-center">
                         <span class="text-sm font-semibold text-ink dark:text-white font-body">
-                            {{ $currentQueue->visitor ? $currentQueue->visitor->name : ($currentQueue->booking ? $currentQueue->booking->user->name : 'Pengunjung Walk-In') }}
+                            {{ $currentQueue->user ? $currentQueue->user->name : 'Pengunjung Walk-In' }}
                         </span>
                         <span class="text-xs text-muted dark:text-on-dark-soft mt-1 font-body">
-                            Tujuan: {{ $currentQueue->service ? $currentQueue->service->name : 'Layanan Informasi' }}
+                            Tujuan: {{ $currentQueue->purpose ?? 'Layanan Informasi' }}
                         </span>
                     </div>
                 @else
@@ -168,7 +168,7 @@
                     @if ($nextQueue)
                         <h4 class="text-4xl font-extrabold text-ink dark:text-white mt-2 font-mono tracking-tight">{{ $nextQueue->queue_number }}</h4>
                         <p class="text-xs font-bold text-primary dark:text-accent-teal mt-1 font-body">
-                            {{ $nextQueue->visitor ? $nextQueue->visitor->name : ($nextQueue->booking ? $nextQueue->booking->user->name : 'Pengunjung Walk-In') }}
+                            {{ $nextQueue->user ? $nextQueue->user->name : 'Pengunjung Walk-In' }}
                         </p>
                         <p class="text-[10px] text-muted mt-0.5 font-body">Estimasi tunggu: ~{{ rand(5, 15) }} mnt</p>
                     @else
@@ -220,13 +220,13 @@
                         <tr class="hover:bg-surface-soft/30 dark:hover:bg-white/5 transition-colors @if($q->status === 'Serving') bg-primary/5 dark:bg-accent-teal/5 border-l-4 border-primary dark:border-accent-teal @endif">
                             <td class="py-3 px-6 font-mono font-bold text-ink dark:text-white">{{ $q->queue_number }}</td>
                             <td class="py-3 px-6 font-bold text-ink dark:text-white">
-                                {{ $q->visitor ? $q->visitor->name : ($q->booking ? $q->booking->user->name : 'Walk-In') }}
+                                {{ $q->user ? $q->user->name : 'Walk-In' }}
                             </td>
                             <td class="py-3 px-4 font-medium text-muted dark:text-on-dark-soft">
-                                {{ $q->service ? $q->service->name : 'Umum' }}
+                                {{ $q->purpose }}
                             </td>
                             <td class="py-3 px-4 text-muted dark:text-on-dark-soft">
-                                {{ $q->booking_id ? 'Online Booking' : 'Walk-In' }}
+                                {{ ($q->checked_in_at && $q->created_at->diffInSeconds($q->checked_in_at) > 5) ? 'Online Booking' : 'Walk-In' }}
                             </td>
                             <td class="py-3 px-4 font-mono text-muted dark:text-on-dark-soft">
                                 {{ $q->called_at ? Carbon\Carbon::parse($q->called_at)->format('H:i:s') : '-' }}
@@ -245,7 +245,7 @@
                                         <span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-full text-[10px] font-bold border border-emerald-500/20">
                                             <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>Selesai
                                         </span>
-                                        @if ($q->booking_id === null && !$q->feedback)
+                                        @if (!$q->feedback)
                                             <a href="{{ route('feedback.create', ['queue_id' => $q->id]) }}" class="inline-flex items-center gap-1 px-2.5 py-1 bg-primary/10 text-primary dark:text-accent-teal hover:bg-primary/20 rounded-full text-[10px] font-bold transition-all">
                                                 Tulis Ulasan
                                             </a>

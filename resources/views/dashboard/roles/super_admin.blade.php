@@ -209,7 +209,7 @@
                                 $allQueues = $dept->queues;
 
                                 $inisial         = $dept->inisial ?: substr($dept->name, 0, 6);
-                                $waitingCountRow  = $allQueues->where('status', 'Waiting')->count();
+                                $waitingCountRow  = $allQueues->where('status', 'Checked-In')->count();
                                 $servingCountRow  = $allQueues->where('status', 'Serving')->count();
                                 $totalLiveAntrean = $waitingCountRow + $servingCountRow;
 
@@ -240,29 +240,36 @@
                                     $statusLabel = 'Padat';
                                     $statusClass = 'bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400 border border-rose-200/50';
                                     $dotClass    = 'bg-rose-500 animate-pulse';
-                                } elseif ($totalLiveAntrean >= 4) {
-                                    $statusLabel = 'Lancar';
-                                    $statusClass = 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 border border-emerald-200/50';
-                                    $dotClass    = 'bg-emerald-500';
-                                } else {
-                                    $statusLabel = 'Kosong';
-                                    $statusClass = 'bg-surface-soft dark:bg-white/5 text-muted dark:text-on-dark-soft border border-hairline dark:border-white/5';
-                                    $dotClass    = 'bg-muted';
-                                }
-                            @endphp
-                            <tr data-instansi="{{ $dept->name }}" class="hover:bg-surface-soft/50 dark:hover:bg-white/5 transition-colors">
-                                <td class="py-4 px-6 font-bold text-ink dark:text-white">
-                                    <div class="flex items-center gap-3 font-display">
-                                        <div class="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-bold text-xs shrink-0 border border-primary/20">
-                                            {{ strtoupper($inisial) }}
-                                        </div>
-                                        <span>{{ $dept->name }}</span>
-                                    </div>
-                                </td>
-                                <td class="py-4 px-4 font-medium text-muted dark:text-on-dark-soft font-body">{{ $dept->counters->where('status', 'aktif')->count() }} Loket</td>
-                                <td class="py-4 px-4 font-bold text-ink dark:text-white font-mono">
-                                    <span class="queue-count">{{ $totalLiveAntrean }}</span> <span class="text-xs font-normal text-muted">orang</span>
-                                </td>
+                                  } elseif ($totalLiveAntrean >= 4) {
+                                      $statusLabel = 'Lancar';
+                                      $statusClass = 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 border border-emerald-200/50';
+                                      $dotClass    = 'bg-emerald-500';
+                                  } else {
+                                      $statusLabel = 'Kosong';
+                                      $statusClass = 'bg-surface-soft dark:bg-white/5 text-muted dark:text-on-dark-soft border border-hairline dark:border-white/5';
+                                      $dotClass    = 'bg-muted';
+                                  }
+                              @endphp
+                              <tr data-instansi="{{ $dept->name }}" class="hover:bg-surface-soft/50 dark:hover:bg-white/5 transition-colors">
+                                  <td class="py-4 px-6 font-bold text-ink dark:text-white">
+                                      <div class="flex items-center gap-3 font-display">
+                                          <div class="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-bold text-xs shrink-0 border border-primary/20">
+                                              {{ strtoupper($inisial) }}
+                                          </div>
+                                          <span>{{ $dept->name }}</span>
+                                      </div>
+                                  </td>
+                                  <td class="py-4 px-4 font-medium text-muted dark:text-on-dark-soft font-body">
+                                      Loket {{ $dept->nomor_loket }}
+                                      @if($dept->is_open)
+                                          <span class="text-[10px] bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 px-1.5 py-0.5 rounded border border-green-200/30">Aktif</span>
+                                      @else
+                                          <span class="text-[10px] bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400 px-1.5 py-0.5 rounded border border-rose-200/30">Tutup</span>
+                                      @endif
+                                  </td>
+                                  <td class="py-4 px-4 font-bold text-ink dark:text-white font-mono">
+                                      <span class="queue-count">{{ $totalLiveAntrean }}</span> <span class="text-xs font-normal text-muted">orang</span>
+                                  </td>
                                 <td class="py-4 px-4 font-body">
                                     @if ($avgServiceTime !== null)
                                         <span class="text-muted dark:text-on-dark-soft">

@@ -89,9 +89,8 @@ test('user can update profile and upload photos successfully', function () {
     expect($user->avatar_path)->not->toBeNull();
     expect($user->ktp_photo_path)->not->toBeNull();
 
-    // Menggunakan asersi aseli Laravel testing agar Intelephense tidak error nyari method disk
-    test()->assertStorageExists('public/'.$user->avatar_path);
-    test()->assertStorageExists('public/'.$user->ktp_photo_path);
+    Storage::disk('public')->assertExists($user->avatar_path);
+    Storage::disk('public')->assertExists($user->ktp_photo_path);
 
     // Menggunakan query() agar Intelephense tidak menduga fungsi internal php queue
     $log = ActivityLog::query()->where('event', 'user_updated')->first();

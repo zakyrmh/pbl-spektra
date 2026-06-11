@@ -100,7 +100,7 @@
             <p style="color: #29ABE2; margin: 4px 0 0; font-weight: bold; font-size: 14px;">KOTA SAWAHLUNTO</p>
         </div>
         <div class="content">
-            <p>Halo, <strong>{{ $queue->booking && $queue->booking->user ? $queue->booking->user->name : 'Pengunjung' }}</strong>.</p>
+            <p>Halo, <strong>{{ $queue->user ? $queue->user->name : 'Pengunjung' }}</strong>.</p>
             <p>Terima kasih telah berkunjung ke Mal Pelayanan Publik Kota Sawahlunto. Pelayanan Anda pada hari ini telah selesai diproses.</p>
             
             <div class="ticket-info">
@@ -111,19 +111,19 @@
                     </tr>
                     <tr>
                         <td class="label">Loket Pelayanan</td>
-                        <td class="value">{{ $queue->counter ? $queue->counter->name : '-' }}</td>
+                        <td class="value">Loket {{ $queue->department ? $queue->department->nomor_loket : '-' }}</td>
                     </tr>
                     <tr>
                         <td class="label">Instansi</td>
-                        <td class="value">{{ ($queue->counter && $queue->counter->department) ? $queue->counter->department->name : '-' }}</td>
+                        <td class="value">{{ $queue->department ? $queue->department->name : '-' }}</td>
                     </tr>
                     <tr>
                         <td class="label">Layanan</td>
-                        <td class="value">{{ $queue->service ? $queue->service->name : '-' }}</td>
+                        <td class="value">{{ $queue->purpose ?? '-' }}</td>
                     </tr>
                     <tr>
                         <td class="label">Tanggal Kunjungan</td>
-                        <td class="value">{{ $queue->queue_date ? $queue->queue_date->format('d M Y') : '-' }}</td>
+                        <td class="value">{{ $queue->booking_date ? $queue->booking_date->format('d M Y') : '-' }}</td>
                     </tr>
                 </table>
             </div>

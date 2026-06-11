@@ -19,10 +19,7 @@ use App\Http\Controllers\Public\NotificationController;
 use App\Http\Controllers\Public\ProfileController;
 use App\Http\Controllers\Public\PublicController;
 use App\Http\Controllers\Public\QueueMonitorController;
-use App\Http\Controllers\SuperAdmin\CounterConfigController;
-use App\Http\Controllers\SuperAdmin\DepartmentController;
 use App\Http\Controllers\SuperAdmin\GeraiLoketController;
-use App\Http\Controllers\SuperAdmin\ServiceController;
 use App\Http\Controllers\SuperAdmin\SessionManagementController;
 use App\Http\Controllers\SuperAdmin\SettingController;
 use App\Http\Controllers\SuperAdmin\UserController;
@@ -130,20 +127,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/konfigurasi-gerai-loket', [GeraiLoketController::class, 'index'])->name('config.index');
 
         // CRUD Gerai (Department)
-        Route::post('/konfigurasi-gerai-loket/departments', [DepartmentController::class, 'store'])->name('config.departments.store');
-        Route::put('/konfigurasi-gerai-loket/departments/{department}', [DepartmentController::class, 'update'])->name('config.departments.update');
-        Route::delete('/konfigurasi-gerai-loket/departments/{department}', [DepartmentController::class, 'destroy'])->name('config.departments.destroy');
-
-        // CRUD Loket (Counter)
-        Route::post('/konfigurasi-gerai-loket/counters', [CounterConfigController::class, 'store'])->name('config.counters.store');
-        Route::put('/konfigurasi-gerai-loket/counters/{counter}', [CounterConfigController::class, 'update'])->name('config.counters.update');
-        Route::delete('/konfigurasi-gerai-loket/counters/{counter}', [CounterConfigController::class, 'destroy'])->name('config.counters.destroy');
-        Route::patch('/konfigurasi-gerai-loket/counters/{counter}/status', [CounterConfigController::class, 'toggleStatus'])->name('config.counters.toggle-status');
-
-        // CRUD Layanan (Service)
-        Route::post('/konfigurasi-gerai-loket/services', [ServiceController::class, 'store'])->name('config.services.store');
-        Route::put('/konfigurasi-gerai-loket/services/{service}', [ServiceController::class, 'update'])->name('config.services.update');
-        Route::delete('/konfigurasi-gerai-loket/services/{service}', [ServiceController::class, 'destroy'])->name('config.services.destroy');
+        Route::post('/konfigurasi-gerai-loket/departments', [GeraiLoketController::class, 'store'])->name('config.departments.store');
+        Route::put('/konfigurasi-gerai-loket/departments/{department}', [GeraiLoketController::class, 'update'])->name('config.departments.update');
+        Route::delete('/konfigurasi-gerai-loket/departments/{department}', [GeraiLoketController::class, 'destroy'])->name('config.departments.destroy');
 
         // ── Pengaturan Sistem ─────────────────────────────────────────────
         Route::get('/pengaturan-sistem', [SettingController::class, 'index'])->name('admin.settings.index');

@@ -16,7 +16,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-#[Fillable(['name', 'nik', 'email', 'no_telp', 'avatar_path', 'ktp_photo_path', 'password', 'role', 'department_id', 'is_active', 'last_login_at'])]
+#[Fillable(['name', 'nik', 'email', 'no_telp', 'phone_number', 'avatar_path', 'ktp_photo_path', 'password', 'role', 'department_id', 'is_active', 'last_login_at'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable implements MustVerifyEmail
 {
@@ -198,6 +198,22 @@ class User extends Authenticatable implements MustVerifyEmail
     public function setPhoneNumberAttribute(?string $value): void
     {
         $this->attributes['no_telp'] = $value;
+    }
+
+    /**
+     * Accessor untuk keselarasan dengan attribute lama departments_id.
+     */
+    public function getDepartmentsIdAttribute(): ?int
+    {
+        return $this->department_id ? (int) $this->department_id : null;
+    }
+
+    /**
+     * Mutator untuk keselarasan dengan attribute lama departments_id.
+     */
+    public function setDepartmentsIdAttribute(?int $value): void
+    {
+        $this->attributes['department_id'] = $value;
     }
 
     /**

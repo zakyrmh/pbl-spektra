@@ -58,8 +58,8 @@
                     <div class="flex items-start justify-between gap-4">
                         <div>
                             <h3 class="text-muted dark:text-on-dark-soft text-xs font-semibold uppercase tracking-wider font-display">Instansi & Layanan</h3>
-                            <h4 class="text-xl md:text-2xl font-bold text-ink dark:text-white mt-1 font-display">{{ $activeBooking->service->department->name }}</h4>
-                            <p class="text-sm font-semibold text-primary dark:text-accent-teal mt-0.5 font-body">{{ $activeBooking->service->name }}</p>
+                            <h4 class="text-xl md:text-2xl font-bold text-ink dark:text-white mt-1 font-display">{{ $activeBooking->department->name }}</h4>
+                            <p class="text-sm font-semibold text-primary dark:text-accent-teal mt-0.5 font-body">{{ $activeBooking->purpose }}</p>
                         </div>
                         <div class="bg-surface-soft dark:bg-white/5 text-primary dark:text-accent-teal p-3 rounded-lg shrink-0 border border-hairline dark:border-white/5">
                             <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
@@ -73,17 +73,17 @@
                         <div class="col-span-2 sm:col-span-1 border-b sm:border-b-0 sm:border-r border-hairline dark:border-white/10 pb-4 sm:pb-0">
                             <p class="text-xs text-muted dark:text-on-dark-soft font-semibold uppercase tracking-wider font-display">Nomor Antrean Anda</p>
                             <p class="text-3xl md:text-4xl font-extrabold text-primary dark:text-accent-teal mt-1 tracking-tight font-mono">
-                                {{ $activeBooking->queue ? $activeBooking->queue->queue_number : 'Belum Check-In' }}
+                                {{ $activeBooking->queue_number ?: 'Belum Check-In' }}
                             </p>
                         </div>
                         <div class="sm:border-r border-hairline dark:border-white/10 sm:pl-4">
                             <p class="text-xs text-muted dark:text-on-dark-soft font-semibold uppercase tracking-wider font-display">Panggilan Sekarang</p>
                             <p id="live-current-queue" class="text-3xl md:text-4xl font-extrabold text-ink dark:text-white mt-1 tracking-tight font-mono">
-                                {{ $activeBooking->queue ? $currentServingQueue : '-' }}
+                                {{ $activeBooking->queue_number ? $currentServingQueue : '-' }}
                             </p>
                         </div>
                         <div class="sm:pl-4 flex flex-col justify-between">
-                            @if($activeBooking->queue)
+                            @if($activeBooking->queue_number)
                             <div>
                                 <p class="text-xs text-muted dark:text-on-dark-soft font-semibold uppercase tracking-wider font-display">Sisa Antrean</p>
                                 <p id="live-remaining-queues" class="text-3xl md:text-4xl font-extrabold text-status-waiting mt-1 tracking-tight font-mono animate-pulse">
@@ -107,11 +107,11 @@
                         
                         @php
                             $step = 1;
-                            if ($activeBooking->queue) {
+                            if ($activeBooking->queue_number) {
                                 $step = 2; // Check-In FO
-                                if ($activeBooking->queue->status === 'Serving') {
+                                if ($activeBooking->status === 'Serving') {
                                     $step = 3; // Menunggu Panggilan
-                                } elseif (in_array($activeBooking->queue->status, ['Completed', 'Skipped'])) {
+                                } elseif (in_array($activeBooking->status, ['Completed', 'Skipped'])) {
                                     $step = 4; // Dilayani / Selesai
                                 }
                             }

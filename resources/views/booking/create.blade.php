@@ -6,7 +6,7 @@
     <div class="max-w-6xl mx-auto space-y-8 pb-16" 
          x-data="{
              departments: @js($departments),
-             schedules: @js($schedules),
+             schedules: @js($schedules ?? []),
              selectedDepartmentId: '{{ old('department_id', '') }}',
              keperluan: '{{ old('keperluan', '') }}',
              selectedDate: '{{ old('booking_date', '') }}',
@@ -15,18 +15,36 @@
                  if (!this.selectedDepartmentId) return [];
                  let dept = this.departments.find(d => d.id == this.selectedDepartmentId);
                  if (!dept) return [];
-                 let serviceIds = dept.services.map(s => s.id);
                  
-                 let dates = [];
-                 this.schedules.forEach(s => {
-                     if (serviceIds.includes(s.service_id)) {
-                         let dStr = s.date.split('T')[0];
-                         if (!dates.includes(dStr)) {
-                             dates.push(dStr);
+                 // If schedules exist, use them
+                 if (this.schedules && this.schedules.length > 0) {
+                     let serviceIds = (dept.services || []).map(s => s.id);
+                     let dates = [];
+                     this.schedules.forEach(s => {
+                         if (serviceIds.includes(s.service_id) || !s.service_id) {
+                             let dStr = s.date ? s.date.split('T')[0] : (typeof s === 'string' ? s.split('T')[0] : '');
+                             if (dStr && !dates.includes(dStr)) {
+                                 dates.push(dStr);
+                             }
                          }
+                     });
+                     return dates.sort();
+                 }
+                 
+                 // Fallback: generate next 5 working days dynamically
+                 let dates = [];
+                 let current = new Date();
+                 while (dates.length < 5) {
+                     let day = current.getDay();
+                     if (day !== 0 && day !== 6) { // Skip Sunday (0) and Saturday (6)
+                         let yyyy = current.getFullYear();
+                         let mm = String(current.getMonth() + 1).padStart(2, '0');
+                         let dd = String(current.getDate()).padStart(2, '0');
+                         dates.push(`${yyyy}-${mm}-${dd}`);
                      }
-                 });
-                 return dates.sort();
+                     current.setDate(current.getDate() + 1);
+                 }
+                 return dates;
              },
              
              get selectedDepartment() {

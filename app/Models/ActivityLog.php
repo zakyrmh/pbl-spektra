@@ -12,13 +12,9 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
  *
  * @property int $id
  * @property int|null $causer_id User yang melakukan aksi (AuditLogger)
- * @property int|null $user_id User yang melakukan aksi (record())
  * @property int|null $subject_id ID objek yang dikenai aksi
  * @property string|null $subject_type Nama class model subjek
  * @property string|null $event Nama aksi singkat dari AuditLogger (created, updated, dll.)
- * @property string|null $action Nama aksi singkat dari record()
- * @property string|null $model_type
- * @property int|null $model_id
  * @property string|null $description Teks human-readable
  * @property array|null $properties
  * @property string|null $ip_address IP address request
@@ -46,10 +42,6 @@ class ActivityLog extends Model
         'properties',
         'ip_address',
         'user_agent',
-        'user_id',
-        'action',
-        'model_type',
-        'model_id',
     ];
 
     // ──────────────────────────────────────────────────
@@ -64,16 +56,6 @@ class ActivityLog extends Model
     public function causer(): BelongsTo
     {
         return $this->belongsTo(User::class, 'causer_id');
-    }
-
-    /**
-     * User yang melakukan aksi (pelaku / user_id).
-     *
-     * @return BelongsTo<User, self>
-     */
-    public function user(): BelongsTo
-    {
-        return $this->belongsTo(User::class, 'user_id');
     }
 
     /**
@@ -101,10 +83,10 @@ class ActivityLog extends Model
         ?int $actorUserId = null
     ): self {
         return self::create([
-            'user_id' => $actorUserId,
-            'action' => $action,
-            'model_type' => $modelType,
-            'model_id' => $modelId,
+            'causer_id' => $actorUserId,
+            'event' => $action,
+            'subject_type' => $modelType,
+            'subject_id' => $modelId,
             'description' => $description,
         ]);
     }

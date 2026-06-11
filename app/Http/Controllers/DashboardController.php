@@ -4,15 +4,16 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Models\ActivityLog;
+use App\Models\Department;
+use App\Models\Queue;
+// Import Model Baru yang Sesuai dengan Skema Baru
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 /**
- * DashboardController — Role-based dispatcher.
- *
- * Controller ini berfungsi sebagai entry point tunggal untuk route /dashboard.
- * Seluruh logika dashboard di-delegate ke controller per-role masing-masing
- * di namespace App\Http\Controllers\Dashboard.
+ * DashboardController — Role-based dispatcher untuk MPP Kota Sawahlunto.
  */
 class DashboardController extends Controller
 {
@@ -20,55 +21,52 @@ class DashboardController extends Controller
     {
         $role = Auth::user()->role;
         $role = $role instanceof \BackedEnum ? $role->value : ($role ?? 'pengunjung');
+
         if ($role === 'warga') {
             $role = 'pengunjung';
         }
 
         $data = [];
+        $today = Carbon::today()->toDateString();
 
         if ($role === 'super_admin') {
-            $today = Carbon::today()->toDateString();
 
-            // 1. Total Kunjungan Hari Ini
-            $todayKunjunganCount = QueueModel::query()->where('queue_date', $today)->count('*');
+            // 1. Total Kunjungan Hari Ini (Menggunakan kolom booking_date pada tabel queues)
+            $todayKunjunganCount = Queue::query()->where('booking_date', $today)->count('*');
             $kunjunganPercentage = $this->calculateKunjunganPercentage($todayKunjunganCount, $today);
 
-            // 2. Menunggu Konfirmasi FO (Booking online berstatus Pending hari ini)
-            $menungguFoCount = Booking::query()->where('booking_date', $today)
-                ->where('status', 'Pending')
+            // 2. Menunggu Konfirmasi FO (Booking online yang statusnya masih 'Booked' hari ini)
+            $menungguFoCount = Queue::query()->where('booking_date', $today)
+                ->where('status', 'Booked')
                 ->count('*');
             $foStatus = $this->getFoConfirmationStatus($menungguFoCount);
 
-            // 3. Sedang Dilayani di Gerai (Total antrean aktif: Waiting + Serving)
-            $waitingCount = QueueModel::query()->where('queue_date', $today)->where('status', 'Waiting')->count('*');
-            $servingCount = QueueModel::query()->where('queue_date', $today)->where('status', 'Serving')->count('*');
+            // 3. Sedang Dilayani di Gerai (Total antrean aktif di ruang tunggu dan meja pelayanan)
+            $waitingCount = Queue::query()->where('booking_date', $today)->where('status', 'Checked-In')->count('*');
+            $servingCount = Queue::query()->where('booking_date', $today)->where('status', 'Serving')->count('*');
             $totalAntreanGerai = $waitingCount + $servingCount;
 
-            // 4. Total Gerai Aktif (Department yang memiliki minimal 1 loket aktif)
+            // 4. Total Gerai Aktif (Menggunakan kolom is_open langsung di tabel departments)
             $totalGerai = Department::query()->count('*');
-            $activeGerai = Department::query()->whereHas('counters', function ($query) {
-                $query->where('status', 'aktif');
-            })->count('*');
+            $activeGerai = Department::query()->where('is_open', true)->count('*');
             $geraiPercentage = $totalGerai > 0 ? (int) round(($activeGerai / $totalGerai) * 100) : 0;
 
-            // 5. Data Live Gerai (untuk Tabel Pemantauan Live)
-            $liveDepartments = Department::query()->with(['counters', 'queues' => function ($query) use ($today) {
-                $query->where('queue_date', $today);
+            // 5. Data Live Gerai (Mengambil data antrean hari ini langsung per departemen)
+            $liveDepartments = Department::query()->with(['queues' => function ($query) use ($today) {
+                $query->where('booking_date', $today);
             }])->get();
 
-            // 6. Live Activity Feed (dari tabel activity_logs)
-            $liveLogs = ActivityLog::query()->latest()->take(5)->get();
+            // 6. Live Activity Feed (Menggunakan skema causer_id hasil perbaikan)
+            $liveLogs = ActivityLog::query()->with('user')->latest()->take(5)->get();
 
             // 7. Data Grafik
             $chartTrenData = $this->getTrenKedatanganData($today);
             $chartTopGeraiData = $this->getTopGeraiData($today);
 
-            // Calculate Average FO Check-In Time
-            // Note: Since visitors do not register their arrival before stepping up to the FO desk,
-            // the system measures the processing efficiency dynamically based on check-in volumes today.
-            $checkedInBookingsCount = Booking::query()
+            // Menghitung jumlah booking yang sukses check-in di FO hari ini
+            $checkedInBookingsCount = Queue::query()
                 ->where('booking_date', $today)
-                ->whereIn('status', ['Checked-In', 'Completed'])
+                ->whereIn('status', ['Checked-In', 'Serving', 'Completed'])
                 ->whereNotNull('checked_in_at')
                 ->count();
 
@@ -95,23 +93,29 @@ class DashboardController extends Controller
                 'chartTrenData' => $chartTrenData,
                 'chartTopGeraiData' => $chartTopGeraiData,
             ];
+
         } elseif ($role === 'admin_fo') {
-            $today = Carbon::today()->toDateString();
-            $departments = Department::with('counters')->get();
-            $recentQueues = QueueModel::query()
-                ->where('queue_date', $today)
-                ->with(['booking.user', 'visitor', 'service.department', 'counter.department'])
+
+            $departments = Department::all();
+
+            // Mengambil 8 antrean terbaru hari ini dengan relasi user (pengunjung) dan departemen langsung
+            $recentQueues = Queue::query()
+                ->where('booking_date', $today)
+                ->with(['user', 'department'])
                 ->latest()
                 ->take(8)
                 ->get();
 
-            $todayFoQueueCount = Booking::query()
+            // Total tiket online yang belum check-in
+            $todayFoQueueCount = Queue::query()
                 ->where('booking_date', $today)
-                ->where('status', 'Pending')
+                ->where('status', 'Booked')
                 ->count('*');
 
-            $todayTotalPrintedTickets = QueueModel::query()
-                ->where('queue_date', $today)
+            // Total nomor antrean yang sudah diterbitkan FO hari ini (baik online maupun walk-in)
+            $todayTotalPrintedTickets = Queue::query()
+                ->where('booking_date', $today)
+                ->whereNotNull('queue_number')
                 ->count('*');
 
             $data = [
@@ -126,27 +130,23 @@ class DashboardController extends Controller
     }
 
     /**
-     * Menghitung persentase perubahan kunjungan hari ini terhadap rata-rata kunjungan harian historis.
-     *
-     * Analisis dibatasi pada 30 hari kalender terakhir (kemarin ke belakang) untuk menghindari
-     * anomali persentase (+10.000%) saat sistem baru berjalan, dan agar query hanya memindai
-     * rentang data yang terbatas dan bermakna secara statistik.
+     * Menghitung persentase perubahan kunjungan harian.
      */
     protected function calculateKunjunganPercentage(int $todayCount, string $today): array
     {
         $thirtyDaysAgo = Carbon::today()->subDays(30)->toDateString();
         $yesterday = Carbon::yesterday()->toDateString();
 
-        $pastDaysCount = QueueModel::query()
-            ->where('queue_date', '>=', $thirtyDaysAgo)
-            ->where('queue_date', '<=', $yesterday)
+        $pastDaysCount = Queue::query()
+            ->where('booking_date', '>=', $thirtyDaysAgo)
+            ->where('booking_date', '<=', $yesterday)
             ->count('*');
 
-        $pastDaysUnique = QueueModel::query()
-            ->where('queue_date', '>=', $thirtyDaysAgo)
-            ->where('queue_date', '<=', $yesterday)
+        $pastDaysUnique = Queue::query()
+            ->where('booking_date', '>=', $thirtyDaysAgo)
+            ->where('booking_date', '<=', $yesterday)
             ->distinct()
-            ->count('queue_date');
+            ->count('booking_date');
 
         $avgDaily = $pastDaysUnique > 0 ? $pastDaysCount / $pastDaysUnique : 0;
 
@@ -164,7 +164,7 @@ class DashboardController extends Controller
     }
 
     /**
-     * Menentukan tingkat kepadatan (status) antrean FO berdasarkan jumlah booking pending hari ini.
+     * Menentukan tingkat kepadatan antrean FO.
      */
     protected function getFoConfirmationStatus(int $count): array
     {
@@ -194,18 +194,22 @@ class DashboardController extends Controller
      */
     protected function getTrenKedatanganData(string $today): array
     {
-        $queuesToday = QueueModel::query()->where('queue_date', $today)->get();
+        $queuesToday = Queue::query()->where('booking_date', $today)->get();
         $hours = ['08', '09', '10', '11', '12', '13', '14', '15', '16'];
         $onlineData = [];
         $onsiteData = [];
 
         foreach ($hours as $h) {
+            // Online: Waktu dibuat (created_at) berbeda hari/jam dengan waktu check-in di FO
             $onlineCount = $queuesToday->filter(function ($q) use ($h) {
-                return Carbon::parse($q->created_at)->format('H') === $h && $q->booking_id !== null;
+                return Carbon::parse($q->created_at)->format('H') === $h &&
+                       $q->created_at->toDateTimeString() !== $q->checked_in_at;
             })->count();
 
+            // Onsite/Walk-In: Tiket dibuat langsung di tempat (created_at sama dengan checked_in_at)
             $onsiteCount = $queuesToday->filter(function ($q) use ($h) {
-                return Carbon::parse($q->created_at)->format('H') === $h && $q->booking_id === null;
+                return Carbon::parse($q->created_at)->format('H') === $h &&
+                       ($q->checked_in_at === null || $q->created_at->toDateTimeString() === $q->checked_in_at);
             })->count();
 
             $onlineData[] = $onlineCount;
@@ -221,24 +225,17 @@ class DashboardController extends Controller
 
     /**
      * Mengambil 5 Instansi terpadat berdasarkan jumlah tiket hari ini.
-     *
-     * Return structure:
-     *   - 'keys'   : array nama lengkap instansi (digunakan sebagai key mapping di JavaScript stats.queues)
-     *   - 'labels' : array inisial singkat instansi (ditampilkan sebagai kategori pada grafik ApexCharts)
-     *   - 'values' : array jumlah antrean (urutan sesuai dengan 'keys' dan 'labels')
      */
     protected function getTopGeraiData(string $today): array
     {
         $departments = Department::all();
-        $queuesToday = QueueModel::query()->where('queue_date', $today)->with('counter')->get();
+        $queuesToday = Queue::query()->where('booking_date', $today)->get();
 
         $data = [];
         foreach ($departments as $dept) {
-            $count = $queuesToday->filter(function ($q) use ($dept) {
-                return $q->counter && $q->counter->department_id === $dept->id;
-            })->count();
+            // Langsung filter berdasarkan department_id di tabel queues (Tanpa JOIN tabel Counter!)
+            $count = $queuesToday->where('department_id', $dept->id)->count();
 
-            // Pisahkan key (nama lengkap, untuk JS) dari label (inisial singkat, untuk chart)
             $data[] = [
                 'key' => $dept->name,
                 'label' => $dept->inisial ?: substr($dept->name, 0, 6),
@@ -246,17 +243,16 @@ class DashboardController extends Controller
             ];
         }
 
-        // Sort descending berdasarkan jumlah antrean
         usort($data, fn ($a, $b) => $b['value'] <=> $a['value']);
         $top5 = array_slice($data, 0, 5);
 
         if (empty($top5)) {
             $top5 = [
-                ['key' => 'Dinas Kesehatan',  'label' => 'DK', 'value' => 0],
-                ['key' => 'Imigrasi',         'label' => 'IM', 'value' => 0],
-                ['key' => 'Samsat',           'label' => 'SM', 'value' => 0],
-                ['key' => 'BPN',              'label' => 'BP', 'value' => 0],
-                ['key' => 'BPKP',             'label' => 'BK', 'value' => 0],
+                ['key' => 'DPMPTSPNaker', 'label' => 'DPTK', 'value' => 0],
+                ['key' => 'Bank Nagari',   'label' => 'BNR',  'value' => 0],
+                ['key' => 'Samsat',        'label' => 'SMST', 'value' => 0],
+                ['key' => 'Disdukcapil',   'label' => 'DDK',  'value' => 0],
+                ['key' => 'BPJS Kesehatan', 'label' => 'BPJSK', 'value' => 0],
             ];
         }
 
@@ -269,12 +265,11 @@ class DashboardController extends Controller
 
     public function manageQueue()
     {
-        return view('dashboard.dashboard'); // Sementara redirect ke dashboard
+        return view('dashboard.dashboard');
     }
 
     public function callNext(Request $request)
     {
-        // TODO: Implementasi panggil antrean berikutnya
         return back()->with('success', 'Antrean berikutnya telah dipanggil.');
     }
 }

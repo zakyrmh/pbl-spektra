@@ -3,19 +3,40 @@
 @section('title', $report->title . ' — Laporan & Analitik')
 
 @section('content')
-    <div class="max-w-6xl mx-auto space-y-6 pb-16">
-        
-        {{-- Navigation & Header --}}
-        <div class="space-y-4">
-            <a href="{{ route('admin.reports.index') }}" 
-               class="inline-flex items-center gap-1.5 text-xs font-semibold text-muted hover:text-ink dark:text-on-dark-soft dark:hover:text-white transition-colors group">
-                <svg class="w-4 h-4 transform group-hover:-translate-x-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                </svg>
-                Kembali ke Daftar Laporan
-            </a>
-            
-            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-hairline dark:border-white/10 pb-6">
+    @php
+        $summary = $report->data_summary ?? [];
+        $total = $summary['total_visitors'] ?? 0;
+        $completed = $summary['completed'] ?? 0;
+        $skipped = $summary['skipped'] ?? 0;
+        $waiting = $summary['waiting'] ?? 0;
+        $serving = $summary['serving'] ?? 0;
+        $avgSeconds = $summary['average_service_time_seconds'] ?? 0;
+
+        // Hitung max untuk skala grafik
+        $dailyData = $summary['daily'] ?? [];
+        $maxTotal = collect($dailyData)->max('total') ?: 1;
+
+        if (!function_exists('formatDurationSuper')) {
+            function formatDurationSuper($seconds) {
+                if ($seconds <= 0) return '0s';
+                $m = floor($seconds / 60);
+                $s = $seconds % 60;
+                return ($m > 0 ? "{$m}m " : "") . "{$s}s";
+            }
+        }
+    @endphp
+
+    <div class="max-w-7xl mx-auto space-y-6 pb-16">
+
+        {{-- Header & Navigasi Balik --}}
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <a href="{{ route('admin.reports.index') }}"
+                    class="w-10 h-10 flex items-center justify-center bg-surface-soft hover:bg-surface-strong dark:bg-white/5 dark:hover:bg-white/10 text-ink dark:text-white border border-hairline dark:border-white/10 rounded-full transition-all focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-accent-teal cursor-pointer">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                </a>
                 <div>
                     <div class="flex items-center gap-2 mb-1">
                         <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 text-[10px] font-bold uppercase rounded bg-status-serving/10 text-status-serving tracking-wider select-none">

@@ -16,12 +16,16 @@
         $waiting = $summary['waiting'] ?? 0;
         $serving = $summary['serving'] ?? 0;
         $avgSeconds = $summary['average_service_time_seconds'] ?? 0;
+        $dailyData = $summary['daily'] ?? [];
+        $maxTotal = collect($dailyData)->max('total') ?: 1;
 
-        function formatDuration($seconds) {
-            if ($seconds <= 0) return '0s';
-            $m = floor($seconds / 60);
-            $s = $seconds % 60;
-            return ($m > 0 ? "{$m}m " : "") . "{$s}s";
+        if (!function_exists('formatDuration')) {
+            function formatDuration($seconds) {
+                if ($seconds <= 0) return '0s';
+                $m = floor($seconds / 60);
+                $s = $seconds % 60;
+                return ($m > 0 ? "{$m}m " : "") . "{$s}s";
+            }
         }
     @endphp
 
@@ -201,6 +205,77 @@
                     </div>
                 </div>
             </div>
+        </div>
+
+        {{-- Grafik Kunjungan Harian --}}
+        <div class="bg-canvas dark:bg-surface-dark-elevated p-6 rounded-xl border border-hairline dark:border-white/10 shadow-sm space-y-6">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div>
+                    <h3 class="font-bold text-ink dark:text-white font-display flex items-center gap-2">
+                        <svg class="w-5 h-5 text-primary dark:text-accent-teal" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M7 12l3-3 3 3 4-4M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                        </svg>
+                        Tren Kunjungan Harian
+                    </h3>
+                    <p class="text-xs text-muted dark:text-on-dark-soft font-body mt-0.5">
+                        Visualisasi volume antrean per hari pada rentang laporan ini.
+                    </p>
+                </div>
+                <div class="flex items-center gap-4 text-xs font-semibold">
+                    <div class="flex items-center gap-1.5">
+                        <span class="w-3 h-3 bg-green-500 rounded-sm"></span>
+                        <span class="text-muted dark:text-on-dark-soft">Selesai</span>
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                        <span class="w-3 h-3 bg-red-500 rounded-sm"></span>
+                        <span class="text-muted dark:text-on-dark-soft">Terlewat</span>
+                    </div>
+                </div>
+            </div>
+
+            @if (empty($dailyData))
+                <div class="h-48 flex items-center justify-center text-xs text-muted dark:text-on-dark-soft font-body border-2 border-dashed border-hairline dark:border-white/10 rounded-lg">
+                    Data harian tidak tersedia
+                </div>
+            @else
+                <div class="pt-4">
+                    <div class="relative h-56 flex items-end gap-1 sm:gap-2 border-b border-l border-hairline dark:border-white/10 px-2 pb-1 overflow-x-auto">
+                        {{-- Grid Lines --}}
+                        <div class="absolute inset-0 flex flex-col justify-between pointer-events-none pr-2">
+                            <div class="border-t border-dashed border-hairline dark:border-white/5 h-0 w-full"></div>
+                            <div class="border-t border-dashed border-hairline dark:border-white/5 h-0 w-full"></div>
+                            <div class="border-t border-dashed border-hairline dark:border-white/5 h-0 w-full"></div>
+                            <div class="h-0 w-full"></div>
+                        </div>
+
+                        @foreach ($dailyData as $day)
+                            @php
+                                $pctTotal = ($day['total'] / $maxTotal) * 100;
+                                $pctCompleted = $day['total'] > 0 ? ($day['completed'] / $day['total']) * 100 : 0;
+                                $pctSkipped   = $day['total'] > 0 ? ($day['skipped'] / $day['total']) * 100 : 0;
+                            @endphp
+                            <div class="flex-1 min-w-[36px] flex flex-col items-center group relative h-full justify-end z-10">
+                                {{-- Tooltip --}}
+                                <div class="absolute bottom-full mb-2 bg-slate-900 dark:bg-slate-800 text-white text-[10px] rounded-lg py-2 px-3 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-20 shadow-lg border border-white/10">
+                                    <p class="font-bold border-b border-white/10 pb-1 mb-1">{{ $day['date'] }}</p>
+                                    <p class="flex justify-between gap-3"><span>Total:</span> <span class="font-bold">{{ $day['total'] }}</span></p>
+                                    <p class="flex justify-between gap-3 text-green-400"><span>Selesai:</span> <span class="font-bold">{{ $day['completed'] }}</span></p>
+                                    <p class="flex justify-between gap-3 text-red-400"><span>Terlewat:</span> <span class="font-bold">{{ $day['skipped'] }}</span></p>
+                                </div>
+                                {{-- Bars --}}
+                                <div class="w-full flex gap-0.5 items-end justify-center" style="height: {{ max($pctTotal, 4) }}%">
+                                    <div class="flex-1 bg-green-500 hover:bg-green-400 rounded-t-sm transition-colors" style="height: {{ max($pctCompleted, 4) }}%"></div>
+                                    <div class="flex-1 bg-red-500 hover:bg-red-400 rounded-t-sm transition-colors" style="height: {{ max($pctSkipped, 4) }}%"></div>
+                                </div>
+                                {{-- Label --}}
+                                <span class="text-[9px] font-semibold text-muted dark:text-on-dark-soft mt-1.5 font-mono truncate max-w-full text-center">
+                                    {{ $day['date'] }}
+                                </span>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+            @endif
         </div>
 
         {{-- Statistik Kinerja per Loket / Booth --}}

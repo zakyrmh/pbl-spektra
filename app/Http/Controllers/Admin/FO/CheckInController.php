@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\Admin\FO;
 
 use App\Events\QueueCreated;
@@ -10,9 +12,7 @@ use App\Models\Booking;
 use App\Models\Counter;
 use App\Models\Notification;
 use App\Models\Queue;
-use App\Models\Service;
 use App\Models\User;
-use App\Models\Visitor;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -20,16 +20,15 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 
 /**
- * CheckInController — Verifikasi & Check-In Booking Online
+ * CheckInController — Verifikasi & Check-In Booking Online (Web).
  *
- * Rute   : admin.fo.checkin        → GET  /fo/check-in
- * Rute   : admin.fo.checkin.verify → POST /fo/check-in/verify
- * Rute   : admin.fo.checkin.approve → POST /fo/check-in/{booking}/approve
- * Rute   : admin.fo.checkin.reject  → POST /fo/check-in/{booking}/reject
+ * Hanya menangani halaman web FO:
+ *   GET  /fo/check-in            → index
+ *   POST /fo/check-in/verify     → verify
+ *   POST /fo/check-in/{booking}/approve → approve
+ *   POST /fo/check-in/{booking}/reject  → reject
  *
- * Business Rules (AGENT.md §7):
- *  BR-02 Nomor antrian aktif hanya diterbitkan oleh front_office.
- *  REQ-2.1 FO dapat mencari booking berdasarkan NIK atau booking_code.
+ * REST API endpoint dipindahkan ke Admin\FO\Api\CheckInApiController.
  */
 class CheckInController extends Controller
 {
@@ -45,10 +44,6 @@ class CheckInController extends Controller
     /**
      * Verifikasi kode booking & tampilkan detail untuk persetujuan.
      * POST /fo/check-in/verify
-     *
-     * Request fields:
-     *  - booking_code : string — UUID atau kode pendek booking
-     *  - nik_input    : string|nullable — NIK yang diisikan FO jika warga belum punya NIK
      */
     public function verify(Request $request)
     {
@@ -59,7 +54,7 @@ class CheckInController extends Controller
 
         $code = trim($request->input('booking_code'));
 
-        // ── 1. Cari booking berdasarkan booking_code ──────────────────
+        // 1. Cari booking
         $booking = Booking::where('booking_code', $code)
             ->with(['user', 'service.department', 'schedule'])
             ->first();
@@ -71,7 +66,7 @@ class CheckInController extends Controller
                 ->with('searched_code', $code);
         }
 
-        // ── 2. Validasi status booking ────────────────────────────────
+        // 2. Validasi status booking
         if (! $booking->canBeCheckedIn()) {
             $statusLabel = match ($booking->status) {
                 'Checked-In' => 'sudah di-check-in sebelumnya',
@@ -86,26 +81,17 @@ class CheckInController extends Controller
                 ->with('booking', $booking);
         }
 
-        // ── 3. Cek NIK warga — jika kosong, kembalikan ke view dengan flag ─
+        // 3. Cek NIK warga
         $user = $booking->user;
 
         if (empty($user->nik)) {
-            // Jika Admin FO sudah mengisi NIK via inline form, simpan dulu
             if ($request->filled('nik_input')) {
                 $nikBaru = $request->input('nik_input');
 
-                // Pastikan NIK belum dipakai user lain
-                $nikSudahAda = User::where('nik', $nikBaru)
-                    ->where('id', '!=', $user->id)
-                    ->exists();
-
-                if ($nikSudahAda) {
+                if (User::where('nik', $nikBaru)->where('id', '!=', $user->id)->exists()) {
                     session()->flash('error', "NIK <strong>{$nikBaru}</strong> sudah terdaftar di sistem untuk pengguna lain.");
 
-                    return view('admin.fo.checkin', [
-                        'booking' => $booking,
-                        'nik_required' => true,
-                    ]);
+                    return view('admin.fo.checkin', ['booking' => $booking, 'nik_required' => true]);
                 }
 
                 $user->update(['nik' => $nikBaru]);
@@ -118,19 +104,12 @@ class CheckInController extends Controller
                     actorUserId: Auth::id(),
                 );
             } else {
-                // NIK masih kosong & FO belum mengisi → tampilkan form NIK
-                return view('admin.fo.checkin', [
-                    'booking' => $booking,
-                    'nik_required' => true,
-                ]);
+                return view('admin.fo.checkin', ['booking' => $booking, 'nik_required' => true]);
             }
         }
 
-        // ── 4. Tampilkan halaman konfirmasi detail dokumen ────────────
-        return view('admin.fo.checkin', [
-            'booking' => $booking,
-            'nik_required' => false,
-        ]);
+        // 4. Tampilkan halaman konfirmasi
+        return view('admin.fo.checkin', ['booking' => $booking, 'nik_required' => false]);
     }
 
     /**
@@ -139,13 +118,11 @@ class CheckInController extends Controller
      */
     public function approve(Request $request, Booking $booking)
     {
-        // Pastikan booking bisa dicheck-in
         if (! $booking->canBeCheckedIn()) {
             return redirect()->route('admin.fo.checkin')
                 ->with('warning', 'Booking ini tidak dapat diproses.');
         }
 
-        // Pastikan NIK sudah diisi
         if (empty($booking->user->nik)) {
             return redirect()->route('admin.fo.checkin')
                 ->with('booking', $booking)
@@ -157,29 +134,18 @@ class CheckInController extends Controller
 
         try {
             $queue = DB::transaction(function () use ($booking, $today) {
-                // UPDATE status booking
                 $booking->update([
                     'status' => 'Checked-In',
                     'checked_in_at' => now(),
                 ]);
 
-                // Cari loket berdasarkan instansi/departemen layanan
                 $counter = Counter::where('department_id', $booking->service->department_id)->first();
                 if (! $counter) {
                     throw new \Exception('Belum ada loket/counter yang terdaftar untuk instansi '.$booking->service->department->name.'.');
                 }
 
-                // Ambil nomor urut antrean terakhir hari ini
-                $existingCount = Queue::where('counter_id', $counter->id)
-                    ->whereDate('queue_date', $today)
-                    ->lockForUpdate()
-                    ->count();
+                $queueNumber = $this->generateQueueNumber($counter, $today);
 
-                $nextNumber = $existingCount + 1;
-                $prefix = $counter->department->inisial ?: 'Q';
-                $queueNumber = $prefix.'-'.str_pad((string) $nextNumber, 3, '0', STR_PAD_LEFT);
-
-                // Buat data Antrean Baru
                 $queue = Queue::create([
                     'booking_id' => $booking->id,
                     'visitor_id' => null,
@@ -190,7 +156,6 @@ class CheckInController extends Controller
                     'queue_date' => $today,
                 ]);
 
-                // Catat di activity log
                 ActivityLog::record(
                     action: 'VERIFY_CHECKIN',
                     modelType: 'Booking',
@@ -202,7 +167,6 @@ class CheckInController extends Controller
                 return $queue;
             });
 
-            // Broadcast event QueueCreated
             event(new QueueCreated($queue));
 
             return redirect()->route('admin.fo.checkin')
@@ -221,7 +185,6 @@ class CheckInController extends Controller
      */
     public function reject(Request $request, Booking $booking)
     {
-        // Pastikan booking bisa dicheck-in
         if (! $booking->canBeCheckedIn()) {
             return redirect()->route('admin.fo.checkin')
                 ->with('warning', 'Booking ini tidak dapat diproses.');
@@ -239,20 +202,17 @@ class CheckInController extends Controller
 
         try {
             DB::transaction(function () use ($booking, $reason) {
-                // Update booking status
                 $booking->update([
                     'status' => 'Cancelled',
                     'cancel_reason' => $reason,
                 ]);
 
-                // Buat notifikasi sistem
                 Notification::create([
                     'user_id' => $booking->user_id,
                     'title' => 'Booking Ditolak FO',
                     'message' => "Reservasi antrean untuk layanan {$booking->service->name} pada {$booking->booking_date->translatedFormat('d F Y')} ditolak oleh petugas Front Office dengan alasan: {$reason}.",
                 ]);
 
-                // Catat di activity log
                 ActivityLog::record(
                     action: 'REJECT_BOOKING',
                     modelType: 'Booking',
@@ -262,7 +222,6 @@ class CheckInController extends Controller
                 );
             });
 
-            // Kirim email pembatalan ke customer
             try {
                 Mail::to($booking->user->email)->send(new BookingCancelledMail($booking));
             } catch (\Exception $e) {
@@ -279,236 +238,17 @@ class CheckInController extends Controller
     }
 
     /**
-     * GET /api/fo/bookings/verify
+     * Generate queue number berdasarkan counter & tanggal.
      */
-    public function verifyApi(Request $request)
+    private function generateQueueNumber(Counter $counter, string $today): string
     {
-        $code = trim($request->query('code', ''));
+        $existingCount = Queue::where('counter_id', $counter->id)
+            ->whereDate('queue_date', $today)
+            ->lockForUpdate()
+            ->count();
 
-        if (empty($code)) {
-            return response()->json(['message' => 'Booking code is required.'], 400);
-        }
+        $prefix = $counter->department->inisial ?: 'Q';
 
-        $booking = Booking::where('booking_code', $code)
-            ->where('status', 'Pending')
-            ->with(['user', 'service.department'])
-            ->first();
-
-        if (! $booking) {
-            return response()->json(['message' => 'Booking not found or already verified.'], 404);
-        }
-
-        return response()->json([
-            'id' => $booking->id,
-            'booking_code' => $booking->booking_code,
-            'user' => [
-                'name' => $booking->user->name,
-                'nik' => $booking->user->nik,
-            ],
-            'department' => [
-                'name' => $booking->service->department->name,
-            ],
-            'service' => [
-                'name' => $booking->service->name,
-            ],
-        ]);
-    }
-
-    /**
-     * POST /api/fo/bookings/{booking}/checkin
-     */
-    public function checkInApi(Request $request, Booking $booking)
-    {
-        if ($booking->status !== 'Pending') {
-            return response()->json(['message' => 'Booking status is not Pending.'], 422);
-        }
-
-        $today = now()->toDateString();
-
-        try {
-            $queue = DB::transaction(function () use ($booking, $today) {
-                // UPDATE status booking
-                $booking->update([
-                    'status' => 'Checked-In',
-                    'checked_in_at' => now(),
-                ]);
-
-                // Find a counter for the department
-                $counter = Counter::where('department_id', $booking->service->department_id)->first();
-                if (! $counter) {
-                    throw new \Exception('No counter available for this department.');
-                }
-
-                // Calculate queue number
-                $existingCount = Queue::where('counter_id', $counter->id)
-                    ->whereDate('queue_date', $today)
-                    ->lockForUpdate()
-                    ->count();
-
-                $nextNumber = $existingCount + 1;
-                $prefix = $counter->department->inisial ?: 'Q';
-                $queueNumber = $prefix.'-'.str_pad((string) $nextNumber, 3, '0', STR_PAD_LEFT);
-
-                // INSERT new Queue
-                $queue = Queue::create([
-                    'booking_id' => $booking->id,
-                    'visitor_id' => null,
-                    'counter_id' => $counter->id,
-                    'service_id' => $booking->service_id,
-                    'queue_number' => $queueNumber,
-                    'status' => 'Waiting',
-                    'queue_date' => $today,
-                ]);
-
-                // Record activity log
-                ActivityLog::record(
-                    action: 'VERIFY_CHECKIN',
-                    modelType: 'Booking',
-                    modelId: $booking->id,
-                    description: "Admin FO berhasil check-in booking {$booking->booking_code} atas nama {$booking->user->name}.",
-                    actorUserId: Auth::id(),
-                );
-
-                return $queue;
-            });
-
-            // Broadcast the QueueCreated event
-            event(new QueueCreated($queue));
-
-            return response()->json([
-                'success' => true,
-                'queue_number' => $queue->queue_number,
-                'status' => $queue->status,
-            ]);
-        } catch (\Exception $e) {
-            return response()->json(['message' => $e->getMessage()], 422);
-        }
-    }
-
-    /**
-     * POST /api/fo/queues/walkin
-     */
-    public function walkInApi(Request $request)
-    {
-        $request->validate([
-            'nik' => ['required', 'string', 'digits:16'],
-            'name' => ['required', 'string', 'max:255'],
-            'purpose' => ['required', 'string', 'max:255'],
-            'department_id' => ['required', 'exists:departments,id'],
-            'service_name' => ['nullable', 'string'],
-        ]);
-
-        $nik = $request->input('nik');
-        $name = $request->input('name');
-        $purpose = $request->input('purpose');
-        $departmentId = $request->input('department_id');
-        $serviceName = $request->input('service_name');
-        $today = now()->toDateString();
-
-        try {
-            $queue = DB::transaction(function () use ($nik, $name, $purpose, $departmentId, $serviceName, $today) {
-                // Find service
-                $service = null;
-                if ($serviceName) {
-                    $service = Service::where('department_id', $departmentId)
-                        ->where('name', $serviceName)
-                        ->first();
-                }
-
-                if (! $service) {
-                    $service = Service::where('department_id', $departmentId)->first();
-                }
-
-                // Find counter
-                $counter = Counter::where('department_id', $departmentId)->first();
-                if (! $counter) {
-                    throw new \Exception('No counter available for this department.');
-                }
-
-                // Get or Create visitor
-                $visitor = Visitor::firstOrCreate(
-                    ['nik' => $nik],
-                    [
-                        'name' => $name,
-                        'phone' => '00000000000', // Default fallback since walk-in might not have phone
-                        'purpose' => $purpose,
-                    ]
-                );
-
-                // If the visitor already exists, we might want to update the purpose if needed
-                // But typically firstOrCreate is enough. Let's just update the purpose to the latest
-                if (! $visitor->wasRecentlyCreated) {
-                    $visitor->update(['purpose' => $purpose, 'name' => $name]);
-                }
-
-                // Calculate queue number
-                $existingCount = Queue::where('counter_id', $counter->id)
-                    ->whereDate('queue_date', $today)
-                    ->lockForUpdate()
-                    ->count();
-
-                $nextNumber = $existingCount + 1;
-                $prefix = $counter->department->inisial ?: 'W';
-                $queueNumber = $prefix.'-'.str_pad((string) $nextNumber, 3, '0', STR_PAD_LEFT);
-
-                // INSERT new Queue
-                $queue = Queue::create([
-                    'booking_id' => null,
-                    'visitor_id' => $visitor->id,
-                    'counter_id' => $counter->id,
-                    'service_id' => $service?->id,
-                    'queue_number' => $queueNumber,
-                    'status' => 'Waiting',
-                    'queue_date' => $today,
-                ]);
-
-                // Record activity log
-                ActivityLog::record(
-                    action: 'WALKIN_TICKET',
-                    modelType: 'Queue',
-                    modelId: $queue->id,
-                    description: "Admin FO mencetak tiket mandiri Walk-In ({$queueNumber}) tujuan {$counter->department->name} untuk {$visitor->name}.",
-                    actorUserId: Auth::id(),
-                );
-
-                return $queue;
-            });
-
-            // Broadcast the QueueCreated event
-            event(new QueueCreated($queue));
-
-            return response()->json([
-                'success' => true,
-                'queue_number' => $queue->queue_number,
-                'status' => $queue->status,
-                'visitor_name' => $queue->visitor->name,
-            ]);
-        } catch (\Exception $e) {
-            return response()->json(['message' => $e->getMessage()], 422);
-        }
-    }
-
-    /**
-     * GET /api/fo/visitors/check-nik
-     */
-    public function checkNikApi(Request $request)
-    {
-        $nik = trim($request->query('nik', ''));
-
-        if (empty($nik) || strlen($nik) !== 16) {
-            return response()->json(['message' => 'Format NIK tidak valid.'], 400);
-        }
-
-        $visitor = Visitor::where('nik', $nik)->first();
-
-        if ($visitor) {
-            return response()->json([
-                'found' => true,
-                'name' => $visitor->name,
-                'nik' => $visitor->nik,
-            ]);
-        }
-
-        return response()->json(['found' => false]);
+        return $prefix.'-'.str_pad((string) ($existingCount + 1), 3, '0', STR_PAD_LEFT);
     }
 }

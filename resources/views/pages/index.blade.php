@@ -28,41 +28,11 @@
                     Sederhana, Cepat, dan Transparan. Ambil nomor antrean secara online dari mana saja tanpa perlu mengantre lama di lokasi.
                 </p>
                 
-                <div class="flex flex-col sm:flex-row gap-4 pt-2">
-                    @guest
-                        <a href="{{ route('booking.create') }}" class="inline-flex items-center justify-center bg-primary hover:bg-primary-hover text-on-primary font-display font-semibold text-button px-8 py-4 h-12 rounded-pill transition-colors shadow-lg shadow-primary/10">
-                            Ambil Antrean Online
-                            <svg class="ml-2 -mr-1 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                            </svg>
-                        </a>
-                        <a href="{{ route('public.check') }}" class="inline-flex items-center justify-center bg-canvas hover:bg-surface-soft text-ink border border-hairline font-display font-semibold text-button px-8 py-4 h-12 rounded-pill transition-colors">
-                            Cek Status Antrean
-                        </a>
-                    @endguest
-
-                    @auth
-                        <a href="{{ route('booking.create') }}" class="inline-flex items-center justify-center bg-primary hover:bg-primary-hover text-on-primary font-display font-semibold text-button px-8 py-4 h-12 rounded-pill transition-colors shadow-lg shadow-primary/10">
-                            Ambil Antrean Online
-                            <svg class="ml-2 -mr-1 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                            </svg>
-                        </a>
-                        <a href="{{ route('dashboard') }}" class="inline-flex items-center justify-center bg-canvas hover:bg-surface-soft text-ink border border-hairline font-display font-semibold text-button px-8 py-4 h-12 rounded-pill transition-colors">
-                            Dashboard
-                        </a>
-                    @endauth
-                </div>
-                
                 <!-- Trust Stats -->
                 <div class="grid grid-cols-3 gap-6 pt-8 border-t border-hairline-soft">
                     <div>
                         <span class="block font-mono font-bold text-ink text-title-lg sm:text-display-sm">{{ $totalInstansi }}</span>
                         <span class="text-caption text-muted">Instansi Aktif</span>
-                    </div>
-                    <div>
-                        <span class="block font-mono font-bold text-ink text-title-lg sm:text-display-sm">{{ $totalLayanan }}</span>
-                        <span class="text-caption text-muted">Layanan Publik</span>
                     </div>
                     <div>
                         <span class="block font-mono font-bold text-ink text-title-lg sm:text-display-sm">{{ $rataWaktuTunggu }}</span>

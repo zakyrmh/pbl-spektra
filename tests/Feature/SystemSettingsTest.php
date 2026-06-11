@@ -8,18 +8,20 @@ use Illuminate\Support\Facades\Cache;
 
 uses(RefreshDatabase::class);
 
-beforeEach(function () {
-    // Setup Super Admin
-    $this->superAdmin = User::factory()->create([
+// Fungsi pembantu untuk setup data awal (menggantikan beforeEach)
+function createTestData()
+{
+    /** @var User $superAdmin */
+    $superAdmin = User::factory()->create([
         'role' => 'super_admin',
     ]);
 
-    // Setup FO Admin
-    $this->foAdmin = User::factory()->create([
+    /** @var User $foAdmin */
+    $foAdmin = User::factory()->create([
         'role' => 'admin_fo',
     ]);
 
-    // Seed default settings values (simulating SettingsSeeder)
+    // Seed default settings values
     Setting::create([
         'key' => 'app_name',
         'value' => 'Mal Pelayanan Publik Sawahlunto',
@@ -74,22 +76,30 @@ beforeEach(function () {
         'description' => 'WebSocket status',
     ]);
 
-    // Clear caches
     Cache::flush();
-});
+
+    return compact('superAdmin', 'foAdmin');
+}
 
 test('guests are redirected to login when accessing system settings routes', function () {
-    $this->get(route('admin.settings.index'))->assertRedirect(route('login'));
-    $this->put(route('admin.settings.update'), [])->assertRedirect(route('login'));
+    // Jalankan seeding awal tanpa mengambil variabel return jika tidak digunakan
+    createTestData();
+
+    test()->get(route('admin.settings.index'))->assertRedirect(route('login'));
+    test()->put(route('admin.settings.update'), [])->assertRedirect(route('login'));
 });
 
 test('unauthorized roles cannot access system settings routes (403)', function () {
-    $this->actingAs($this->foAdmin)->get(route('admin.settings.index'))->assertStatus(403);
-    $this->actingAs($this->foAdmin)->put(route('admin.settings.update'), [])->assertStatus(403);
+    $data = createTestData();
+
+    test()->actingAs($data['foAdmin'])->get(route('admin.settings.index'))->assertStatus(403);
+    test()->actingAs($data['foAdmin'])->put(route('admin.settings.update'), [])->assertStatus(403);
 });
 
 test('super admin can view the system settings form page', function () {
-    $response = $this->actingAs($this->superAdmin)->get(route('admin.settings.index'));
+    $data = createTestData();
+
+    $response = test()->actingAs($data['superAdmin'])->get(route('admin.settings.index'));
     $response->assertStatus(200);
     $response->assertSee('Pengaturan Sistem');
     $response->assertSee('Nama Aplikasi / Instansi');
@@ -97,10 +107,12 @@ test('super admin can view the system settings form page', function () {
 });
 
 test('super admin can successfully update settings and clear cache', function () {
+    $data = createTestData();
+
     // Prime the cache first
     expect(Setting::getVal('app_name'))->toBe('Mal Pelayanan Publik Sawahlunto');
 
-    $response = $this->actingAs($this->superAdmin)
+    $response = test()->actingAs($data['superAdmin'])
         ->from(route('admin.settings.index'))
         ->put(route('admin.settings.update'), [
             'app_name' => 'MPP Sawahlunto Baru',
@@ -118,11 +130,11 @@ test('super admin can successfully update settings and clear cache', function ()
     $response->assertSessionHas('success');
 
     // Verify database updates
-    $this->assertDatabaseHas('settings', [
+    test()->assertDatabaseHas('settings', [
         'key' => 'app_name',
         'value' => 'MPP Sawahlunto Baru',
     ]);
-    $this->assertDatabaseHas('settings', [
+    test()->assertDatabaseHas('settings', [
         'key' => 'marquee_text',
         'value' => 'Teks berjalan baru',
     ]);
@@ -132,24 +144,26 @@ test('super admin can successfully update settings and clear cache', function ()
     expect(Setting::getVal('reverb_port'))->toBe('6001');
 
     // Verify activity log is written
-    $log = ActivityLog::where('event', 'settings_updated')->first();
+    $log = ActivityLog::query()->where('event', 'settings_updated')->first();
     expect($log)->not->toBeNull();
-    expect($log->causer_id)->toBe($this->superAdmin->id);
+    expect($log->causer_id)->toBe($data['superAdmin']->id);
     expect($log->description)->toContain('pengaturan sistem');
 });
 
 test('validation rejects invalid settings formats', function () {
-    $response = $this->actingAs($this->superAdmin)
+    $data = createTestData();
+
+    $response = test()->actingAs($data['superAdmin'])
         ->from(route('admin.settings.index'))
         ->put(route('admin.settings.update'), [
-            'app_name' => '', // required
+            'app_name' => '',
             'app_logo' => '',
-            'maintenance_mode' => '2', // must be 0 or 1
+            'maintenance_mode' => '2',
             'marquee_text' => '',
-            'marquee_active' => '3', // must be 0 or 1
+            'marquee_active' => '3',
             'reverb_host' => '',
             'reverb_port' => 'invalid-port',
-            'reverb_scheme' => 'ftp', // must be http or https
+            'reverb_scheme' => 'ftp',
             'websocket_enabled' => '9',
         ]);
 

@@ -2,7 +2,6 @@
 
 use App\Models\Counter;
 use App\Models\Department;
-use App\Models\Notification;
 use App\Models\Queue;
 use App\Models\Report;
 use App\Models\Service;
@@ -12,17 +11,19 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 uses(RefreshDatabase::class);
 
 test('front office can view reports list', function () {
+    /** @var User $fo */
     $fo = User::factory()->create(['role' => 'admin_fo']);
 
-    $response = $this->actingAs($fo)->get(route('reports.index'));
+    $response = test()->actingAs($fo)->get(route('reports.index'));
 
     $response->assertStatus(200);
 });
 
 test('creating report fails if there is no queue in selected range', function () {
+    /** @var User $fo */
     $fo = User::factory()->create(['role' => 'admin_fo']);
 
-    $response = $this->actingAs($fo)->post(route('reports.store'), [
+    $response = test()->actingAs($fo)->post(route('reports.store'), [
         'start_date' => now()->toDateString(),
         'end_date' => now()->toDateString(),
     ]);
@@ -32,13 +33,14 @@ test('creating report fails if there is no queue in selected range', function ()
 });
 
 test('front office can create a draft report if queue exists', function () {
+    /** @var User $fo */
     $fo = User::factory()->create(['role' => 'admin_fo']);
 
     $dept = Department::create(['name' => 'Disdukcapil', 'inisial' => 'DDK']);
     $counter = Counter::create(['department_id' => $dept->id, 'name' => 'Loket 01']);
     $service = Service::create(['department_id' => $dept->id, 'name' => 'Cetak KTP']);
 
-    Queue::create([
+    Queue::query()->create([
         'counter_id' => $counter->id,
         'service_id' => $service->id,
         'queue_number' => 'DDK-001',
@@ -46,26 +48,27 @@ test('front office can create a draft report if queue exists', function () {
         'queue_date' => now()->toDateString(),
     ]);
 
-    $response = $this->actingAs($fo)->post(route('reports.store'), [
+    $response = test()->actingAs($fo)->post(route('reports.store'), [
         'start_date' => now()->toDateString(),
         'end_date' => now()->toDateString(),
     ]);
 
     $response->assertRedirect();
-    $this->assertDatabaseHas('reports', [
+    test()->assertDatabaseHas('reports', [
         'created_by' => $fo->id,
         'status' => 'Belum Dikirim',
     ]);
 });
 
 test('front office can update a draft report', function () {
+    /** @var User $fo */
     $fo = User::factory()->create(['role' => 'admin_fo']);
 
     $dept = Department::create(['name' => 'Disdukcapil', 'inisial' => 'DDK']);
     $counter = Counter::create(['department_id' => $dept->id, 'name' => 'Loket 01']);
     $service = Service::create(['department_id' => $dept->id, 'name' => 'Cetak KTP']);
 
-    Queue::create([
+    Queue::query()->create([
         'counter_id' => $counter->id,
         'service_id' => $service->id,
         'queue_number' => 'DDK-001',
@@ -82,7 +85,7 @@ test('front office can update a draft report', function () {
         'status' => 'Belum Dikirim',
     ]);
 
-    $response = $this->actingAs($fo)->put(route('reports.update', $report->id), [
+    $response = test()->actingAs($fo)->put(route('reports.update', $report->id), [
         'start_date' => now()->toDateString(),
         'end_date' => now()->toDateString(),
     ]);
@@ -93,6 +96,7 @@ test('front office can update a draft report', function () {
 });
 
 test('front office can delete a draft report', function () {
+    /** @var User $fo */
     $fo = User::factory()->create(['role' => 'admin_fo']);
 
     $report = Report::create([
@@ -104,14 +108,16 @@ test('front office can delete a draft report', function () {
         'status' => 'Belum Dikirim',
     ]);
 
-    $response = $this->actingAs($fo)->delete(route('reports.destroy', $report->id));
+    $response = test()->actingAs($fo)->delete(route('reports.destroy', $report->id));
 
     $response->assertRedirect(route('reports.index'));
-    $this->assertDatabaseMissing('reports', ['id' => $report->id]);
+    test()->assertDatabaseMissing('reports', ['id' => $report->id]);
 });
 
 test('front office can send a report, locking it and notifying super admins', function () {
+    /** @var User $fo */
     $fo = User::factory()->create(['role' => 'admin_fo']);
+    /** @var User $superAdmin */
     $superAdmin = User::factory()->create(['role' => 'super_admin']);
 
     $report = Report::create([
@@ -123,7 +129,7 @@ test('front office can send a report, locking it and notifying super admins', fu
         'status' => 'Belum Dikirim',
     ]);
 
-    $response = $this->actingAs($fo)->post(route('reports.send', $report->id));
+    $response = test()->actingAs($fo)->post(route('reports.send', $report->id));
 
     $response->assertRedirect(route('reports.index'));
 
@@ -131,14 +137,14 @@ test('front office can send a report, locking it and notifying super admins', fu
     expect($report->status)->toBe('Terkirim');
     expect($report->isLocked())->toBeTrue();
 
-    // Verify Notification sent to Super Admin
-    $this->assertDatabaseHas('notifications', [
+    test()->assertDatabaseHas('notifications', [
         'user_id' => $superAdmin->id,
         'title' => 'Laporan Baru Masuk',
     ]);
 });
 
 test('locked report cannot be edited, updated, or deleted', function () {
+    /** @var User $fo */
     $fo = User::factory()->create(['role' => 'admin_fo']);
 
     $report = Report::create([
@@ -151,12 +157,12 @@ test('locked report cannot be edited, updated, or deleted', function () {
     ]);
 
     // Try editing
-    $editResponse = $this->actingAs($fo)->get(route('reports.edit', $report->id));
+    $editResponse = test()->actingAs($fo)->get(route('reports.edit', $report->id));
     $editResponse->assertRedirect(route('reports.index'));
     $editResponse->assertSessionHas('warning', 'Laporan telah dikirim, data tidak dapat dimodifikasi.');
 
     // Try updating
-    $updateResponse = $this->actingAs($fo)->put(route('reports.update', $report->id), [
+    $updateResponse = test()->actingAs($fo)->put(route('reports.update', $report->id), [
         'start_date' => now()->toDateString(),
         'end_date' => now()->toDateString(),
     ]);
@@ -164,13 +170,15 @@ test('locked report cannot be edited, updated, or deleted', function () {
     $updateResponse->assertSessionHas('warning', 'Laporan telah dikirim, data tidak dapat dimodifikasi.');
 
     // Try deleting
-    $deleteResponse = $this->actingAs($fo)->delete(route('reports.destroy', $report->id));
+    $deleteResponse = test()->actingAs($fo)->delete(route('reports.destroy', $report->id));
     $deleteResponse->assertRedirect(route('reports.index'));
     $deleteResponse->assertSessionHas('warning', 'Laporan telah dikirim, data tidak dapat dimodifikasi.');
 });
 
 test('super admin can view list of sent reports and their detail', function () {
+    /** @var User $superAdmin */
     $superAdmin = User::factory()->create(['role' => 'super_admin']);
+    /** @var User $fo */
     $fo = User::factory()->create(['role' => 'admin_fo']);
 
     $report = Report::create([
@@ -182,17 +190,19 @@ test('super admin can view list of sent reports and their detail', function () {
         'status' => 'Terkirim',
     ]);
 
-    $responseList = $this->actingAs($superAdmin)->get(route('admin.reports.index'));
+    $responseList = test()->actingAs($superAdmin)->get(route('admin.reports.index'));
     $responseList->assertStatus(200);
     $responseList->assertSee('Laporan Sent');
 
-    $responseDetail = $this->actingAs($superAdmin)->get(route('admin.reports.show', $report->id));
+    $responseDetail = test()->actingAs($superAdmin)->get(route('admin.reports.show', $report->id));
     $responseDetail->assertStatus(200);
     $responseDetail->assertSee('Laporan Sent');
 });
 
 test('other roles cannot access reports', function () {
+    /** @var User $visitor */
     $visitor = User::factory()->create(['role' => 'pengunjung']);
+    /** @var User $fo */
     $fo = User::factory()->create(['role' => 'admin_fo']);
 
     $report = Report::create([
@@ -205,11 +215,11 @@ test('other roles cannot access reports', function () {
     ]);
 
     // Visitor tries to access reports index
-    $this->actingAs($visitor)->get(route('reports.index'))->assertStatus(403);
+    test()->actingAs($visitor)->get(route('reports.index'))->assertStatus(403);
 
     // Visitor tries to access super admin reports index
-    $this->actingAs($visitor)->get(route('admin.reports.index'))->assertStatus(403);
+    test()->actingAs($visitor)->get(route('admin.reports.index'))->assertStatus(403);
 
     // Visitor tries to access report details
-    $this->actingAs($visitor)->get(route('admin.reports.show', $report->id))->assertStatus(403);
+    test()->actingAs($visitor)->get(route('admin.reports.show', $report->id))->assertStatus(403);
 });

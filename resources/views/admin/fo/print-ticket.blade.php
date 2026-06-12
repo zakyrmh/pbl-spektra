@@ -64,7 +64,13 @@
 
         {{-- Main Result / Receipt Karcis (Tampil Setelah Sukses Diterbitkan) --}}
         @if (session('ticket'))
-            @php $ticket = session('ticket'); @endphp
+            @php
+                $ticket = session('ticket');
+                $ticketCreatedAt = data_get($ticket, 'created_at') ?? now();
+                if (is_string($ticketCreatedAt)) {
+                    $ticketCreatedAt = \Carbon\Carbon::parse($ticketCreatedAt);
+                }
+            @endphp
             <div class="bg-canvas dark:bg-surface-dark-elevated rounded-xl border-2 border-status-serving/45 shadow-lg overflow-hidden max-w-md mx-auto" id="ticket-receipt-card">
                 
                 <div class="flex items-center justify-between px-5 py-3.5 bg-status-serving/10 border-b border-status-serving/20 print:hidden">
@@ -94,7 +100,7 @@
                         </div>
                         <span class="text-[10px] font-bold text-muted dark:text-on-dark-soft uppercase tracking-wider block font-display">NOMOR ANTREAN</span>
                         <div class="text-5xl sm:text-6xl font-extrabold text-primary dark:text-accent-teal tracking-tight font-mono">
-                            {{ $ticket->queue_number }}
+                            {{ data_get($ticket, 'queue_number') }}
                         </div>
                         <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 rounded-full text-xs font-bold border border-green-200/50 print:hidden mt-2">
                             <span class="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
@@ -105,27 +111,27 @@
                     <div class="space-y-3.5 text-sm font-body">
                         <div class="flex justify-between gap-4">
                             <span class="text-muted dark:text-on-dark-soft font-medium">Nama Pengunjung</span>
-                            <span class="font-bold text-ink dark:text-white text-right">{{ $ticket->user->name }}</span>
+                            <span class="font-bold text-ink dark:text-white text-right">{{ data_get($ticket, 'user.name') }}</span>
                         </div>
                         <div class="flex justify-between gap-4">
                             <span class="text-muted dark:text-on-dark-soft font-medium">NIK</span>
-                            <span class="font-bold text-ink dark:text-white font-mono text-right">{{ $ticket->user->nik }}</span>
+                            <span class="font-bold text-ink dark:text-white font-mono text-right">{{ data_get($ticket, 'user.nik') }}</span>
                         </div>
                         <div class="flex justify-between gap-4">
                             <span class="text-muted dark:text-on-dark-soft font-medium">Instansi</span>
-                            <span class="font-bold text-ink dark:text-white text-right">{{ $ticket->department->name }}</span>
+                            <span class="font-bold text-ink dark:text-white text-right">{{ data_get($ticket, 'department.name') }}</span>
                         </div>
                         <div class="flex justify-between gap-4">
                             <span class="text-muted dark:text-on-dark-soft font-medium">Loket Pelayanan</span>
-                            <span class="font-bold text-primary dark:text-accent-teal text-right">Loket {{ $ticket->department->nomor_loket }}</span>
+                            <span class="font-bold text-primary dark:text-accent-teal text-right">Loket {{ data_get($ticket, 'department.nomor_loket') }}</span>
                         </div>
                         <div class="flex justify-between gap-4">
                             <span class="text-muted dark:text-on-dark-soft font-medium">Keperluan</span>
-                            <span class="font-bold text-ink dark:text-white text-right">{{ $ticket->purpose }}</span>
+                            <span class="font-bold text-ink dark:text-white text-right">{{ data_get($ticket, 'purpose') }}</span>
                         </div>
                         <div class="flex justify-between gap-4">
                             <span class="text-muted dark:text-on-dark-soft font-medium">Waktu Cetak</span>
-                            <span class="font-bold text-ink dark:text-white text-right">{{ $ticket->created_at->translatedFormat('d M Y · H:i') }}</span>
+                            <span class="font-bold text-ink dark:text-white text-right">{{ $ticketCreatedAt->translatedFormat('d M Y · H:i') }}</span>
                         </div>
                     </div>
                 </div>

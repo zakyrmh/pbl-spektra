@@ -6,14 +6,14 @@ namespace App\Http\Controllers\Admin\FO\Api;
 
 use App\Events\QueueCreated;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\CheckNikRequest;
-use App\Http\Resources\VisitorLookupResource;
+use App\Http\Requests\AdminFO\CheckNikRequest;
+use App\Http\Resources\AdminFO\VisitorLookupResource;
 use App\Models\ActivityLog;
 use App\Models\Booking;
 use App\Models\Counter;
 use App\Models\Queue;
 use App\Models\Service;
-use App\Services\VisitorLookupService;
+use App\Services\AdminFO\VisitorLookupService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;

@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\FO;
 
-use App\Data\WalkInTicketData;
+use App\Data\AdminFO\WalkInTicketData;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\StoreWalkInTicketRequest;
-use App\Services\WalkInTicketService;
+use App\Http\Requests\AdminFO\StoreWalkInTicketRequest;
+use App\Services\AdminFO\WalkInTicketService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 

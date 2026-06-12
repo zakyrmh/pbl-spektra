@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\AdminGerai;
 
-use App\Data\WaitingListDashboardData;
+use App\Data\AdminGerai\WaitingListDashboardData;
 use App\Enums\QueueStatus;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\WaitingListActionRequest;
+use App\Http\Requests\AdminGerai\WaitingListActionRequest;
 use App\Models\Department;
 use App\Models\Queue;
-use App\Services\WaitingListService;
+use App\Services\AdminGerai\WaitingListService;
 use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;

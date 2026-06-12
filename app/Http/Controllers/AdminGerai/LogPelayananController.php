@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\AdminGerai;
 
-use App\Data\LogPelayananData;
+use App\Data\AdminGerai\LogPelayananData;
 use App\Enums\QueueStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Department;
-use App\Services\LogPelayananService;
+use App\Services\AdminGerai\LogPelayananService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;

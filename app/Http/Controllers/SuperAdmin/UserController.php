@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\SuperAdmin;
 
-use App\Data\UserData;
+use App\Data\SuperAdmin\UserData;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\SuperAdmin\StoreUserRequest;
 use App\Http\Requests\SuperAdmin\UpdateUserRequest;
 use App\Models\User;
-use App\Services\UserManagementService;
+use App\Services\SuperAdmin\UserManagementService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;

@@ -10,7 +10,7 @@ use App\Models\Department;
 use App\Models\Schedule;
 use App\Models\Service;
 use App\Models\User;
-use App\Services\BookingService;
+use App\Services\Public\BookingService;
 use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;

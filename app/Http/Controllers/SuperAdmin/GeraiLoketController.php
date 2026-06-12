@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\SuperAdmin;
 
-use App\Data\BoothData;
+use App\Data\SuperAdmin\BoothData;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\SuperAdmin\StoreBoothRequest;
 use App\Http\Requests\SuperAdmin\UpdateBoothRequest;
 use App\Models\Department;
 use App\Models\User;
-use App\Services\BoothManagementService;
+use App\Services\SuperAdmin\BoothManagementService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;

@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Public;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\MonitorFilterRequest;
-use App\Http\Resources\ActiveQueueResource;
+use App\Http\Requests\AdminFO\MonitorFilterRequest;
+use App\Http\Resources\AdminFO\ActiveQueueResource;
 use App\Models\Setting;
-use App\Services\QueueMonitorService;
+use App\Services\AdminFO\QueueMonitorService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
 

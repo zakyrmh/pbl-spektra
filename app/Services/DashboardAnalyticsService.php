@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Services;
 
-use App\Data\FoDashboardData;
-use App\Data\SuperAdminDashboardData;
+use App\Data\AdminFO\FoDashboardData;
+use App\Data\SuperAdmin\SuperAdminDashboardData;
 use App\Enums\QueueStatus;
 use App\Models\ActivityLog;
 use App\Models\Department;

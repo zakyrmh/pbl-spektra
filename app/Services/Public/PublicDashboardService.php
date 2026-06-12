@@ -15,17 +15,17 @@ final class PublicDashboardService
      */
     public function getLandingStats(): LandingStats
     {
-        $totalInstansi = Department::where('is_open', true)->count();
+        $totalInstansi = Department::query()->where('is_open', true)->count();
 
         $avgSeconds = null;
         if (config('database.default') === 'sqlite') {
-            $avgSeconds = Queue::where('status', 'Completed')
+            $avgSeconds = Queue::query()->where('status', 'Completed')
                 ->whereNotNull('called_at')
                 ->whereNotNull('completed_at')
                 ->selectRaw('AVG(strftime("%s", completed_at) - strftime("%s", called_at)) as avg_duration')
                 ->value('avg_duration');
         } else {
-            $avgSeconds = Queue::where('status', 'Completed')
+            $avgSeconds = Queue::query()->where('status', 'Completed')
                 ->whereNotNull('called_at')
                 ->whereNotNull('completed_at')
                 ->selectRaw('AVG(TIMESTAMPDIFF(SECOND, called_at, completed_at)) as avg_duration')

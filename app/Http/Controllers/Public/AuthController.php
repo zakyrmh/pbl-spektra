@@ -1,220 +1,153 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\Public;
 
+use App\Exceptions\Public\UnverifiedEmailException;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Public\ForgotPasswordRequest;
+use App\Http\Requests\Public\LoginRequest;
+use App\Http\Requests\Public\RegisterRequest;
+use App\Http\Requests\Public\ResetPasswordRequest;
 use App\Models\User;
-use App\Services\AuditLogger;
-use Illuminate\Auth\Events\PasswordReset;
-use Illuminate\Auth\Events\Registered;
-use Illuminate\Auth\Events\Verified;
+use App\Services\Public\AuthService;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Password as PasswordFacade;
-use Illuminate\Support\Facades\RateLimiter;
-use Illuminate\Support\Str;
-use Illuminate\Validation\Rules\Password;
+use Illuminate\Validation\ValidationException;
+use Illuminate\View\View;
 
-class AuthController extends Controller
+final class AuthController extends Controller
 {
-    // Tampilkan halaman login
-    public function index()
+    public function __construct(
+        protected AuthService $authService
+    ) {}
+
+    /**
+     * Tampilkan halaman login
+     */
+    public function index(): View
     {
         return view('auth.login');
     }
 
-    public function authenticate(Request $request)
+    /**
+     * Proses autentikasi/login
+     */
+    public function authenticate(LoginRequest $request): RedirectResponse
     {
-        $request->validate([
-            'email' => ['required', 'email'],
-            'password' => ['required'],
-        ]);
+        $request->ensureIsNotRateLimited();
 
-        $throttleKey = Str::transliterate(Str::lower($request->input('email')).'|'.$request->ip());
+        try {
+            $this->authService->login(
+                email: $request->input('email'),
+                password: $request->input('password'),
+                remember: $request->boolean('remember')
+            );
 
-        if (RateLimiter::tooManyAttempts($throttleKey, 5)) {
-            $seconds = RateLimiter::availableIn($throttleKey);
+            $request->clear();
+        } catch (UnverifiedEmailException $e) {
+            $request->clear();
 
-            return back()->withErrors([
-                'email' => 'Terlalu banyak percobaan masuk. Silakan coba lagi dalam '.$seconds.' detik.',
-            ])->onlyInput('email');
+            return redirect()->route('verification.notice')->withErrors([
+                'email' => $e->getMessage(),
+            ]);
+        } catch (ValidationException $e) {
+            $request->hit();
+
+            return back()->withErrors($e->errors())->onlyInput('email');
         }
 
-        if (Auth::attempt([
-            'email' => $request->email,
-            'password' => $request->password,
-        ], $request->boolean('remember'))) {
-            /** @var User $user */
-            $user = Auth::user();
-
-            // Cek apakah email sudah terverifikasi
-            if (! $user->hasVerifiedEmail()) {
-                Auth::logout();
-                $request->session()->invalidate();
-                $request->session()->regenerateToken();
-
-                // Simpan email di session untuk kirim ulang verification link
-                session(['unverified_email' => $user->email]);
-
-                return redirect()->route('verification.notice')->withErrors([
-                    'email' => 'Email Anda belum terverifikasi. Silakan cek email Anda untuk melakukan verifikasi.',
-                ]);
-            }
-
-            RateLimiter::clear($throttleKey);
-            $request->session()->regenerate();
-
-            // Catat waktu login terakhir untuk tracking "staf aktif online"
-            $user->update(['last_login_at' => now()]);
-
-            // Audit trail: catat event login
-            AuditLogger::userLoggedIn($user);
-
-            return redirect()->intended('/dashboard');
-        }
-
-        RateLimiter::hit($throttleKey, 60); // Blokir selama 60 detik jika mencapai limit
-
-        return back()->withErrors([
-            'email' => 'Email atau password salah.',
-        ])->onlyInput('email');
+        return redirect()->intended('/dashboard');
     }
 
-    // Tampilkan halaman registrasi
-    public function register()
+    /**
+     * Tampilkan halaman registrasi
+     */
+    public function register(): View
     {
         return view('auth.register');
     }
 
-    // Proses registrasi
-    public function store(Request $request)
+    /**
+     * Proses registrasi
+     */
+    public function store(RegisterRequest $request): RedirectResponse
     {
-        $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'nik' => ['required', 'string', 'digits:16', 'unique:users,nik'],
-            'email' => ['required', 'email', 'max:255', 'unique:users,email'],
-            'phone_number' => ['required', 'string', 'regex:/^(08[0-9]{8,13}|\+628[0-9]{8,11})$/'],
-            'password' => ['required', 'confirmed', Password::min(8)->letters()->numbers()->symbols()],
-        ], [
-            'name.required' => 'Nama lengkap wajib diisi.',
-            'name.max' => 'Nama lengkap tidak boleh lebih dari 255 karakter.',
-            'nik.required' => 'NIK wajib diisi.',
-            'nik.digits' => 'NIK harus berupa 16 digit angka.',
-            'nik.unique' => 'NIK sudah terdaftar.',
-            'email.required' => 'Alamat email wajib diisi.',
-            'email.email' => 'Format email tidak valid.',
-            'email.max' => 'Alamat email tidak boleh lebih dari 255 karakter.',
-            'email.unique' => 'Alamat email sudah terdaftar.',
-            'phone_number.required' => 'Nomor HP wajib diisi.',
-            'phone_number.regex' => 'Format nomor HP tidak valid (harus diawali 08 atau +628 dan berisi 10-15 karakter).',
-            'password.required' => 'Password wajib diisi.',
-            'password.confirmed' => 'Konfirmasi password tidak cocok.',
-            'password.min' => 'Password minimal harus 8 karakter.',
-            'password.letters' => 'Password harus mengandung minimal satu huruf.',
-            'password.numbers' => 'Password harus mengandung minimal satu angka.',
-            'password.symbols' => 'Password harus mengandung minimal satu simbol.',
-        ]);
-
-        $user = User::create([
-            'name' => $validated['name'],
-            'nik' => $validated['nik'],
-            'email' => $validated['email'],
-            'phone_number' => $validated['phone_number'],
-            'password' => Hash::make($validated['password']),
-            'role' => 'pengunjung',
-        ]);
-
-        // Memicu event Registered agar notifikasi verifikasi email dikirim
-        event(new Registered($user));
-
-        // Simpan email di session untuk konfirmasi
-        session(['unverified_email' => $user->email]);
+        $this->authService->register($request->validated());
 
         return redirect()->route('verification.notice')->with('success', 'Registrasi berhasil. Silakan cek email Anda untuk melakukan verifikasi.');
     }
 
-    // Tampilkan halaman lupa password
-    public function forgotPassword()
+    /**
+     * Tampilkan halaman lupa password
+     */
+    public function forgotPassword(): View
     {
         return view('auth.forgot-password');
     }
 
-    // Proses reset password
-    public function sendResetLink(Request $request)
+    /**
+     * Proses pengiriman link reset password
+     */
+    public function sendResetLink(ForgotPasswordRequest $request): RedirectResponse
     {
-        $request->validate([
-            'email' => ['required', 'email'],
-        ]);
+        try {
+            $status = $this->authService->sendResetLink($request->input('email'));
 
-        $status = PasswordFacade::sendResetLink(
-            $request->only('email')
-        );
-
-        if ($status === PasswordFacade::RESET_LINK_SENT) {
             return back()->with('status', __($status));
+        } catch (ValidationException $e) {
+            return back()->withErrors($e->errors());
         }
-
-        return back()->withErrors(['email' => __($status)]);
     }
 
-    // Tampilkan form reset password
-    public function showResetForm(Request $request, $token = null)
+    /**
+     * Tampilkan form reset password
+     */
+    public function showResetForm(Request $request, ?string $token = null): View
     {
-        return view('auth.reset-password')->with(
-            ['token' => $token, 'email' => $request->email]
-        );
-    }
-
-    // Proses update password baru
-    public function resetPassword(Request $request)
-    {
-        $request->validate([
-            'token' => 'required',
-            'email' => 'required|email',
-            'password' => ['required', 'confirmed', Password::min(8)],
+        return view('auth.reset-password')->with([
+            'token' => $token,
+            'email' => $request->email,
         ]);
-
-        $status = PasswordFacade::reset(
-            $request->only('email', 'password', 'password_confirmation', 'token'),
-            function ($user, $password) {
-                $user->password = Hash::make($password);
-                $user->setRememberToken(Str::random(60));
-                $user->save();
-
-                event(new PasswordReset($user));
-            }
-        );
-
-        return $status == PasswordFacade::PASSWORD_RESET
-                    ? redirect()->route('login')->with('status', __($status))
-                    : back()->withErrors(['email' => [__($status)]]);
     }
 
-    // Proses logout
-    public function logout(Request $request)
+    /**
+     * Proses update password baru
+     */
+    public function resetPassword(ResetPasswordRequest $request): RedirectResponse
     {
-        /** @var User $user */
-        $user = Auth::user();
+        try {
+            $status = $this->authService->resetPassword(
+                $request->only('email', 'password', 'password_confirmation', 'token')
+            );
 
-        // Audit trail: catat event logout sebelum sesi dihapus
-        if ($user) {
-            AuditLogger::userLoggedOut($user);
+            return redirect()->route('login')->with('status', __($status));
+        } catch (ValidationException $e) {
+            return back()->withErrors($e->errors());
         }
+    }
 
-        Auth::logout();
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
+    /**
+     * Proses logout
+     */
+    public function logout(Request $request): RedirectResponse
+    {
+        $this->authService->logout();
 
         return redirect('/login');
     }
 
-    // Tampilkan halaman konfirmasi verifikasi email
-    public function notice(Request $request)
+    /**
+     * Tampilkan halaman konfirmasi verifikasi email
+     */
+    public function notice(Request $request): RedirectResponse|View
     {
         $email = session('unverified_email');
 
         if (! $email && Auth::check()) {
+            /** @var User $user */
             $user = Auth::user();
             if ($user->hasVerifiedEmail()) {
                 return redirect('/dashboard');
@@ -230,59 +163,37 @@ class AuthController extends Controller
         return view('auth.verify-email', ['email' => $email]);
     }
 
-    // Proses link verifikasi di email (Auto-Login & Redirect Dashboard)
-    public function verify(Request $request, $id, $hash)
+    /**
+     * Proses link verifikasi di email (Auto-Login & Redirect Dashboard)
+     */
+    public function verify(Request $request, string $id, string $hash): RedirectResponse
     {
         if (! $request->hasValidSignature()) {
             abort(401, 'Tautan verifikasi tidak valid atau telah kedaluwarsa.');
         }
 
+        /** @var User $user */
         $user = User::findOrFail($id);
 
-        if (! hash_equals((string) $hash, sha1($user->getEmailForVerification()))) {
-            abort(401, 'Tautan verifikasi tidak valid.');
-        }
-
-        if (! $user->hasVerifiedEmail()) {
-            $user->markEmailAsVerified();
-            event(new Verified($user));
-        }
-
-        Auth::login($user);
-
-        $request->session()->regenerate();
-        $user->update(['last_login_at' => now()]);
-        AuditLogger::userLoggedIn($user);
+        $this->authService->verify($user, $hash);
 
         return redirect('/dashboard')->with('success', 'Email Anda berhasil diverifikasi. Selamat datang di dashboard!');
     }
 
-    // Kirim ulang email verifikasi
-    public function resend(Request $request)
+    /**
+     * Kirim ulang email verifikasi
+     */
+    public function resend(Request $request): RedirectResponse
     {
-        $email = session('unverified_email');
+        $email = session('unverified_email') ?: (Auth::check() ? Auth::user()->email : null);
 
-        if (! $email && Auth::check()) {
-            $email = Auth::user()->email;
+        try {
+            $this->authService->resendNotification($email);
+        } catch (ValidationException $e) {
+            return redirect()->route('login')->withErrors($e->errors());
+        } catch (\RuntimeException $e) {
+            return redirect('/dashboard')->with('success', $e->getMessage());
         }
-
-        if (! $email) {
-            return redirect()->route('login')->withErrors([
-                'email' => 'Silakan masuk terlebih dahulu atau registrasi ulang.',
-            ]);
-        }
-
-        $user = User::where('email', $email)->first();
-
-        if (! $user) {
-            return redirect()->route('login');
-        }
-
-        if ($user->hasVerifiedEmail()) {
-            return redirect('/dashboard')->with('success', 'Email Anda sudah terverifikasi.');
-        }
-
-        $user->sendEmailVerificationNotification();
 
         return back()->with('status', 'verification-link-sent');
     }

@@ -148,3 +148,70 @@ test('duplicate walk-in tickets for same NIK is blocked', function () {
 
     $response->assertSessionHasErrors(['nik']);
 });
+
+test('guest cannot check NIK', function () {
+    $response = $this->getJson(route('api.fo.visitors.check-nik', ['nik' => '1234567890123456']));
+    $response->assertStatus(401);
+});
+
+test('non-admin_fo user cannot check NIK', function () {
+    $user = User::factory()->create([
+        'role' => 'admin_gerai',
+    ]);
+
+    $response = $this->actingAs($user)->getJson(route('api.fo.visitors.check-nik', ['nik' => '1234567890123456']));
+    $response->assertStatus(403);
+});
+
+test('admin fo checking non-existent NIK receives 404', function () {
+    $user = User::factory()->create([
+        'role' => 'admin_fo',
+    ]);
+
+    $response = $this->actingAs($user)->getJson(route('api.fo.visitors.check-nik', ['nik' => '9999999999999999']));
+
+    $response->assertStatus(404);
+    $response->assertJson([
+        'is_found' => false,
+    ]);
+});
+
+test('admin fo checking NIK of a visitor role user receives 200 with data', function () {
+    $user = User::factory()->create([
+        'role' => 'admin_fo',
+    ]);
+
+    $visitor = User::factory()->create([
+        'role' => 'pengunjung',
+        'nik' => '1234567890123456',
+        'name' => 'Budi Santoso',
+        'no_telp' => '081299990000',
+    ]);
+
+    $response = $this->actingAs($user)->getJson(route('api.fo.visitors.check-nik', ['nik' => '1234567890123456']));
+
+    $response->assertStatus(200);
+    $response->assertJson([
+        'data' => [
+            'id' => $visitor->id,
+            'name' => 'Budi Santoso',
+            'no_telp' => '081299990000',
+            'is_found' => true,
+        ],
+    ]);
+});
+
+test('admin fo checking NIK of a non-visitor role user receives 404', function () {
+    $user = User::factory()->create([
+        'role' => 'admin_fo',
+    ]);
+
+    $staff = User::factory()->create([
+        'role' => 'admin_gerai',
+        'nik' => '1234567890123456',
+    ]);
+
+    $response = $this->actingAs($user)->getJson(route('api.fo.visitors.check-nik', ['nik' => '1234567890123456']));
+
+    $response->assertStatus(404);
+});

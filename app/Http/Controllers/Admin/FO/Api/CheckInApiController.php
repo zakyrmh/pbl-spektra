@@ -6,12 +6,14 @@ namespace App\Http\Controllers\Admin\FO\Api;
 
 use App\Events\QueueCreated;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\CheckNikRequest;
+use App\Http\Resources\VisitorLookupResource;
 use App\Models\ActivityLog;
 use App\Models\Booking;
 use App\Models\Counter;
 use App\Models\Queue;
 use App\Models\Service;
-use App\Models\User;
+use App\Services\VisitorLookupService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -205,29 +207,19 @@ class CheckInApiController extends Controller
         }
     }
 
-    /**
-     * Cek NIK di database visitor.
-     * GET /api/fo/visitors/check-nik?nik={nik}
-     */
-    public function checkNik(Request $request): JsonResponse
+    public function checkNik(CheckNikRequest $request, VisitorLookupService $lookupService): JsonResponse|VisitorLookupResource
     {
-        $nik = trim($request->query('nik', ''));
+        $nik = $request->input('nik');
+        $visitor = $lookupService->findByNik($nik);
 
-        if (empty($nik) || strlen($nik) !== 16) {
-            return response()->json(['message' => 'Format NIK tidak valid.'], 400);
-        }
-
-        $visitor = User::where('nik', $nik)->first();
-
-        if ($visitor) {
+        if (! $visitor) {
             return response()->json([
-                'found' => true,
-                'name' => $visitor->name,
-                'nik' => $visitor->nik,
-            ]);
+                'message' => 'Warga baru, silakan isi data manual',
+                'is_found' => false,
+            ], 404);
         }
 
-        return response()->json(['found' => false]);
+        return new VisitorLookupResource($visitor);
     }
 
     /**

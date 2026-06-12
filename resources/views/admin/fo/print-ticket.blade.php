@@ -159,9 +159,27 @@
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div class="space-y-2">
                                     <label for="nik" class="block text-sm font-bold text-ink dark:text-white font-display">NIK Warga</label>
-                                    <input type="text" id="nik" name="nik" value="{{ old('nik') }}" maxlength="16" required
-                                           placeholder="Contoh: 1373021408990002"
-                                           class="w-full h-11 text-sm bg-canvas dark:bg-white/5 border border-hairline dark:border-white/15 text-ink dark:text-white rounded-md px-4 font-mono focus:border-primary dark:focus:border-accent-teal focus:outline-none focus:ring-3 focus:ring-primary/12 dark:focus:ring-accent-teal/20 transition-all">
+                                    <div class="flex gap-2">
+                                        <div class="relative grow">
+                                            <input type="text" id="nik" name="nik" value="{{ old('nik') }}" maxlength="16" required
+                                                   placeholder="Contoh: 1373021408990002"
+                                                   class="w-full h-11 text-sm bg-canvas dark:bg-white/5 border border-hairline dark:border-white/15 text-ink dark:text-white rounded-md px-4 font-mono focus:border-primary dark:focus:border-accent-teal focus:outline-none focus:ring-3 focus:ring-primary/12 dark:focus:ring-accent-teal/20 transition-all">
+                                        </div>
+                                        <button type="button" id="btn-cari-nik"
+                                                class="px-4 bg-primary hover:bg-primary-hover text-white text-xs font-bold rounded-md transition-all cursor-pointer flex items-center justify-center gap-1.5 h-11 border border-primary/10 shadow-sm shrink-0">
+                                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                            </svg>
+                                            <span id="btn-cari-text">Cari</span>
+                                        </button>
+                                        <button type="button" id="btn-reset-nik"
+                                                class="hidden px-4 bg-status-skipped/10 hover:bg-status-skipped/25 text-status-skipped text-xs font-bold rounded-md transition-all cursor-pointer flex items-center justify-center gap-1.5 h-11 border border-status-skipped/20 shadow-sm shrink-0">
+                                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                            </svg>
+                                            <span>Reset</span>
+                                        </button>
+                                    </div>
                                 </div>
                                 <div class="space-y-2">
                                     <label for="name" class="block text-sm font-bold text-ink dark:text-white font-display">Nama Lengkap</label>
@@ -172,8 +190,8 @@
                             </div>
 
                             <div class="space-y-2">
-                                <label for="phone" class="block text-sm font-bold text-ink dark:text-white font-display">Nomor Telepon / WhatsApp</label>
-                                <input type="text" id="phone" name="phone" value="{{ old('phone') }}" required
+                                <label for="no_telp" class="block text-sm font-bold text-ink dark:text-white font-display">Nomor Telepon / WhatsApp</label>
+                                <input type="text" id="no_telp" name="phone" value="{{ old('phone') }}" required
                                        placeholder="Contoh: 081234567890"
                                        class="w-full h-11 text-sm bg-canvas dark:bg-white/5 border border-hairline dark:border-white/15 text-ink dark:text-white rounded-md px-4 font-mono focus:border-primary dark:focus:border-accent-teal focus:outline-none focus:ring-3 focus:ring-primary/12 dark:focus:ring-accent-teal/20 transition-all">
                             </div>
@@ -306,11 +324,68 @@
             }
         }
     </style>
+    <!-- Notification Toast Container -->
+    <div id="toastContainer" class="fixed bottom-6 right-6 z-50 flex flex-col gap-3 max-w-sm w-full pointer-events-none"></div>
 @endsection
 
 @push('scripts')
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            // Toast Alert
+            function createToast(title, message, type = 'success') {
+                const container = document.getElementById('toastContainer');
+                if (!container) return;
+
+                const toast = document.createElement('div');
+                let borderClr = 'border-green-500';
+                let bgClr = 'bg-white dark:bg-gray-800';
+                let iconHtml = '';
+
+                if (type === 'success') {
+                    borderClr = 'border-l-4 border-green-500';
+                    iconHtml = `<svg class="w-5 h-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>`;
+                } else if (type === 'warning') {
+                    borderClr = 'border-l-4 border-amber-500';
+                    iconHtml = `<svg class="w-5 h-5 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>`;
+                } else {
+                    borderClr = 'border-l-4 border-blue-500';
+                    iconHtml = `<svg class="w-5 h-5 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>`;
+                }
+
+                toast.className = `flex items-start gap-3 p-4 rounded-lg shadow-xl border border-hairline dark:border-white/10 ${bgClr} ${borderClr} max-w-sm pointer-events-auto transition-all duration-300 transform translate-y-2 opacity-0`;
+                toast.innerHTML = `
+                    <div class="shrink-0">${iconHtml}</div>
+                    <div class="flex-grow">
+                        <h5 class="text-xs font-bold text-ink dark:text-white font-display">${title}</h5>
+                        <p class="text-[11px] text-muted dark:text-on-dark-soft mt-0.5 font-body leading-tight">${message}</p>
+                    </div>
+                    <button type="button" onclick="this.parentElement.remove()" class="shrink-0 text-gray-400 hover:text-gray-600 dark:hover:text-white transition-colors">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                    </button>
+                `;
+
+                container.appendChild(toast);
+                
+                // Trigger reflow & animate in
+                setTimeout(() => {
+                    if (toast.isConnected) {
+                        toast.classList.remove('translate-y-2', 'opacity-0');
+                    }
+                }, 50);
+
+                // Auto remove after 4s
+                setTimeout(() => {
+                    if (toast.isConnected) {
+                        toast.classList.add('opacity-0', 'translate-y-[-10px]');
+                        setTimeout(() => {
+                            if (toast.isConnected) {
+                                toast.remove();
+                            }
+                        }, 300);
+                    }
+                }, 4000);
+            }
+
             // Auto format NIK input: only numbers, max 16 digits
             const nikField = document.getElementById('nik');
             if (nikField) {
@@ -320,10 +395,115 @@
             }
 
             // Auto format phone input: only numbers, max 15 digits
-            const phoneField = document.getElementById('phone');
+            const phoneField = document.getElementById('no_telp');
             if (phoneField) {
                 phoneField.addEventListener('input', (e) => {
                     e.target.value = e.target.value.replace(/\D/g, '').slice(0, 15);
+                });
+            }
+
+            // NIK lookup using Fetch API
+            const btnCari = document.getElementById('btn-cari-nik');
+            const btnReset = document.getElementById('btn-reset-nik');
+            const nameField = document.getElementById('name');
+            const cariText = document.getElementById('btn-cari-text');
+
+            if (btnCari && nikField && nameField && phoneField) {
+                btnCari.addEventListener('click', async (e) => {
+                    e.preventDefault();
+                    const nikValue = nikField.value.trim();
+
+                    if (nikValue.length !== 16) {
+                        createToast('Format Salah', 'NIK harus terdiri dari 16 digit.', 'warning');
+                        return;
+                    }
+
+                    // Set loading state
+                    btnCari.disabled = true;
+                    if (cariText) cariText.innerText = 'Mencari...';
+
+                    try {
+                        const response = await fetch(`/api/fo/visitors/check-nik?nik=${nikValue}`);
+                        
+                        if (response.ok) {
+                            const result = await response.json();
+                            const visitor = result.data;
+
+                            if (visitor && visitor.is_found) {
+                                // Populate fields
+                                nameField.value = visitor.name || '';
+                                phoneField.value = visitor.no_telp || '';
+
+                                // Set read-only and styles
+                                nameField.readOnly = true;
+                                phoneField.readOnly = true;
+                                nameField.classList.add('bg-gray-100', 'dark:bg-white/10', 'opacity-75');
+                                phoneField.classList.add('bg-gray-100', 'dark:bg-white/10', 'opacity-75');
+
+                                // Toggle buttons
+                                btnCari.classList.add('hidden');
+                                if (btnReset) btnReset.classList.remove('hidden');
+
+                                createToast('Warga Ditemukan', `Data warga ${visitor.name} berhasil dimuat secara otomatis.`, 'success');
+                            } else {
+                                handleNotFound();
+                            }
+                        } else {
+                            // Status 404 or others
+                            const errData = await response.json().catch(() => ({}));
+                            const msg = errData.message || 'Warga baru, silakan isi data manual.';
+                            handleNotFound(msg);
+                        }
+                    } catch (error) {
+                        console.error('Lookup NIK error:', error);
+                        createToast('Kesalahan Koneksi', 'Gagal menghubungi server untuk verifikasi NIK.', 'warning');
+                        btnCari.disabled = false;
+                        if (cariText) cariText.innerText = 'Cari';
+                    }
+                });
+            }
+
+            function handleNotFound(msg = 'Warga baru, silakan isi data manual.') {
+                // Ensure editable and clean loading state
+                nameField.readOnly = false;
+                phoneField.readOnly = false;
+                nameField.classList.remove('bg-gray-100', 'dark:bg-white/10', 'opacity-75');
+                phoneField.classList.remove('bg-gray-100', 'dark:bg-white/10', 'opacity-75');
+
+                btnCari.disabled = false;
+                if (cariText) cariText.innerText = 'Cari';
+                
+                // Keep buttons in search state
+                btnCari.classList.remove('hidden');
+                if (btnReset) btnReset.classList.add('hidden');
+
+                createToast('Warga Baru', msg, 'info');
+                nameField.focus();
+            }
+
+            if (btnReset && nikField && nameField && phoneField) {
+                btnReset.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    
+                    // Clear inputs
+                    nikField.value = '';
+                    nameField.value = '';
+                    phoneField.value = '';
+
+                    // Unlock fields
+                    nameField.readOnly = false;
+                    phoneField.readOnly = false;
+                    nameField.classList.remove('bg-gray-100', 'dark:bg-white/10', 'opacity-75');
+                    phoneField.classList.remove('bg-gray-100', 'dark:bg-white/10', 'opacity-75');
+
+                    // Toggle buttons
+                    btnCari.disabled = false;
+                    if (cariText) cariText.innerText = 'Cari';
+                    btnCari.classList.remove('hidden');
+                    btnReset.classList.add('hidden');
+
+                    createToast('Formulir Direset', 'Semua kolom identitas telah dibersihkan.', 'info');
+                    nikField.focus();
                 });
             }
         });

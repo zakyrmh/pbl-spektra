@@ -3,7 +3,6 @@
 use App\Http\Controllers\Admin\FO\Api\CheckInApiController;
 use App\Http\Controllers\Admin\FO\BookingCancellationController;
 use App\Http\Controllers\Admin\FO\CheckInController;
-use App\Http\Controllers\Admin\FO\QueueCallController;
 use App\Http\Controllers\Admin\FO\ReportController;
 use App\Http\Controllers\Admin\FO\WalkInTicketController;
 use App\Http\Controllers\AdminGerai\CounterController;
@@ -159,12 +158,6 @@ Route::middleware('auth')->group(function () {
         // Pembatalan Booking
         Route::get('/fo/bookings', [BookingCancellationController::class, 'index'])->name('admin.fo.bookings.index');
         Route::post('/fo/bookings/{booking}/cancel', [BookingCancellationController::class, 'cancel'])->name('admin.fo.bookings.cancel');
-
-        // Panggilan Antrean FO
-        Route::get('/fo/call', [QueueCallController::class, 'index'])->name('admin.fo.call');
-        Route::post('/fo/call/next', [QueueCallController::class, 'next'])->name('admin.fo.call.next');
-        Route::post('/fo/call/recall', [QueueCallController::class, 'recall'])->name('admin.fo.call.recall');
-        Route::post('/fo/call/skip', [QueueCallController::class, 'skip'])->name('admin.fo.call.skip');
 
         // Tiket Walk-In
         Route::get('/fo/ticket/create', [WalkInTicketController::class, 'create'])->name('admin.fo.ticket.create');

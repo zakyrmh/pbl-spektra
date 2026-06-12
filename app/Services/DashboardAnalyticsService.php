@@ -5,11 +5,14 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Data\AdminFO\FoDashboardData;
+use App\Data\AdminGerai\AdminGeraiDashboardData;
+use App\Data\Public\VisitorDashboardData;
 use App\Data\SuperAdmin\SuperAdminDashboardData;
 use App\Enums\QueueStatus;
 use App\Models\ActivityLog;
 use App\Models\Department;
 use App\Models\Queue;
+use App\Models\User;
 use Carbon\Carbon;
 
 class DashboardAnalyticsService
@@ -235,5 +238,139 @@ class DashboardAnalyticsService
             'labels' => array_column($top5, 'label'),
             'values' => array_column($top5, 'value'),
         ];
+    }
+
+    /**
+     * Get dashboard data for Admin Gerai.
+     */
+    public function getAdminGeraiDashboardData(?Department $department, string $today): AdminGeraiDashboardData
+    {
+        if (! $department) {
+            return new AdminGeraiDashboardData(
+                department: null,
+                currentQueue: null,
+                activeQueue: null,
+                waitingQueues: collect(),
+                skippedQueues: collect(),
+                completedCount: 0,
+                remainingCount: 0,
+                avgServiceTime: 12,
+                noCounter: true
+            );
+        }
+
+        $currentQueue = Queue::query()->where('department_id', $department->id)
+            ->whereDate('booking_date', $today)
+            ->where('status', QueueStatus::Serving->value)
+            ->with('user')
+            ->first();
+
+        $waitingQueues = Queue::query()->where('department_id', $department->id)
+            ->whereDate('booking_date', $today)
+            ->where('status', QueueStatus::CheckedIn->value)
+            ->with('user')
+            ->orderBy('id', 'asc')
+            ->get();
+
+        $skippedQueues = Queue::query()->where('department_id', $department->id)
+            ->whereDate('booking_date', $today)
+            ->where('status', QueueStatus::Skipped->value)
+            ->with('user')
+            ->orderBy('updated_at', 'desc')
+            ->get();
+
+        $completedCount = Queue::query()->where('department_id', $department->id)
+            ->whereDate('booking_date', $today)
+            ->where('status', QueueStatus::Completed->value)
+            ->count();
+
+        // Rata-rata durasi pelayanan (dalam menit)
+        $completedToday = Queue::query()->where('department_id', $department->id)
+            ->whereDate('booking_date', $today)
+            ->where('status', QueueStatus::Completed->value)
+            ->whereNotNull('called_at')
+            ->whereNotNull('completed_at')
+            ->get();
+
+        if ($completedToday->isEmpty()) {
+            $avgServiceTime = 12; // nilai default estimasi
+        } else {
+            $totalSeconds = $completedToday->sum(fn (Queue $q) => $q->calculateDuration());
+            $avgServiceTime = (int) round(($totalSeconds / $completedToday->count()) / 60);
+            $avgServiceTime = max($avgServiceTime, 1);
+        }
+
+        $remainingCount = $waitingQueues->count();
+
+        return new AdminGeraiDashboardData(
+            department: $department,
+            currentQueue: $currentQueue,
+            activeQueue: $currentQueue,
+            waitingQueues: $waitingQueues,
+            skippedQueues: $skippedQueues,
+            completedCount: $completedCount,
+            remainingCount: $remainingCount,
+            avgServiceTime: $avgServiceTime,
+            noCounter: false
+        );
+    }
+
+    /**
+     * Get dashboard data for Visitor (Pengunjung).
+     */
+    public function getVisitorDashboardData(User $user, string $today): VisitorDashboardData
+    {
+        $activeBooking = Queue::query()->where('user_id', $user->id)
+            ->whereIn('status', [QueueStatus::Booked->value, QueueStatus::CheckedIn->value, QueueStatus::Serving->value])
+            ->with(['department'])
+            ->latest()
+            ->first();
+
+        $currentServingQueue = 'Belum Mulai';
+        $remainingQueuesCount = 0;
+        $estimatedTime = 0;
+
+        if ($activeBooking && $activeBooking->queue_number) {
+            $currentServing = Queue::query()->where('department_id', $activeBooking->department_id)
+                ->whereDate('booking_date', $activeBooking->booking_date)
+                ->where('status', QueueStatus::Serving->value)
+                ->first();
+
+            if ($currentServing) {
+                $currentServingQueue = $currentServing->queue_number;
+            }
+
+            $remainingQueuesCount = Queue::query()->where('department_id', $activeBooking->department_id)
+                ->whereDate('booking_date', $activeBooking->booking_date)
+                ->where('status', QueueStatus::CheckedIn->value)
+                ->where('id', '<', $activeBooking->id)
+                ->count();
+
+            // Hitung estimasi waktu tunggu
+            // Rata-rata durasi pelayanan (dalam menit)
+            $completedToday = Queue::query()->where('department_id', $activeBooking->department_id)
+                ->whereDate('booking_date', $activeBooking->booking_date)
+                ->where('status', QueueStatus::Completed->value)
+                ->whereNotNull('called_at')
+                ->whereNotNull('completed_at')
+                ->get();
+
+            if ($completedToday->isEmpty()) {
+                $avgServiceTime = 12; // nilai default estimasi
+            } else {
+                $totalSeconds = $completedToday->sum(fn (Queue $q) => $q->calculateDuration());
+                $avgServiceTime = (int) round(($totalSeconds / $completedToday->count()) / 60);
+                $avgServiceTime = max($avgServiceTime, 1);
+            }
+
+            $estimatedTime = $remainingQueuesCount * $avgServiceTime;
+        }
+
+        return new VisitorDashboardData(
+            activeBooking: $activeBooking,
+            currentServingQueue: $currentServingQueue,
+            remainingQueuesCount: $remainingQueuesCount,
+            estimatedTime: $estimatedTime
+        );
     }
 }

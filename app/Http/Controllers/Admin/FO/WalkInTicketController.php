@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\FO;
 
+use App\Data\WalkInTicketData;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreWalkInTicketRequest;
 use App\Services\WalkInTicketService;
@@ -33,11 +34,12 @@ class WalkInTicketController extends Controller
      */
     public function store(StoreWalkInTicketRequest $request): RedirectResponse
     {
-        $queue = $this->ticketService->issueTicket($request);
+        $dto = WalkInTicketData::fromRequest($request);
+        $queue = $this->ticketService->issueTicket($dto);
 
         return redirect()
             ->route('admin.fo.ticket.create')
             ->with('ticket', $queue)
-            ->with('success', "Tiket antrean {$queue->queue_number} berhasil diterbitkan untuk {$queue->visitor->name}.");
+            ->with('success', "Tiket antrean <strong>{$queue->queue_number}</strong> berhasil diterbitkan untuk <strong>{$queue->user->name}</strong>.");
     }
 }

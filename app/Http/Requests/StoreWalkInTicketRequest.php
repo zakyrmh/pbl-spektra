@@ -26,10 +26,8 @@ class StoreWalkInTicketRequest extends FormRequest
     {
         return [
             'department_id' => ['required', 'integer', 'exists:departments,id'],
-            'service_id' => ['required', 'integer', 'exists:services,id'],
-            'counter_id' => ['required', 'integer', 'exists:counters,id'],
             'name' => ['required', 'string', 'min:3', 'max:255'],
-            'nik' => ['required', 'digits:16'],
+            'nik' => ['nullable', 'string', 'digits:16'],
             'phone' => ['required', 'string', 'min:8', 'max:15'],
             'purpose' => ['required', 'string', 'min:5', 'max:500'],
         ];
@@ -45,13 +43,8 @@ class StoreWalkInTicketRequest extends FormRequest
         return [
             'department_id.required' => 'Silakan pilih instansi tujuan.',
             'department_id.exists' => 'Instansi yang dipilih tidak valid.',
-            'service_id.required' => 'Silakan pilih jenis layanan.',
-            'service_id.exists' => 'Layanan yang dipilih tidak valid.',
-            'counter_id.required' => 'Silakan pilih loket tujuan.',
-            'counter_id.exists' => 'Loket yang dipilih tidak valid.',
             'name.required' => 'Nama lengkap warga wajib diisi.',
             'name.min' => 'Nama minimal 3 karakter.',
-            'nik.required' => 'NIK wajib diisi.',
             'nik.digits' => 'NIK harus tepat 16 digit angka.',
             'phone.required' => 'Nomor telepon wajib diisi.',
             'phone.min' => 'Nomor telepon minimal 8 digit.',
@@ -70,8 +63,6 @@ class StoreWalkInTicketRequest extends FormRequest
     {
         return [
             'department_id' => 'instansi',
-            'service_id' => 'layanan',
-            'counter_id' => 'loket',
             'name' => 'nama lengkap',
             'nik' => 'NIK',
             'phone' => 'nomor telepon',

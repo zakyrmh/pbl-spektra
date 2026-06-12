@@ -4,108 +4,133 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Data\WalkInTicketData;
+use App\Enums\QueueStatus;
+use App\Enums\UserRole;
 use App\Events\QueueCreated;
-use App\Http\Requests\StoreWalkInTicketRequest;
 use App\Models\ActivityLog;
-use App\Models\Counter;
 use App\Models\Department;
 use App\Models\Queue;
-use App\Models\Visitor;
+use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 class WalkInTicketService
 {
     /**
-     * Ambil data instansi beserta layanan dan loket-nya untuk form.
-     * Menggunakan nested eager loading untuk mencegah N+1.
+     * Ambil data instansi (gerai) yang aktif untuk form pencetakan tiket.
      *
      * @return Collection<int, Department>
      */
     public function getFormData(): Collection
     {
-        return Department::with(['services', 'counters'])
+        return Department::where('is_open', true)
             ->orderBy('name')
             ->get();
     }
 
     /**
      * Terbitkan nomor antrean walk-in menggunakan DB Transaction.
-     * Menyimpan data ke tabel `visitors` dan `queues` secara atomik.
+     * Menyimpan/memperbarui data pengguna dan menyimpan tiket ke queues secara atomik.
      *
      * @throws \Throwable
      */
-    public function issueTicket(StoreWalkInTicketRequest $request): Queue
+    public function issueTicket(WalkInTicketData $data): Queue
     {
         $today = Carbon::today();
 
-        // 1. Validasi duplikasi antrean aktif hari ini untuk layanan yang sama (BR-07)
-        $existingActiveQueue = Queue::whereHas('visitor', function ($query) use ($request) {
-            $query->where('nik', $request->string('nik')->toString());
-        })
-            ->where('service_id', (int) $request->input('service_id'))
-            ->whereDate('queue_date', $today)
-            ->whereIn('status', ['Waiting', 'Serving'])
-            ->exists();
+        // 1. Validasi duplikasi antrean aktif hari ini untuk instansi tujuan (jika NIK diisi)
+        if ($data->nik) {
+            $existingActiveQueue = Queue::whereHas('user', function ($query) use ($data) {
+                $query->where('nik', $data->nik);
+            })
+                ->where('department_id', $data->departmentId)
+                ->whereDate('booking_date', $today)
+                ->whereIn('status', [QueueStatus::CheckedIn->value, QueueStatus::Serving->value])
+                ->exists();
 
-        if ($existingActiveQueue) {
-            throw ValidationException::withMessages([
-                'nik' => 'Pengunjung dengan NIK ini sudah memiliki antrean aktif hari ini untuk layanan yang sama.',
-            ]);
+            if ($existingActiveQueue) {
+                throw ValidationException::withMessages([
+                    'nik' => 'Pengunjung dengan NIK ini sudah memiliki antrean aktif hari ini untuk instansi yang sama.',
+                ]);
+            }
         }
 
-        return DB::transaction(function () use ($request, $today): Queue {
-            // 2. Simpan data pengunjung walk-in ke tabel visitors
-            $visitor = Visitor::create([
-                'name' => $request->string('name')->toString(),
-                'nik' => $request->string('nik')->toString(),
-                'phone' => $request->string('phone')->toString(),
-                'purpose' => $request->string('purpose')->toString(),
-            ]);
+        return DB::transaction(function () use ($data, $today): Queue {
+            $department = Department::findOrFail($data->departmentId);
 
-            $counterId = (int) $request->input('counter_id');
+            // 2. Dapatkan atau buat pengguna (pengunjung) walk-in
+            $user = null;
+            if ($data->nik) {
+                $user = User::where('nik', $data->nik)->first();
+            }
+
+            if (! $user) {
+                $user = User::create([
+                    'name' => $data->name,
+                    'nik' => $data->nik,
+                    'no_telp' => $data->phone,
+                    'email' => $data->nik
+                        ? $data->nik.'@mpp.sawahlunto.go.id'
+                        : 'walkin-'.time().'-'.rand(1000, 9999).'@mpp.sawahlunto.go.id',
+                    'password' => Hash::make('password'),
+                    'role' => UserRole::Pengunjung,
+                    'email_verified_at' => now(),
+                ]);
+            } else {
+                // Perbarui profil dengan nama/telepon terbaru
+                $user->update([
+                    'name' => $data->name,
+                    'no_telp' => $data->phone,
+                ]);
+            }
 
             // 3. Hitung nomor urut dengan lockForUpdate untuk mencegah race condition
-            $existingCount = Queue::where('counter_id', $counterId)
-                ->whereDate('queue_date', $today)
+            $existingCount = Queue::where('department_id', $department->id)
+                ->whereDate('booking_date', $today)
                 ->lockForUpdate()
                 ->count();
 
             $nextNumber = $existingCount + 1;
-
-            // 4. Ambil inisial instansi untuk prefix nomor antrean
-            $counter = Counter::with('department')->findOrFail($counterId);
-            $prefix = $counter->department->inisial;
+            $prefix = $department->inisial;
 
             // Format: [INISIAL]-[001], contoh: DDK-001
             $queueNumber = $prefix.'-'.str_pad((string) $nextNumber, 3, '0', STR_PAD_LEFT);
 
-            // 5. Simpan tiket antrean ke tabel queues
+            // 4. Generate structured booking code
+            $dateStr = now()->format('Ymd');
+            $bookingCode = 'WI-'.$prefix.'-'.$dateStr.'-'.strtoupper(Str::random(6));
+
+            // 5. Simpan tiket antrean ke tabel queues dengan status Checked-In
             $queue = Queue::create([
-                'visitor_id' => $visitor->id,
-                'counter_id' => $counterId,
-                'service_id' => (int) $request->input('service_id'),
+                'user_id' => $user->id,
+                'department_id' => $department->id,
+                'booking_code' => $bookingCode,
+                'purpose' => $data->purpose,
+                'session_name' => 'Walk-In',
+                'booking_date' => $today,
                 'queue_number' => $queueNumber,
-                'status' => 'Waiting',
-                'queue_date' => $today,
+                'status' => QueueStatus::CheckedIn->value,
+                'checked_in_at' => now(),
             ]);
 
             // 6. Broadcast event QueueCreated ke websocket
             event(new QueueCreated($queue));
 
-            // 6b. Record activity log
+            // 7. Record activity log
             ActivityLog::record(
                 action: 'WALKIN_TICKET',
                 modelType: 'Queue',
                 modelId: $queue->id,
-                description: "Admin FO mencetak tiket mandiri Walk-In ({$queueNumber}) tujuan {$counter->department->name} untuk {$visitor->name}.",
+                description: "Admin FO mencetak tiket mandiri Walk-In ({$queueNumber}) tujuan {$department->name} untuk {$user->name}.",
                 actorUserId: auth()->id()
             );
 
-            // 7. Return dengan relasi yang sudah dimuat (no additional queries)
-            return $queue->load(['visitor', 'counter.department', 'service']);
+            return $queue->load(['user', 'department']);
         });
     }
 }

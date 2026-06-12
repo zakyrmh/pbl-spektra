@@ -182,9 +182,6 @@ Route::middleware('auth')->group(function () {
     // ─────────────────────────────────────────────────────────────────────────
     Route::middleware('role:admin_gerai')->group(function () {
 
-        // Dashboard Operator Loket (Papan Panggil fully embedded here)
-        Route::get('/antrean', [CounterController::class, 'dashboard'])->name('antrean.index');
-
         // ── Daftar Tunggu ─────────────────────────────────────────────────
         Route::get('/admin/daftar-tunggu', [DaftarTungguController::class, 'index'])->name('admin.daftar-tunggu');
         Route::post('/admin/daftar-tunggu/{booking}/check-in', [DaftarTungguController::class, 'checkIn'])->name('admin.daftar-tunggu.check-in');

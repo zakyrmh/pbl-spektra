@@ -2,8 +2,10 @@
 
 namespace App\Providers;
 
+use App\Models\Notification;
 use App\Models\Queue;
 use App\Models\User;
+use App\Policies\NotificationPolicy;
 use App\Policies\QueuePolicy;
 use App\Policies\UserPolicy;
 use Illuminate\Support\Facades\Gate;
@@ -29,5 +31,6 @@ class AppServiceProvider extends ServiceProvider
         // Laravel akan otomatis memetakan method policy ke Gate ability.
         Gate::policy(User::class, UserPolicy::class);
         Gate::policy(Queue::class, QueuePolicy::class);
+        Gate::policy(Notification::class, NotificationPolicy::class);
     }
 }

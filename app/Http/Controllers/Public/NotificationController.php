@@ -6,22 +6,28 @@ namespace App\Http\Controllers\Public;
 
 use App\Http\Controllers\Controller;
 use App\Models\Notification;
-use App\Models\Queue;
+use App\Services\Public\NotificationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
 
-class NotificationController extends Controller
+final class NotificationController extends Controller
 {
+    /**
+     * NotificationController constructor.
+     */
+    public function __construct(
+        protected NotificationService $notificationService
+    ) {}
+
     /**
      * Tampilkan daftar notifikasi milik pengunjung.
      * GET /notifikasi
      */
     public function index(): View
     {
-        $notifications = Notification::where('user_id', Auth::id())
-            ->orderBy('created_at', 'desc')
-            ->paginate(10);
+        $notifications = $this->notificationService->getUserNotifications((int) Auth::id());
 
         return view('notifications.index', compact('notifications'));
     }
@@ -32,24 +38,11 @@ class NotificationController extends Controller
      */
     public function show(Notification $notification): RedirectResponse
     {
-        // Pastikan notifikasi milik user yang sedang login
-        if ($notification->user_id !== Auth::id()) {
-            abort(403, 'Akses tidak sah.');
-        }
+        // Authorize access using the view policy
+        Gate::authorize('view', $notification);
 
-        if (is_null($notification->read_at)) {
-            $notification->update(['read_at' => now()]);
-        }
-
-        // Cari antrean Completed milik user ini yang belum diberi feedback
-        $userId = Auth::id();
-        $unreviewedQueue = Queue::whereHas('booking', function ($query) use ($userId) {
-            $query->where('user_id', $userId);
-        })
-            ->where('status', 'Completed')
-            ->whereDoesntHave('feedback')
-            ->orderBy('completed_at', 'desc')
-            ->first();
+        $userId = (int) Auth::id();
+        $unreviewedQueue = $this->notificationService->markAsReadAndFindUnreviewedQueue($notification, $userId);
 
         if ($unreviewedQueue) {
             return redirect()->route('feedback.create', ['queue_id' => $unreviewedQueue->id])

@@ -18,6 +18,11 @@ return new class extends Migration
             $table->text('data');
             $table->timestamp('read_at')->nullable();
             $table->timestamps();
+
+            // Custom fields for compatibility with App\Models\Notification
+            $table->foreignId('user_id')->nullable()->constrained('users')->onDelete('cascade');
+            $table->string('title')->nullable();
+            $table->text('message')->nullable();
         });
     }
 

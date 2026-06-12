@@ -59,11 +59,11 @@ class QueueMonitorService
                 return $q->status === QueueStatus::CheckedIn->value || $q->status === QueueStatus::CheckedIn;
             })->count();
 
-            $serving = $dept->queues->filter(function (Queue $q) {
-                return $q->status === QueueStatus::Serving->value || $q->status === QueueStatus::Serving;
+            $completed = $dept->queues->filter(function (Queue $q) {
+                return $q->status === QueueStatus::Completed->value || $q->status === QueueStatus::Completed;
             })->count();
 
-            return DepartmentMonitorData::fromModel($dept, $waiting, $serving);
+            return DepartmentMonitorData::fromModel($dept, $waiting, $completed);
         });
 
         return new LiveMonitorData(

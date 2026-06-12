@@ -112,7 +112,7 @@
                         <th class="py-3.5 px-6 font-display">Nama Instansi / Gerai</th>
                         <th class="py-3.5 px-4 font-display text-center">Inisial</th>
                         <th class="py-3.5 px-4 font-display text-center">Antrean Menunggu</th>
-                        <th class="py-3.5 px-4 font-display text-center">Sedang Dilayani</th>
+                        <th class="py-3.5 px-4 font-display text-center">Sudah Dilayani</th>
                         <th class="py-3.5 px-6 font-display text-center">Tingkat Kepadatan</th>
                     </tr>
                 </thead>
@@ -130,7 +130,7 @@
                                 {{ $dept->waitingCount }}
                             </td>
                             <td class="py-3 px-4 font-mono text-ink dark:text-white text-center font-bold text-sm">
-                                {{ $dept->servingCount }}
+                                {{ $dept->completedCount }}
                             </td>
                             <td class="py-3 px-6 text-center">
                                 <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold font-display {{ $dept->densityClass }}">
@@ -228,7 +228,7 @@
                                 ${dept.waiting_count}
                             </td>
                             <td class="py-3 px-4 font-mono text-ink dark:text-white text-center font-bold text-sm">
-                                ${dept.serving_count}
+                                ${dept.completed_count}
                             </td>
                             <td class="py-3 px-6 text-center">
                                 <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold font-display ${dept.density_class}">

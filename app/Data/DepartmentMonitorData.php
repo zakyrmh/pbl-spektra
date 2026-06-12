@@ -14,7 +14,7 @@ class DepartmentMonitorData
         public string $inisial,
         public ?string $description,
         public int $waitingCount,
-        public int $servingCount,
+        public int $completedCount,
         public string $density,
         public string $densityClass,
         public string $densityDot
@@ -23,7 +23,7 @@ class DepartmentMonitorData
     /**
      * Factory method to construct the DTO from a Department model and daily counts.
      */
-    public static function fromModel(Department $department, int $waitingCount, int $servingCount): self
+    public static function fromModel(Department $department, int $waitingCount, int $completedCount): self
     {
         $density = 'Kosong';
         $densityClass = 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200/50 dark:border-white/5';
@@ -45,7 +45,7 @@ class DepartmentMonitorData
             inisial: $department->inisial,
             description: $department->description,
             waitingCount: $waitingCount,
-            servingCount: $servingCount,
+            completedCount: $completedCount,
             density: $density,
             densityClass: $densityClass,
             densityDot: $densityDot
@@ -65,7 +65,7 @@ class DepartmentMonitorData
             'inisial' => $this->inisial,
             'description' => $this->description,
             'waiting_count' => $this->waitingCount,
-            'serving_count' => $this->servingCount,
+            'completed_count' => $this->completedCount,
             'density' => $this->density,
             'density_class' => $this->densityClass,
             'density_dot' => $this->densityDot,

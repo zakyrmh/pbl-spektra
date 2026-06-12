@@ -53,7 +53,7 @@ test('admin fo can access fo monitor view and see departments data', function ()
     $departments = $response->viewData('departments');
     expect($departments)->toHaveCount(1);
     expect($departments->first()->waitingCount)->toBe(1);
-    expect($departments->first()->servingCount)->toBe(0);
+    expect($departments->first()->completedCount)->toBe(0);
 });
 
 test('admin fo can fetch fo monitor data as json', function () {
@@ -81,7 +81,7 @@ test('admin fo can fetch fo monitor data as json', function () {
         'session_name' => 'Sesi 1',
         'booking_date' => Carbon::today(),
         'queue_number' => 'LK-001',
-        'status' => 'Serving',
+        'status' => 'Completed',
     ]);
 
     $response = $this->actingAs($user)
@@ -97,7 +97,7 @@ test('admin fo can fetch fo monitor data as json', function () {
                 'inisial',
                 'description',
                 'waiting_count',
-                'serving_count',
+                'completed_count',
                 'density',
                 'density_class',
                 'density_dot',

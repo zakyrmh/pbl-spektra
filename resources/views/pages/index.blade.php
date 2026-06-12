@@ -31,11 +31,11 @@
                 <!-- Trust Stats -->
                 <div class="grid grid-cols-3 gap-6 pt-8 border-t border-hairline-soft">
                     <div>
-                        <span class="block font-mono font-bold text-ink text-title-lg sm:text-display-sm">{{ $totalInstansi }}</span>
+                        <span class="block font-mono font-bold text-ink text-title-lg sm:text-display-sm">{{ $stats->totalInstansi }}</span>
                         <span class="text-caption text-muted">Instansi Aktif</span>
                     </div>
                     <div>
-                        <span class="block font-mono font-bold text-ink text-title-lg sm:text-display-sm">{{ $rataWaktuTunggu }}</span>
+                        <span class="block font-mono font-bold text-ink text-title-lg sm:text-display-sm">{{ $stats->rataWaktuTunggu }}</span>
                         <span class="text-caption text-muted">Rata-rata Tunggu</span>
                     </div>
                 </div>

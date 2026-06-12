@@ -11,7 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        DB::statement("ALTER TABLE queues MODIFY COLUMN status ENUM('Booked','Checked-In','Serving','Hold','Completed','Skipped','Cancelled') NOT NULL DEFAULT 'Booked'");
+        if (DB::getDriverName() !== 'sqlite') {
+            DB::statement("ALTER TABLE queues MODIFY COLUMN status ENUM('Booked','Checked-In','Serving','Hold','Completed','Skipped','Cancelled') NOT NULL DEFAULT 'Booked'");
+        }
     }
 
     /**
@@ -23,6 +25,8 @@ return new class extends Migration
         // Move any Hold queues back to Serving before removing the enum value
         DB::statement("UPDATE queues SET status = 'Serving' WHERE status = 'Hold'");
 
-        DB::statement("ALTER TABLE queues MODIFY COLUMN status ENUM('Booked','Checked-In','Serving','Completed','Skipped','Cancelled') NOT NULL DEFAULT 'Booked'");
+        if (DB::getDriverName() !== 'sqlite') {
+            DB::statement("ALTER TABLE queues MODIFY COLUMN status ENUM('Booked','Checked-In','Serving','Completed','Skipped','Cancelled') NOT NULL DEFAULT 'Booked'");
+        }
     }
 };

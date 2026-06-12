@@ -577,6 +577,13 @@
                         Lewati Antrean (Skip)
                     </button>
                 </div>
+                {{-- Hold button --}}
+                <button type="button" onclick="holdActiveQueue()" id="btnHold" class="w-full h-10 bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 font-semibold rounded-pill text-xs transition-all focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-amber-500/50 cursor-pointer flex items-center justify-center gap-1.5 border border-amber-500/20">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Tunda Antrean (Hold)
+                </button>
             </div>
         </div>
 
@@ -641,12 +648,18 @@
                         @endif
                     </div>
                 </div>
+            </div>            <!-- Complete Service Trigger & Forward -->
+            <div class="flex flex-col gap-2 mt-6">
+                <button type="button" onclick="completeActiveService()" id="btnComplete" class="w-full h-11 bg-green-600 hover:bg-green-500 text-white font-semibold rounded-md text-xs transition-all focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-green-500/50 cursor-pointer">
+                    Selesaikan Pelayanan &amp; Tandai Sukses
+                </button>
+                <button type="button" onclick="openForwardModal()" id="btnForward" class="w-full h-10 bg-blue-500/10 hover:bg-blue-500/20 text-blue-600 dark:text-blue-400 font-semibold rounded-md text-xs transition-all focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-blue-500/50 cursor-pointer flex items-center justify-center gap-1.5 border border-blue-500/20">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                    </svg>
+                    Oper Antrean ke Instansi Lain
+                </button>
             </div>
-
-            <!-- Complete Service Trigger -->
-            <button type="button" onclick="completeActiveService()" id="btnComplete" class="w-full h-11 bg-green-600 hover:bg-green-500 text-white font-semibold rounded-md text-xs mt-6 transition-all focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-green-500/50 cursor-pointer">
-                Selesaikan Pelayanan & Tandai Sukses
-            </button>
         </div>
     </div>
 
@@ -1216,6 +1229,131 @@
             }, 300);
         }, 4000);
     }
+
+    // ─── HOLD QUEUE ───────────────────────────────────────────────────────────
+    async function holdActiveQueue() {
+        const queueId = currentQueueId;
+        if (!queueId) {
+            createToast('Perhatian', 'Tidak ada antrean aktif yang dapat ditunda.', 'warning');
+            return;
+        }
+        if (!confirm('Yakin ingin menunda (Hold) antrean ini? Antrean akan dipindahkan ke status Hold dan perlu dipanggil ulang.')) return;
+
+        const btn = document.getElementById('btnHold');
+        btn.disabled = true;
+
+        try {
+            const res = await fetch(`/api/queues/${queueId}/hold`, {
+                method: 'POST',
+                headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' },
+            });
+            const data = await res.json();
+            if (data.success) {
+                createToast('Antrean Ditunda', data.message, 'warning');
+                setTimeout(() => window.location.reload(), 1200);
+            } else {
+                createToast('Gagal', data.message ?? 'Gagal menunda antrean.', 'error');
+                btn.disabled = false;
+            }
+        } catch (e) {
+            createToast('Error', 'Terjadi kesalahan jaringan.', 'error');
+            btn.disabled = false;
+        }
+    }
+
+    // ─── FORWARD QUEUE MODAL ──────────────────────────────────────────────────
+    function openForwardModal() {
+        const queueId = currentQueueId;
+        if (!queueId) {
+            createToast('Perhatian', 'Tidak ada antrean aktif yang dapat diopersikan.', 'warning');
+            return;
+        }
+        document.getElementById('forwardModal').classList.remove('hidden');
+        document.getElementById('forwardModal').classList.add('flex');
+    }
+
+    function closeForwardModal() {
+        document.getElementById('forwardModal').classList.add('hidden');
+        document.getElementById('forwardModal').classList.remove('flex');
+        document.getElementById('forwardDeptSelect').value = '';
+    }
+
+    async function confirmForwardQueue() {
+        const queueId = currentQueueId;
+        const deptId  = document.getElementById('forwardDeptSelect').value;
+        if (!deptId) {
+            createToast('Perhatian', 'Pilih instansi tujuan terlebih dahulu.', 'warning');
+            return;
+        }
+
+        const btn = document.getElementById('btnConfirmForward');
+        btn.disabled = true;
+        btn.textContent = 'Memproses...';
+
+        try {
+            const res = await fetch(`/api/queues/${queueId}/forward`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ target_department_id: parseInt(deptId) }),
+            });
+            const data = await res.json();
+            if (data.success) {
+                closeForwardModal();
+                createToast('Antrean Dioper', data.message, 'success');
+                setTimeout(() => window.location.reload(), 1400);
+            } else {
+                createToast('Gagal', data.message ?? 'Gagal mengoper antrean.', 'error');
+                btn.disabled = false;
+                btn.textContent = 'Konfirmasi Oper';
+            }
+        } catch (e) {
+            createToast('Error', 'Terjadi kesalahan jaringan.', 'error');
+            btn.disabled = false;
+            btn.textContent = 'Konfirmasi Oper';
+        }
+    }
 </script>
+
+{{-- ─── FORWARD QUEUE MODAL ────────────────────────────────────────────────── --}}
+<div id="forwardModal" class="hidden fixed inset-0 z-50 items-center justify-center bg-black/60 backdrop-blur-sm">
+    <div class="bg-canvas dark:bg-surface-dark-elevated w-full max-w-md mx-4 rounded-2xl shadow-2xl border border-hairline dark:border-white/15 p-6 space-y-5 font-body">
+        <div class="flex items-start justify-between">
+            <div>
+                <h3 class="text-lg font-bold text-ink dark:text-white font-display">Oper Antrean ke Instansi Lain</h3>
+                <p class="text-xs text-muted dark:text-on-dark-soft mt-1">Pilih instansi tujuan. Warga akan mendapatkan notifikasi perpindahan loket.</p>
+            </div>
+            <button onclick="closeForwardModal()" class="text-muted dark:text-on-dark-soft hover:text-ink dark:hover:text-white transition-colors cursor-pointer">
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+
+        <div>
+            <label for="forwardDeptSelect" class="block text-sm font-semibold text-ink dark:text-white mb-2">Instansi Tujuan</label>
+            <select id="forwardDeptSelect" class="w-full bg-surface-soft dark:bg-white/5 border border-hairline dark:border-white/15 text-ink dark:text-white rounded-lg px-4 h-12 focus:outline-none focus:border-primary dark:focus:border-accent-teal focus:ring-3 focus:ring-primary/12 transition-all">
+                <option value="">-- Pilih Instansi Tujuan --</option>
+                @isset($activeDepartments)
+                    @foreach($activeDepartments as $dept)
+                        <option value="{{ $dept->id }}">{{ $dept->name }} (Loket {{ $dept->nomor_loket }})</option>
+                    @endforeach
+                @endisset
+            </select>
+        </div>
+
+        <div class="flex justify-end gap-3 pt-2">
+            <button onclick="closeForwardModal()" type="button" class="h-10 px-5 text-sm font-semibold text-muted dark:text-on-dark-soft hover:bg-black/5 dark:hover:bg-white/5 rounded-pill border border-hairline dark:border-white/10 transition-all cursor-pointer">
+                Batal
+            </button>
+            <button onclick="confirmForwardQueue()" id="btnConfirmForward" type="button" class="h-10 px-6 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-pill text-sm transition-all focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-blue-500/50 cursor-pointer">
+                Konfirmasi Oper
+            </button>
+        </div>
+    </div>
+</div>
 @endif
 @endif

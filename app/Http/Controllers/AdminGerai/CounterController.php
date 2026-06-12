@@ -7,9 +7,11 @@ namespace App\Http\Controllers\AdminGerai;
 use App\Events\QueueCalled;
 use App\Events\QueueFinished;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\ForwardQueueRequest;
 use App\Models\ActivityLog;
 use App\Models\Department;
 use App\Models\Queue;
+use App\Services\BoothOperationService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -21,6 +23,10 @@ use Illuminate\View\View;
 
 class CounterController extends Controller
 {
+    public function __construct(
+        protected BoothOperationService $boothService
+    ) {}
+
     /**
      * Tampilkan halaman utama operator loket gerai.
      * GET /antrean
@@ -82,13 +88,20 @@ class CounterController extends Controller
             $avgServiceTime = max($avgServiceTime, 1);
         }
 
+        // Active departments for forward modal (exclude own department)
+        $activeDepartments = Department::where('is_open', true)
+            ->where('id', '!=', $department->id)
+            ->orderBy('nomor_loket')
+            ->get(['id', 'name', 'inisial', 'nomor_loket']);
+
         return view('dashboard.dashboard', compact(
             'department',
             'activeQueue',
             'waitingQueues',
             'skippedQueues',
             'remainingCount',
-            'avgServiceTime'
+            'avgServiceTime',
+            'activeDepartments',
         ));
     }
 
@@ -292,6 +305,52 @@ class CounterController extends Controller
     }
 
     /**
+     * Menunda antrean aktif (Hold).
+     * POST /api/queues/{queue}/hold
+     */
+    public function holdQueue(Queue $queue): JsonResponse
+    {
+        if ($queue->department_id !== Auth::user()->departments_id) {
+            abort(403);
+        }
+
+        try {
+            $this->boothService->holdQueue($queue);
+        } catch (\RuntimeException $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 422);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => "Antrean {$queue->queue_number} berhasil ditunda (Hold).",
+        ]);
+    }
+
+    /**
+     * Mengoper antrean ke instansi lain (Forward).
+     * POST /api/queues/{queue}/forward
+     */
+    public function forwardQueue(ForwardQueueRequest $request, Queue $queue): JsonResponse
+    {
+        if ($queue->department_id !== Auth::user()->departments_id) {
+            abort(403);
+        }
+
+        $targetDepartment = Department::findOrFail($request->integer('target_department_id'));
+
+        try {
+            $this->boothService->forwardQueue($queue, $targetDepartment);
+        } catch (\RuntimeException $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 422);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => "Antrean {$queue->queue_number} berhasil diopersikan ke instansi {$targetDepartment->name}.",
+        ]);
+    }
+
+    /**
      * Memproses logika pemanggilan antrean (Internal Helper).
      */
     private function callQueueDirect(Queue $queue): JsonResponse
@@ -338,13 +397,11 @@ class CounterController extends Controller
                 'queue_number' => $loadedQueue->queue_number,
                 'status' => $loadedQueue->status,
                 'called_at' => $loadedQueue->called_at?->toIso8601String(),
-                'visitor' => [
+                'user' => [
                     'name' => $loadedQueue->user?->name ?? 'Warga',
                     'nik' => $loadedQueue->user?->nik ?? '-',
                 ],
-                'service' => [
-                    'name' => $loadedQueue->purpose ?? 'Layanan Umum',
-                ],
+                'purpose' => $loadedQueue->purpose ?? 'Layanan Umum',
             ],
         ]);
     }

@@ -8,8 +8,8 @@ use App\Http\Controllers\Admin\FO\WalkInTicketController;
 use App\Http\Controllers\AdminGerai\CounterController;
 use App\Http\Controllers\AdminGerai\DaftarTungguController;
 use App\Http\Controllers\AdminGerai\LogPelayananController;
-use App\Http\Controllers\AdminGerai\PapanPanggilController;
-use App\Http\Controllers\AdminGerai\ScheduleController;
+// PapanPanggilController deprecated — functionality merged into CounterController/admin_gerai dashboard
+// ScheduleController deprecated — Schedule model deleted
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Public\AuthController;
 use App\Http\Controllers\Public\BookingController;
@@ -182,27 +182,17 @@ Route::middleware('auth')->group(function () {
     // ─────────────────────────────────────────────────────────────────────────
     Route::middleware('role:admin_gerai')->group(function () {
 
-        // Dashboard Operator Loket
+        // Dashboard Operator Loket (Papan Panggil fully embedded here)
         Route::get('/antrean', [CounterController::class, 'dashboard'])->name('antrean.index');
-
-        // ── Papan Panggil ─────────────────────────────────────────────────
-        Route::get('/admin/papan-panggil', [PapanPanggilController::class, 'index'])->name('admin.papan-panggil');
-        Route::post('/admin/papan-panggil/next', [PapanPanggilController::class, 'next'])->name('admin.papan-panggil.next');
-        Route::post('/admin/papan-panggil/{booking}/complete', [PapanPanggilController::class, 'complete'])->name('admin.papan-panggil.complete');
-        Route::post('/admin/papan-panggil/{booking}/skip', [PapanPanggilController::class, 'skip'])->name('admin.papan-panggil.skip');
 
         // ── Daftar Tunggu ─────────────────────────────────────────────────
         Route::get('/admin/daftar-tunggu', [DaftarTungguController::class, 'index'])->name('admin.daftar-tunggu');
         Route::post('/admin/daftar-tunggu/{booking}/check-in', [DaftarTungguController::class, 'checkIn'])->name('admin.daftar-tunggu.check-in');
         Route::post('/admin/daftar-tunggu/{booking}/restore', [DaftarTungguController::class, 'restore'])->name('admin.daftar-tunggu.restore');
 
-        // Log Pelayanan
+        // ── Log Pelayanan ─────────────────────────────────────────────────
         Route::get('/admin/log-pelayanan', [LogPelayananController::class, 'index'])->name('admin.log-pelayanan');
         Route::get('/admin/log-pelayanan/export', [LogPelayananController::class, 'export'])->name('admin.log-pelayanan.export');
-
-        // Toggle Schedule Status
-        Route::post('/admin/schedules/{schedule}/toggle-status', [ScheduleController::class, 'toggleStatus'])->name('admin.schedules.toggle-status');
-        Route::post('/admin/schedules/toggle-all', [ScheduleController::class, 'toggleAll'])->name('admin.schedules.toggle-all');
 
         // ── API Endpoints Gerai ───────────────────────────────────────────
         Route::post('/api/counter/status', [CounterController::class, 'updateStatus'])->name('gerai.status');
@@ -211,6 +201,8 @@ Route::middleware('auth')->group(function () {
         Route::post('/api/queues/{queue}/call', [CounterController::class, 'callQueue'])->name('gerai.call');
         Route::post('/api/queues/{queue}/finish', [CounterController::class, 'finishService'])->name('gerai.finish');
         Route::post('/api/queues/{queue}/skip', [CounterController::class, 'skipQueue'])->name('gerai.skip');
+        Route::post('/api/queues/{queue}/hold', [CounterController::class, 'holdQueue'])->name('gerai.hold');
+        Route::post('/api/queues/{queue}/forward', [CounterController::class, 'forwardQueue'])->name('gerai.forward');
     });
 
     // Logout

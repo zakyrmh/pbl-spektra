@@ -21,7 +21,7 @@
     } elseif ($role === 'admin_gerai') {
         $menu = [
             ['title' => 'Dashboard Gerai', 'url' => route('dashboard'), 'icon' => 'home'],
-            ['title' => 'Papan Panggil', 'url' => route('admin.papan-panggil'), 'icon' => 'tv'],
+            ['title' => 'Operator Loket', 'url' => route('antrean.index'), 'icon' => 'tv'],
             ['title' => 'Daftar Tunggu Gerai', 'url' => route('admin.daftar-tunggu'), 'icon' => 'users'],
             ['title' => 'Log Pelayanan', 'url' => route('admin.log-pelayanan'), 'icon' => 'clipboard-list'],
         ];

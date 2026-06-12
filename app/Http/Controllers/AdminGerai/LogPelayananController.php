@@ -4,134 +4,63 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\AdminGerai;
 
+use App\Data\LogPelayananData;
+use App\Enums\QueueStatus;
 use App\Http\Controllers\Controller;
-use App\Models\Booking;
-use App\Models\Service;
+use App\Models\Department;
+use App\Services\LogPelayananService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class LogPelayananController extends Controller
 {
+    public function __construct(
+        protected LogPelayananService $logService
+    ) {}
+
     /**
      * Tampilkan halaman Log Pelayanan.
+     * GET /admin/log-pelayanan
      */
-    public function index(Request $request)
+    public function index(Request $request): View
     {
-        $user = Auth::user();
-        if (! $user->departments_id) {
-            abort(403, 'Anda tidak ditugaskan ke instansi mana pun.');
-        }
+        $department = $this->resolveOperatorDepartment();
 
-        $departmentId = $user->departments_id;
+        $filters = $request->only(['start_date', 'end_date', 'status', 'search']);
 
-        // Ambil jenis layanan untuk dropdown filter
-        $services = Service::where('department_id', $departmentId)->get();
+        $paginatedQueues = $this->logService->getPaginatedLogs($department, $filters);
 
-        // Bangun query bookings lampau
-        // Eager load: user, service, schedule
-        $query = Booking::forDepartment($departmentId)
-            ->with(['user', 'service', 'schedule'])
-            ->orderBy('booking_date', 'desc')
-            ->orderBy('updated_at', 'desc');
+        // Map to DTOs for strict type-safe view binding
+        $logs = $paginatedQueues->through(fn ($q) => LogPelayananData::fromModel($q));
 
-        // Apply filters
-
-        // 1. Date Range Filter
-        if ($request->filled('start_date')) {
-            $query->whereDate('booking_date', '>=', $request->input('start_date'));
-        }
-        if ($request->filled('end_date')) {
-            $query->whereDate('booking_date', '<=', $request->input('end_date'));
-        }
-
-        // 2. Dropdown Layanan (Service)
-        if ($request->filled('service_id')) {
-            $query->where('service_id', $request->input('service_id'));
-        }
-
-        // 3. Dropdown Status (Completed/Cancelled)
-        if ($request->filled('status')) {
-            $query->where('status', $request->input('status'));
-        } else {
-            // Default: tampilkan status Completed dan Cancelled (bookings lampau)
-            $query->whereIn('status', ['Completed', 'Cancelled']);
-        }
-
-        // 4. Search input (booking_code atau nama warga)
-        if ($request->filled('search')) {
-            $search = trim($request->input('search'));
-            $query->where(function ($q) use ($search) {
-                $q->where('booking_code', 'like', "%{$search}%")
-                    ->orWhereHas('user', function ($uq) use ($search) {
-                        $uq->where('name', 'like', "%{$search}%");
-                    });
-            });
-        }
-
-        // Hitung total untuk ringkasan berdasarkan filter saat ini
-        $summaryQuery = clone $query;
-
-        // Ringkasan total antrean sukses (Completed)
-        $totalSuccess = (clone $summaryQuery)->where('status', 'Completed')->count();
-
-        // Ringkasan total antrean batal (Cancelled)
-        $totalCancelled = (clone $summaryQuery)->where('status', 'Cancelled')->count();
-
-        // Ambil data bookings dengan pagination
-        $bookings = $query->paginate(15)->withQueryString();
+        // Summary counts (always based on all-time for this department, not filtered)
+        $totalSuccess = $this->logService->countByStatus($department, QueueStatus::Completed->value);
+        $totalCancelled = $this->logService->countByStatus($department, QueueStatus::Cancelled->value)
+                        + $this->logService->countByStatus($department, QueueStatus::Skipped->value);
 
         return view('admin.log-pelayanan', compact(
-            'services',
-            'bookings',
+            'department',
+            'logs',
             'totalSuccess',
-            'totalCancelled'
+            'totalCancelled',
+            'filters',
         ));
     }
 
     /**
-     * Ekspor data Log Pelayanan ke CSV/Excel.
+     * Ekspor data Log Pelayanan ke CSV.
+     * GET /admin/log-pelayanan/export
      */
-    public function export(Request $request)
+    public function export(Request $request): StreamedResponse
     {
-        $user = Auth::user();
-        if (! $user->departments_id) {
-            abort(403, 'Anda tidak ditugaskan ke instansi mana pun.');
-        }
+        $department = $this->resolveOperatorDepartment();
 
-        $departmentId = $user->departments_id;
+        $filters = $request->only(['start_date', 'end_date', 'status', 'search']);
+        $queues = $this->logService->getAllForExport($department, $filters);
 
-        $query = Booking::forDepartment($departmentId)
-            ->with(['user', 'service', 'schedule'])
-            ->orderBy('booking_date', 'desc')
-            ->orderBy('updated_at', 'desc');
-
-        // Apply filters
-        if ($request->filled('start_date')) {
-            $query->whereDate('booking_date', '>=', $request->input('start_date'));
-        }
-        if ($request->filled('end_date')) {
-            $query->whereDate('booking_date', '<=', $request->input('end_date'));
-        }
-        if ($request->filled('service_id')) {
-            $query->where('service_id', $request->input('service_id'));
-        }
-        if ($request->filled('status')) {
-            $query->where('status', $request->input('status'));
-        } else {
-            $query->whereIn('status', ['Completed', 'Cancelled']);
-        }
-        if ($request->filled('search')) {
-            $search = trim($request->input('search'));
-            $query->where(function ($q) use ($search) {
-                $q->where('booking_code', 'like', "%{$search}%")
-                    ->orWhereHas('user', function ($uq) use ($search) {
-                        $uq->where('name', 'like', "%{$search}%");
-                    });
-            });
-        }
-
-        $bookings = $query->get();
-        $filename = 'log-pelayanan-'.now()->format('Ymd-His').'.csv';
+        $filename = 'log-pelayanan-'.$department->inisial.'-'.now()->format('Ymd-His').'.csv';
 
         $headers = [
             'Content-Type' => 'text/csv; charset=UTF-8',
@@ -141,44 +70,54 @@ class LogPelayananController extends Controller
             'Expires' => '0',
         ];
 
-        $callback = function () use ($bookings) {
+        return response()->stream(function () use ($queues) {
             $file = fopen('php://output', 'w');
 
-            // UTF-8 BOM
+            // UTF-8 BOM for Excel compatibility
             fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));
 
-            // Header kolom
             fputcsv($file, [
                 'Tanggal',
+                'Nomor Antrean',
                 'Kode Booking',
                 'Nama Warga',
                 'Keperluan',
-                'Layanan',
-                'Jam Datang (Checked In)',
-                'Jam Selesai/Batal',
+                'Jam Dipanggil',
+                'Jam Selesai',
+                'Durasi Pelayanan',
                 'Status',
-                'Catatan (Alasan Batal)',
+                'Catatan / Alasan',
             ]);
 
-            foreach ($bookings as $booking) {
+            foreach ($queues as $queue) {
+                $data = LogPelayananData::fromModel($queue);
                 fputcsv($file, [
-                    $booking->booking_date ? $booking->booking_date->format('Y-m-d') : '-',
-                    $booking->booking_code,
-                    $booking->user ? $booking->user->name : '-',
-                    $booking->purpose ?? '-',
-                    $booking->service ? $booking->service->name : '-',
-                    $booking->checked_in_at ? $booking->checked_in_at->format('H:i:s') : '-',
-                    in_array($booking->status, ['Completed', 'Cancelled']) && $booking->updated_at
-                        ? $booking->updated_at->format('H:i:s')
-                        : '-',
-                    $booking->status,
-                    $booking->cancel_reason ?? '-',
+                    $data->booking_date_formatted,
+                    $data->queue_number,
+                    $data->booking_code,
+                    $data->visitor_name ?? '-',
+                    $data->purpose ?? '-',
+                    $data->called_at_formatted ?? '-',
+                    $data->completed_at_formatted ?? '-',
+                    $data->duration_label ?? '-',
+                    $data->status,
+                    $data->cancel_reason ?? '-',
                 ]);
             }
 
             fclose($file);
-        };
+        }, 200, $headers);
+    }
 
-        return response()->stream($callback, 200, $headers);
+    // ─────────────────────────────────────────────────────────────────────
+
+    private function resolveOperatorDepartment(): Department
+    {
+        $user = Auth::user();
+        if (! $user->departments_id) {
+            abort(403, 'Anda tidak ditugaskan ke instansi mana pun.');
+        }
+
+        return Department::findOrFail($user->departments_id);
     }
 }

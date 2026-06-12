@@ -15,6 +15,7 @@ enum QueueStatus: string
     case Booked = 'Booked';
     case CheckedIn = 'Checked-In';
     case Serving = 'Serving';
+    case Hold = 'Hold';
     case Completed = 'Completed';
     case Skipped = 'Skipped';
     case Cancelled = 'Cancelled';

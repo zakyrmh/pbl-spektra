@@ -5,16 +5,21 @@ declare(strict_types=1);
 namespace App\Http\Controllers\AdminGerai;
 
 use App\Http\Controllers\Controller;
-use App\Models\Booking;
-use App\Models\Schedule;
+use App\Models\Queue;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 
+/**
+ * Statistics/analytics dashboard for Admin Gerai.
+ *
+ * NOTE: The legacy Schedule and Booking models are deleted.
+ * Stats are now computed directly from the queues table.
+ */
 class DashboardController extends Controller
 {
     /**
-     * Tampilkan dashboard Admin Gerai (per-instansi).
+     * Tampilkan dashboard statistik Admin Gerai (per-instansi).
      */
     public function index(): View
     {
@@ -24,37 +29,41 @@ class DashboardController extends Controller
             return view('dashboard.dashboard', ['noCounter' => true]);
         }
 
+        $departmentId = $user->departments_id;
         $today = Carbon::today()->toDateString();
 
-        // Fetch schedules today dengan eager loading service
-        $schedules = Schedule::whereDate('date', $today)
-            ->whereHas('service', fn ($q) => $q->where('department_id', $user->departments_id))
-            ->with('service')
-            ->get();
+        // Cards statistics — derived from queues table
+        $totalAntrean = Queue::where('department_id', $departmentId)
+            ->whereDate('booking_date', $today)
+            ->count();
 
-        // Cards statistics
-        $totalAntrean = $schedules->sum('quota_used');
-
-        $sisaAntrean = Booking::whereDate('booking_date', $today)
-            ->whereHas('service', fn ($q) => $q->where('department_id', $user->departments_id))
+        $sisaAntrean = Queue::where('department_id', $departmentId)
+            ->whereDate('booking_date', $today)
             ->where('status', 'Checked-In')
             ->count();
 
-        $suksesDilayani = Booking::whereDate('booking_date', $today)
-            ->whereHas('service', fn ($q) => $q->where('department_id', $user->departments_id))
+        $suksesDilayani = Queue::where('department_id', $departmentId)
+            ->whereDate('booking_date', $today)
             ->where('status', 'Completed')
             ->count();
 
-        $terlewat = Booking::whereDate('booking_date', $today)
-            ->whereHas('service', fn ($q) => $q->where('department_id', $user->departments_id))
-            ->where('status', 'Cancelled')
+        $terlewat = Queue::where('department_id', $departmentId)
+            ->whereDate('booking_date', $today)
+            ->whereIn('status', ['Cancelled', 'Skipped'])
             ->count();
 
-        // Chart data: hourly completed/cancelled bookings
-        $chartTrenData = $this->buildChartData($today, $user->departments_id);
+        // Chart data: hourly completed/cancelled queues
+        $chartTrenData = $this->buildChartData($today, $departmentId);
+
+        // Schedule model is deleted — pass empty collection for the
+        // @forelse fallback in the stats view (renders "Tidak ada jadwal...")
+        $schedules = collect();
+        $isGeraiOpen = (bool) Queue::where('department_id', $departmentId)
+            ->whereDate('booking_date', $today)
+            ->whereIn('status', ['Checked-In', 'Serving'])
+            ->exists();
 
         $isStatsDashboard = true;
-        $isGeraiOpen = $schedules->isEmpty() ? false : ($schedules->where('is_open', true)->count() > 0);
 
         return view('dashboard.dashboard', compact(
             'schedules',
@@ -75,24 +84,30 @@ class DashboardController extends Controller
     {
         $hours = ['08', '09', '10', '11', '12', '13', '14', '15', '16'];
 
-        $bookingsToday = Booking::whereDate('booking_date', $today)
-            ->whereHas('service', fn ($q) => $q->where('department_id', $departmentId))
-            ->whereIn('status', ['Completed', 'Cancelled'])
+        $queuesFinishedToday = Queue::where('department_id', $departmentId)
+            ->whereDate('booking_date', $today)
+            ->whereIn('status', ['Completed', 'Cancelled', 'Skipped'])
             ->get();
 
         $chartSukses = [];
         $chartBatal = [];
 
         foreach ($hours as $hour) {
-            $chartSukses[] = $bookingsToday->filter(fn ($b) => $b->status === 'Completed' && $b->updated_at && $b->updated_at->format('H') === $hour
-            )->count();
+            $chartSukses[] = $queuesFinishedToday
+                ->filter(fn ($q) => $q->status === 'Completed'
+                    && $q->completed_at
+                    && $q->completed_at->format('H') === $hour)
+                ->count();
 
-            $chartBatal[] = $bookingsToday->filter(fn ($b) => $b->status === 'Cancelled' && $b->updated_at && $b->updated_at->format('H') === $hour
-            )->count();
+            $chartBatal[] = $queuesFinishedToday
+                ->filter(fn ($q) => in_array($q->status, ['Cancelled', 'Skipped'], true)
+                    && $q->completed_at
+                    && $q->completed_at->format('H') === $hour)
+                ->count();
         }
 
         return [
-            'categories' => array_map(fn ($h) => "$h:00", $hours),
+            'categories' => array_map(fn ($h) => "{$h}:00", $hours),
             'sukses' => $chartSukses,
             'batal' => $chartBatal,
         ];

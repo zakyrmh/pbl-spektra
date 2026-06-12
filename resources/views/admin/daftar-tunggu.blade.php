@@ -158,7 +158,7 @@
                                         <div class="text-caption text-muted dark:text-on-dark-soft mt-0.5">{{ $bk->booking_date->translatedFormat('d F Y') }}</div>
                                     </td>
                                     <td class="px-4 py-4 text-right">
-                                        <form action="{{ route('admin.daftar-tunggu.check-in', $bk) }}" method="POST" class="inline-block">
+                                        <form action="{{ route('admin.daftar-tunggu.check-in', $bk->id) }}" method="POST" class="inline-block">
                                             @csrf
                                             <button type="submit" class="h-10 px-4 bg-primary hover:bg-primary-hover text-white text-caption font-semibold rounded-pill inline-flex items-center gap-1.5 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-accent-teal transition-all cursor-pointer">
                                                 <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
@@ -260,7 +260,7 @@
                                         </div>
                                     </td>
                                     <td class="px-4 py-4 text-right">
-                                        <form action="{{ route('admin.daftar-tunggu.restore', $bk) }}" method="POST" class="inline-block">
+                                        <form action="{{ route('admin.daftar-tunggu.restore', $bk->id) }}" method="POST" class="inline-block">
                                             @csrf
                                             <button type="submit" class="h-10 px-4 bg-status-serving/10 hover:bg-status-serving/20 text-[#065F46] dark:text-green-400 border border-status-serving/20 text-caption font-semibold rounded-pill inline-flex items-center gap-1.5 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-accent-teal transition-all cursor-pointer">
                                                 <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">

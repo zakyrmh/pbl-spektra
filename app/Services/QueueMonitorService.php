@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Data\DepartmentMonitorData;
+use App\Data\LiveMonitorData;
+use App\Enums\QueueStatus;
 use App\Models\Department;
 use App\Models\Queue;
 use Carbon\Carbon;
@@ -13,30 +16,26 @@ class QueueMonitorService
 {
     /**
      * Get all monitor data including global metrics and department density status.
-     *
-     * @return array{
-     *     metrics: array{
-     *         total_waiting: int,
-     *         total_serving: int,
-     *         average_wait_time: int
-     *     },
-     *     departments: Collection<int, Department>
-     * }
      */
-    public function getMonitorData(): array
+    public function getMonitorData(): LiveMonitorData
     {
         $today = Carbon::today();
 
         // Fetch departments (instansi) with their queues today (eager loading to prevent N+1 queries)
         $departments = Department::with(['queues' => function ($query) use ($today) {
-            $query->whereDate('queue_date', $today);
+            $query->whereDate('booking_date', $today);
         }])->get();
 
-        // Aggregate metrics in PHP to be database-agnostic (MySQL & SQLite) and limit DB hits to 2 queries
+        // Aggregate metrics in PHP to be database-agnostic
         $allQueues = $departments->flatMap(fn (Department $d) => $d->queues);
 
-        $totalWaiting = $allQueues->filter(fn (Queue $q) => $q->status === 'Waiting')->count();
-        $totalServing = $allQueues->filter(fn (Queue $q) => $q->status === 'Serving')->count();
+        $totalWaiting = $allQueues->filter(function (Queue $q) {
+            return $q->status === QueueStatus::CheckedIn->value || $q->status === QueueStatus::CheckedIn;
+        })->count();
+
+        $totalServing = $allQueues->filter(function (Queue $q) {
+            return $q->status === QueueStatus::Serving->value || $q->status === QueueStatus::Serving;
+        })->count();
 
         $calledQueues = $allQueues->filter(fn (Queue $q) => $q->called_at !== null);
         $totalWaitTimeSeconds = 0;
@@ -54,13 +53,39 @@ class QueueMonitorService
 
         $averageWaitTimeMinutes = $calledCount > 0 ? (int) round(($totalWaitTimeSeconds / $calledCount) / 60) : 0;
 
-        return [
-            'metrics' => [
-                'total_waiting' => $totalWaiting,
-                'total_serving' => $totalServing,
-                'average_wait_time' => $averageWaitTimeMinutes,
-            ],
-            'departments' => $departments,
-        ];
+        // Map departments to DepartmentMonitorData DTOs
+        $departmentsData = $departments->map(function (Department $dept) {
+            $waiting = $dept->queues->filter(function (Queue $q) {
+                return $q->status === QueueStatus::CheckedIn->value || $q->status === QueueStatus::CheckedIn;
+            })->count();
+
+            $serving = $dept->queues->filter(function (Queue $q) {
+                return $q->status === QueueStatus::Serving->value || $q->status === QueueStatus::Serving;
+            })->count();
+
+            return DepartmentMonitorData::fromModel($dept, $waiting, $serving);
+        });
+
+        return new LiveMonitorData(
+            totalWaiting: $totalWaiting,
+            totalServing: $totalServing,
+            averageWaitTime: $averageWaitTimeMinutes,
+            departments: $departmentsData
+        );
+    }
+
+    /**
+     * Get all departments with their current serving queue for the public display.
+     *
+     * @return Collection<int, Department>
+     */
+    public function getPublicDisplayDepartments(): Collection
+    {
+        $today = Carbon::today();
+
+        return Department::with(['queues' => function ($query) use ($today) {
+            $query->whereDate('booking_date', $today)
+                ->where('status', QueueStatus::Serving->value);
+        }])->get();
     }
 }

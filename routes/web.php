@@ -35,8 +35,8 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get('/', [PublicController::class, 'index'])->name('home');
-// Route::get('/display', [QueueMonitorController::class, 'publicDisplay'])->name('display.index');
-// Route::get('/api/display/data', [QueueMonitorController::class, 'publicDisplayData'])->name('display.data');
+Route::get('/display', [QueueMonitorController::class, 'publicDisplay'])->name('display.index');
+Route::get('/api/display/data', [QueueMonitorController::class, 'publicDisplayData'])->name('display.data');
 
 /*
 |--------------------------------------------------------------------------

@@ -14,49 +14,69 @@ use App\Models\Department;
 use App\Models\Queue;
 use App\Models\User;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
 
 class DashboardAnalyticsService
 {
     public function getSuperAdminDashboardData(string $today): SuperAdminDashboardData
     {
         // 1. Total Kunjungan Hari Ini
-        $todayKunjunganCount = Queue::query()->where('booking_date', $today)->count('*');
+        /** @var Builder $kunjunganQuery */
+        $kunjunganQuery = Queue::query();
+        $todayKunjunganCount = $kunjunganQuery->where('booking_date', $today)->count('*');
         $kunjunganPercentage = $this->calculateKunjunganPercentage($todayKunjunganCount, $today);
 
         // 2. Menunggu Konfirmasi FO
-        $menungguFoCount = Queue::query()->where('booking_date', $today)
+        /** @var Builder $menungguFoQuery */
+        $menungguFoQuery = Queue::query();
+        $menungguFoCount = $menungguFoQuery->where('booking_date', $today)
             ->where('status', QueueStatus::Booked->value)
             ->count('*');
         $foStatus = $this->getFoConfirmationStatus($menungguFoCount);
 
         // 3. Sedang Dilayani di Gerai
-        $waitingCount = Queue::query()->where('booking_date', $today)
+        /** @var Builder $waitingQuery */
+        $waitingQuery = Queue::query();
+        $waitingCount = $waitingQuery->where('booking_date', $today)
             ->where('status', QueueStatus::CheckedIn->value)
             ->count('*');
-        $servingCount = Queue::query()->where('booking_date', $today)
+        /** @var Builder $servingQuery */
+        $servingQuery = Queue::query();
+        $servingCount = $servingQuery->where('booking_date', $today)
             ->where('status', QueueStatus::Serving->value)
             ->count('*');
         $totalAntreanGerai = $waitingCount + $servingCount;
 
         // 4. Total Gerai Aktif
-        $totalGerai = Department::query()->count('*');
-        $activeGerai = Department::query()->where('is_open', true)->count('*');
+        /** @var Builder $totalGeraiQuery */
+        $totalGeraiQuery = Department::query();
+        $totalGerai = $totalGeraiQuery->count('*');
+        /** @var Builder $activeGeraiQuery */
+        $activeGeraiQuery = Department::query();
+        $activeGerai = $activeGeraiQuery->where('is_open', true)->count('*');
         $geraiPercentage = $totalGerai > 0 ? (int) round(($activeGerai / $totalGerai) * 100) : 0;
 
         // 5. Data Live Gerai
-        $liveDepartments = Department::query()->with(['queues' => function ($query) use ($today) {
+        /** @var Builder $liveDepartmentsQuery */
+        $liveDepartmentsQuery = Department::query();
+        $liveDepartments = $liveDepartmentsQuery->with(['queues' => function ($query) use ($today) {
+            /** @var Builder $query */
             $query->where('booking_date', $today);
         }])->get();
 
         // 6. Live Activity Feed
-        $liveLogs = ActivityLog::query()->with('causer')->latest()->take(5)->get();
+        /** @var Builder $liveLogsQuery */
+        $liveLogsQuery = ActivityLog::query();
+        $liveLogs = $liveLogsQuery->with('causer')->latest()->take(5)->get();
 
         // 7. Data Grafik
         $chartTrenData = $this->getTrenKedatanganData($today);
         $chartTopGeraiData = $this->getTopGeraiData($today);
 
         // Menghitung jumlah booking yang sukses check-in di FO hari ini
-        $checkedInBookingsCount = Queue::query()
+        /** @var Builder $checkedInBookingsQuery */
+        $checkedInBookingsQuery = Queue::query();
+        $checkedInBookingsCount = $checkedInBookingsQuery
             ->where('booking_date', $today)
             ->whereIn('status', [QueueStatus::CheckedIn->value, QueueStatus::Serving->value, QueueStatus::Completed->value])
             ->whereNotNull('checked_in_at')
@@ -92,7 +112,9 @@ class DashboardAnalyticsService
         $departments = Department::all();
 
         // Mengambil 8 antrean terbaru hari ini
-        $recentQueues = Queue::query()
+        /** @var Builder $recentQueuesQuery */
+        $recentQueuesQuery = Queue::query();
+        $recentQueues = $recentQueuesQuery
             ->where('booking_date', $today)
             ->with(['user', 'department'])
             ->latest()
@@ -100,13 +122,17 @@ class DashboardAnalyticsService
             ->get();
 
         // Total tiket online yang belum check-in
-        $todayFoQueueCount = Queue::query()
+        /** @var Builder $todayFoQueueQuery */
+        $todayFoQueueQuery = Queue::query();
+        $todayFoQueueCount = $todayFoQueueQuery
             ->where('booking_date', $today)
             ->where('status', QueueStatus::Booked->value)
             ->count('*');
 
         // Total nomor antrean yang sudah diterbitkan FO hari ini (baik online maupun walk-in)
-        $todayTotalPrintedTickets = Queue::query()
+        /** @var Builder $todayTotalPrintedQuery */
+        $todayTotalPrintedQuery = Queue::query();
+        $todayTotalPrintedTickets = $todayTotalPrintedQuery
             ->where('booking_date', $today)
             ->whereNotNull('queue_number')
             ->count('*');
@@ -124,12 +150,16 @@ class DashboardAnalyticsService
         $thirtyDaysAgo = Carbon::today()->subDays(30)->toDateString();
         $yesterday = Carbon::yesterday()->toDateString();
 
-        $pastDaysCount = Queue::query()
+        /** @var Builder $pastDaysCountQuery */
+        $pastDaysCountQuery = Queue::query();
+        $pastDaysCount = $pastDaysCountQuery
             ->where('booking_date', '>=', $thirtyDaysAgo)
             ->where('booking_date', '<=', $yesterday)
             ->count('*');
 
-        $pastDaysUnique = Queue::query()
+        /** @var Builder $pastDaysUniqueQuery */
+        $pastDaysUniqueQuery = Queue::query();
+        $pastDaysUnique = $pastDaysUniqueQuery
             ->where('booking_date', '>=', $thirtyDaysAgo)
             ->where('booking_date', '<=', $yesterday)
             ->distinct()
@@ -175,7 +205,9 @@ class DashboardAnalyticsService
 
     protected function getTrenKedatanganData(string $today): array
     {
-        $queuesToday = Queue::query()->where('booking_date', $today)->get();
+        /** @var Builder $queuesTodayQuery */
+        $queuesTodayQuery = Queue::query();
+        $queuesToday = $queuesTodayQuery->where('booking_date', $today)->get();
         $hours = ['08', '09', '10', '11', '12', '13', '14', '15', '16'];
         $onlineData = [];
         $onsiteData = [];
@@ -207,7 +239,9 @@ class DashboardAnalyticsService
     protected function getTopGeraiData(string $today): array
     {
         $departments = Department::all();
-        $queuesToday = Queue::query()->where('booking_date', $today)->get();
+        /** @var Builder $queuesTodayTopQuery */
+        $queuesTodayTopQuery = Queue::query();
+        $queuesToday = $queuesTodayTopQuery->where('booking_date', $today)->get();
 
         $data = [];
         foreach ($departments as $dept) {
@@ -259,33 +293,43 @@ class DashboardAnalyticsService
             );
         }
 
-        $currentQueue = Queue::query()->where('department_id', $department->id)
+        /** @var Builder $currentQueueQuery */
+        $currentQueueQuery = Queue::query();
+        $currentQueue = $currentQueueQuery->where('department_id', $department->id)
             ->whereDate('booking_date', $today)
             ->where('status', QueueStatus::Serving->value)
             ->with('user')
             ->first();
 
-        $waitingQueues = Queue::query()->where('department_id', $department->id)
+        /** @var Builder $waitingQueuesQuery */
+        $waitingQueuesQuery = Queue::query();
+        $waitingQueues = $waitingQueuesQuery->where('department_id', $department->id)
             ->whereDate('booking_date', $today)
             ->where('status', QueueStatus::CheckedIn->value)
             ->with('user')
             ->orderBy('id', 'asc')
             ->get();
 
-        $skippedQueues = Queue::query()->where('department_id', $department->id)
+        /** @var Builder $skippedQueuesQuery */
+        $skippedQueuesQuery = Queue::query();
+        $skippedQueues = $skippedQueuesQuery->where('department_id', $department->id)
             ->whereDate('booking_date', $today)
             ->where('status', QueueStatus::Skipped->value)
             ->with('user')
             ->orderBy('updated_at', 'desc')
             ->get();
 
-        $completedCount = Queue::query()->where('department_id', $department->id)
+        /** @var Builder $completedCountQuery */
+        $completedCountQuery = Queue::query();
+        $completedCount = $completedCountQuery->where('department_id', $department->id)
             ->whereDate('booking_date', $today)
             ->where('status', QueueStatus::Completed->value)
             ->count();
 
         // Rata-rata durasi pelayanan (dalam menit)
-        $completedToday = Queue::query()->where('department_id', $department->id)
+        /** @var Builder $completedTodayQuery */
+        $completedTodayQuery = Queue::query();
+        $completedToday = $completedTodayQuery->where('department_id', $department->id)
             ->whereDate('booking_date', $today)
             ->where('status', QueueStatus::Completed->value)
             ->whereNotNull('called_at')
@@ -320,7 +364,9 @@ class DashboardAnalyticsService
      */
     public function getVisitorDashboardData(User $user, string $today): VisitorDashboardData
     {
-        $activeBooking = Queue::query()->where('user_id', $user->id)
+        /** @var Builder $activeBookingQuery */
+        $activeBookingQuery = Queue::query();
+        $activeBooking = $activeBookingQuery->where('user_id', $user->id)
             ->whereIn('status', [QueueStatus::Booked->value, QueueStatus::CheckedIn->value, QueueStatus::Serving->value])
             ->with(['department'])
             ->latest()
@@ -331,7 +377,9 @@ class DashboardAnalyticsService
         $estimatedTime = 0;
 
         if ($activeBooking && $activeBooking->queue_number) {
-            $currentServing = Queue::query()->where('department_id', $activeBooking->department_id)
+            /** @var Builder $currentServingQuery */
+            $currentServingQuery = Queue::query();
+            $currentServing = $currentServingQuery->where('department_id', $activeBooking->department_id)
                 ->whereDate('booking_date', $activeBooking->booking_date)
                 ->where('status', QueueStatus::Serving->value)
                 ->first();
@@ -340,7 +388,9 @@ class DashboardAnalyticsService
                 $currentServingQueue = $currentServing->queue_number;
             }
 
-            $remainingQueuesCount = Queue::query()->where('department_id', $activeBooking->department_id)
+            /** @var Builder $remainingQueuesQuery */
+            $remainingQueuesQuery = Queue::query();
+            $remainingQueuesCount = $remainingQueuesQuery->where('department_id', $activeBooking->department_id)
                 ->whereDate('booking_date', $activeBooking->booking_date)
                 ->where('status', QueueStatus::CheckedIn->value)
                 ->where('id', '<', $activeBooking->id)
@@ -348,7 +398,9 @@ class DashboardAnalyticsService
 
             // Hitung estimasi waktu tunggu
             // Rata-rata durasi pelayanan (dalam menit)
-            $completedToday = Queue::query()->where('department_id', $activeBooking->department_id)
+            /** @var Builder $completedTodayQuery */
+            $completedTodayQuery = Queue::query();
+            $completedToday = $completedTodayQuery->where('department_id', $activeBooking->department_id)
                 ->whereDate('booking_date', $activeBooking->booking_date)
                 ->where('status', QueueStatus::Completed->value)
                 ->whereNotNull('called_at')

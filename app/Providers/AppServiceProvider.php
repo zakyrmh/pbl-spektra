@@ -7,8 +7,8 @@ use App\Listeners\Public\LogFeedbackActivity;
 use App\Models\Notification;
 use App\Models\Queue;
 use App\Models\User;
+use App\Policies\BookingPolicy;
 use App\Policies\NotificationPolicy;
-use App\Policies\QueuePolicy;
 use App\Policies\UserPolicy;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
@@ -33,7 +33,7 @@ class AppServiceProvider extends ServiceProvider
         // Daftarkan UserPolicy untuk model User.
         // Laravel akan otomatis memetakan method policy ke Gate ability.
         Gate::policy(User::class, UserPolicy::class);
-        Gate::policy(Queue::class, QueuePolicy::class);
+        Gate::policy(Queue::class, BookingPolicy::class);
         Gate::policy(Notification::class, NotificationPolicy::class);
 
         // ── Events & Listeners ───────────────────────────────────

@@ -58,8 +58,8 @@
 
         {{-- Bookings Section --}}
         @php
-            $activeBookings = $bookings->filter(fn($b) => in_array($b->status, ['Pending', 'Checked-In', 'Confirmed', 'Serving']));
-            $pastBookings = $bookings->filter(fn($b) => !in_array($b->status, ['Pending', 'Checked-In', 'Confirmed', 'Serving']));
+            $activeBookings = $bookings->filter(fn($b) => in_array($b->status, ['Pending', 'Booked', 'Checked-In', 'Confirmed', 'Serving']));
+            $pastBookings = $bookings->filter(fn($b) => !in_array($b->status, ['Pending', 'Booked', 'Checked-In', 'Confirmed', 'Serving']));
         @endphp
 
         <div class="space-y-12">
@@ -99,13 +99,13 @@
                                         {{-- Dynamic Status Badge --}}
                                         @php
                                             $statusClass = match($booking->status) {
-                                                'Pending' => 'bg-amber-500/12 text-amber-800 dark:text-amber-400 border border-amber-500/20',
+                                                'Pending', 'Booked' => 'bg-amber-500/12 text-amber-800 dark:text-amber-400 border border-amber-500/20',
                                                 'Checked-In', 'Confirmed' => 'bg-primary/12 text-primary dark:text-accent-teal border border-primary/20',
                                                 'Serving' => 'bg-green-500/12 text-green-800 dark:text-green-400 border border-green-500/20',
                                                 default => 'bg-gray-500/10 text-muted dark:text-on-dark-soft border border-gray-500/10',
                                             };
                                             $statusText = match($booking->status) {
-                                                'Pending' => 'Menunggu Check-In',
+                                                'Pending', 'Booked' => 'Menunggu Check-In',
                                                 'Checked-In', 'Confirmed' => 'Terkonfirmasi FO',
                                                 'Serving' => 'Sedang Dilayani',
                                                 default => $booking->status,

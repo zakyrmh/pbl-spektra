@@ -1,93 +1,97 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Services\Public;
 
-use App\Mail\BookingSuccessMail;
 use App\Models\ActivityLog;
-use App\Models\Booking;
+use App\Models\Department;
 use App\Models\Notification;
-use App\Models\Schedule;
+use App\Models\Queue;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 
 class BookingService
 {
     /**
-     * Get available schedules for a given service.
+     * Get customer booking/queue history with department details.
      *
-     * @return Collection
+     * @return Collection<int, Queue>
      */
-    public function getAvailableSchedulesForService(int $serviceId)
+    public function getCustomerBookingHistory(int $userId): Collection
     {
-        return Schedule::where('service_id', $serviceId)
-            ->where('date', '>=', now()->toDateString())
-            ->where('is_open', true)
-            ->whereColumn('quota_used', '<', 'quota_total')
-            ->orderBy('date', 'asc')
+        return Queue::where('user_id', $userId)
+            ->with('department')
+            ->orderBy('created_at', 'desc')
             ->get();
     }
 
     /**
-     * Create a new booking for a user.
+     * Process creation of a booking/queue for a user inside a database transaction.
+     *
+     * @param  array{department_id: int|string, keperluan: string, booking_date: string}  $data
      *
      * @throws \Exception
      */
-    public function createBooking(User $user, int $serviceId, int $scheduleId, ?string $purpose = null): Booking
+    public function processBookingCreation(int $userId, array $data): Queue
     {
-        // Execute booking creation inside a transaction
-        $booking = DB::transaction(function () use ($user, $serviceId, $scheduleId, $purpose) {
-            // Lock schedule for update to prevent concurrent double-booking of last slot
-            $schedule = Schedule::where('id', $scheduleId)->lockForUpdate()->first();
+        $user = User::findOrFail($userId);
 
-            if (! $schedule) {
-                throw new \Exception('Jadwal pelayanan terpilih tidak ditemukan.');
+        return DB::transaction(function () use ($user, $data): Queue {
+            $department = Department::findOrFail((int) $data['department_id']);
+            $bookingDate = Carbon::parse($data['booking_date']);
+
+            if (! $department->is_open) {
+                throw new \Exception('Instansi terpilih saat ini sedang ditutup.');
             }
 
-            if (! $schedule->is_open) {
-                throw new \Exception('Jadwal pelayanan terpilih sedang ditutup.');
-            }
-
-            if ($schedule->isFull()) {
-                throw new \Exception('Kuota layanan pada jadwal terpilih sudah penuh.');
-            }
-
-            // BR-06: Satu NIK = maks 1 booking aktif (Pending) per layanan per hari
-            $existingBooking = Booking::where('user_id', $user->id)
-                ->where('service_id', $serviceId)
-                ->whereDate('booking_date', $schedule->date->toDateString())
+            // BR-06: Satu NIK = maks 1 booking aktif (Pending) per instansi per hari
+            $existingBooking = Queue::where('user_id', $user->id)
+                ->where('department_id', $department->id)
+                ->whereDate('booking_date', $bookingDate->toDateString())
                 ->where('status', 'Pending')
                 ->exists();
 
             if ($existingBooking) {
-                throw new \Exception('Anda sudah memiliki booking aktif (Pending) untuk layanan ini pada tanggal tersebut.');
+                throw new \Exception('Anda sudah memiliki booking aktif (Pending) untuk instansi ini pada tanggal tersebut.');
             }
 
-            // Generate UUID booking code
-            $bookingCode = (string) Str::uuid();
+            // Lock the department's queues on the specific date to avoid race conditions on queue_number
+            $existingCount = Queue::where('department_id', $department->id)
+                ->whereDate('booking_date', $bookingDate->toDateString())
+                ->lockForUpdate()
+                ->count();
 
-            // Create booking
-            $booking = Booking::create([
+            $nextNumber = $existingCount + 1;
+            $prefix = $department->inisial ?: 'Q';
+
+            // Format: [INISIAL]-[001], e.g. DDK-001
+            $queueNumber = $prefix.'-'.str_pad((string) $nextNumber, 3, '0', STR_PAD_LEFT);
+
+            // Generate structured booking code
+            $dateStr = $bookingDate->format('Ymd');
+            $bookingCode = 'BK-'.$prefix.'-'.$dateStr.'-'.strtoupper(Str::random(6));
+
+            // Create booking/queue
+            $booking = Queue::create([
                 'user_id' => $user->id,
-                'service_id' => $serviceId,
-                'schedule_id' => $scheduleId,
-                'purpose' => $purpose,
+                'department_id' => $department->id,
                 'booking_code' => $bookingCode,
-                'status' => 'Pending',
-                'booking_date' => $schedule->date,
+                'purpose' => $data['keperluan'],
+                'session_name' => 'Online',
+                'booking_date' => $bookingDate->toDateString(),
+                'queue_number' => $queueNumber,
+                'status' => 'Booked',
             ]);
-
-            // Increment quota
-            $schedule->increment('quota_used');
 
             // Save notifications for customer
             Notification::create([
                 'user_id' => $user->id,
                 'title' => 'Booking Antrean Berhasil',
-                'message' => "Reservasi antrean untuk layanan {$booking->service->name} pada {$booking->booking_date->translatedFormat('d F Y')} berhasil dibuat dengan kode {$bookingCode}.",
+                'message' => "Reservasi antrean untuk instansi {$department->name} pada {$bookingDate->translatedFormat('d F Y')} berhasil dibuat dengan kode {$bookingCode}.",
             ]);
 
             // Save notifications for all FO Admins (real-time data)
@@ -96,29 +100,32 @@ class BookingService
                 Notification::create([
                     'user_id' => $fo->id,
                     'title' => 'Booking Baru Masuk',
-                    'message' => "Pengunjung {$user->name} membuat booking online baru: {$bookingCode} (Layanan: {$booking->service->name}).",
+                    'message' => "Pengunjung {$user->name} membuat booking online baru: {$bookingCode} (Instansi: {$department->name}).",
                 ]);
             }
 
             // Record activity log
             ActivityLog::record(
                 action: 'CREATE_BOOKING',
-                modelType: 'Booking',
+                modelType: 'Queue',
                 modelId: $booking->id,
-                description: "Pengunjung '{$user->name}' membuat booking online dengan kode {$bookingCode} tujuan layanan {$booking->service->name} tanggal {$booking->booking_date->toDateString()}.",
+                description: "Pengunjung '{$user->name}' membuat booking online dengan kode {$bookingCode} tujuan instansi {$department->name} tanggal {$bookingDate->toDateString()}.",
                 actorUserId: $user->id
             );
 
             return $booking;
         });
+    }
 
-        // BR-11: Kegagalan SMTP tidak boleh membatalkan proses booking (try-catch)
-        try {
-            Mail::to($user->email)->send(new BookingSuccessMail($booking));
-        } catch (\Exception $e) {
-            Log::warning("SMTP Mail sending failed for booking {$booking->booking_code}: ".$e->getMessage());
-        }
-
-        return $booking;
+    /**
+     * Calculate the real-time queue position for a booking.
+     */
+    public function calculateEstimatedPosition(Queue $booking): int
+    {
+        return Queue::where('department_id', $booking->department_id)
+            ->whereDate('booking_date', $booking->booking_date->toDateString())
+            ->where('id', '<', $booking->id)
+            ->whereIn('status', ['Pending', 'Checked-In'])
+            ->count() + 1;
     }
 }

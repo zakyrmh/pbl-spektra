@@ -15,7 +15,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
-class UserController extends Controller
+final class UserController extends Controller
 {
     public function __construct(
         protected UserManagementService $userService

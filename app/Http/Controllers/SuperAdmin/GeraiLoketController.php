@@ -21,14 +21,11 @@ use Illuminate\View\View;
  * Controller ini didelegasikan untuk menampilkan halaman index dengan data aggregate
  * serta menangani operasi CRUD untuk Booth/Gerai (Department).
  */
-class GeraiLoketController extends Controller
+final class GeraiLoketController extends Controller
 {
-    protected BoothManagementService $boothService;
-
-    public function __construct(BoothManagementService $boothService)
-    {
-        $this->boothService = $boothService;
-    }
+    public function __construct(
+        protected BoothManagementService $boothService
+    ) {}
 
     /**
      * Tampilkan halaman dashboard Konfigurasi Gerai / Loket.

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Resources\AdminFO;
+namespace App\Http\Resources\Public;
 
 use App\Models\Department;
 use Illuminate\Http\Request;

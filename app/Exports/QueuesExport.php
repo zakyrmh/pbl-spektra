@@ -27,11 +27,11 @@ class QueuesExport implements FromQuery, WithHeadings, WithMapping, WithTitle
     public function query()
     {
         return Queue::query()
-            ->whereDate('queue_date', '>=', $this->startDate)
-            ->whereDate('queue_date', '<=', $this->endDate)
+            ->whereDate('booking_date', '>=', $this->startDate)
+            ->whereDate('booking_date', '<=', $this->endDate)
             ->where('status', 'Completed')
-            ->with(['booking.user', 'visitor', 'service.department'])
-            ->orderBy('queue_date')
+            ->with(['user', 'department'])
+            ->orderBy('booking_date')
             ->orderBy('queue_number');
     }
 
@@ -40,18 +40,17 @@ class QueuesExport implements FromQuery, WithHeadings, WithMapping, WithTitle
      */
     public function map($queue): array
     {
-        // Jika antrean walk-in, ambil dari visitor. Jika booking online, ambil dari booking->user.
-        $name = $queue->visitor ? $queue->visitor->name : ($queue->booking?->user?->name ?? '-');
-        $nik = $queue->visitor ? $queue->visitor->nik : ($queue->booking?->user?->nik ?? '-');
-        $departmentName = $queue->service?->department?->name ?? '-';
+        $name = $queue->user?->name ?? '-';
+        $nik = $queue->user?->nik ?? '-';
+        $departmentName = $queue->department?->name ?? '-';
 
         return [
-            $queue->queue_date instanceof Carbon ? $queue->queue_date->toDateString() : (string) $queue->queue_date,
+            $queue->booking_date instanceof Carbon ? $queue->booking_date->toDateString() : (string) $queue->booking_date,
             $queue->queue_number,
             $nik,
             $name,
             $departmentName,
-            $queue->service?->name ?? '-',
+            $queue->purpose ?? '-',
             $queue->called_at ? (Carbon::parse($queue->called_at)->format('H:i:s')) : '—',
             $queue->completed_at ? (Carbon::parse($queue->completed_at)->format('H:i:s')) : '—',
         ];

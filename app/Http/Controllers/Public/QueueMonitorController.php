@@ -5,14 +5,13 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Public;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\AdminFO\MonitorFilterRequest;
-use App\Http\Resources\AdminFO\ActiveQueueResource;
-use App\Models\Setting;
+use App\Http\Requests\Public\MonitorFilterRequest;
+use App\Http\Resources\Public\ActiveQueueResource;
 use App\Services\AdminFO\QueueMonitorService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
 
-class QueueMonitorController extends Controller
+final class QueueMonitorController extends Controller
 {
     public function __construct(
         protected QueueMonitorService $monitorService
@@ -47,8 +46,8 @@ class QueueMonitorController extends Controller
     {
         $departments = $this->monitorService->getPublicDisplayDepartments();
 
-        $marqueeText = Setting::getVal('marquee_text', 'Selamat Datang di Mal Pelayanan Publik Kota Sawahlunto.');
-        $marqueeActive = Setting::getVal('marquee_active', 'true') === 'true';
+        $marqueeText = $this->monitorService->getMarqueeText();
+        $marqueeActive = $this->monitorService->isMarqueeActive();
 
         return view('public.display', compact('departments', 'marqueeText', 'marqueeActive'));
     }
@@ -61,8 +60,8 @@ class QueueMonitorController extends Controller
     {
         $departments = $this->monitorService->getPublicDisplayDepartments();
 
-        $marqueeText = Setting::getVal('marquee_text', 'Selamat Datang di Mal Pelayanan Publik Kota Sawahlunto.');
-        $marqueeActive = Setting::getVal('marquee_active', 'true') === 'true';
+        $marqueeText = $this->monitorService->getMarqueeText();
+        $marqueeActive = $this->monitorService->isMarqueeActive();
 
         return response()->json([
             'counters' => ActiveQueueResource::collection($departments)->resolve(),

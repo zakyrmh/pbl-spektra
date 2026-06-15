@@ -9,11 +9,28 @@ use App\Data\AdminFO\LiveMonitorData;
 use App\Enums\QueueStatus;
 use App\Models\Department;
 use App\Models\Queue;
+use App\Models\Setting;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 
 class QueueMonitorService
 {
+    /**
+     * Get the marquee text from settings.
+     */
+    public function getMarqueeText(): string
+    {
+        return Setting::getVal('marquee_text', 'Selamat Datang di Mal Pelayanan Publik Kota Sawahlunto.');
+    }
+
+    /**
+     * Check if marquee is active from settings.
+     */
+    public function isMarqueeActive(): bool
+    {
+        return Setting::getVal('marquee_active', 'true') === 'true';
+    }
+
     /**
      * Get all monitor data including global metrics and department density status.
      */

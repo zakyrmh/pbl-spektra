@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\AdminGerai;
 
+use App\Data\AdminGerai\WaitingListDashboardData;
 use App\Enums\QueueStatus;
 use App\Events\QueueCreated;
 use App\Models\ActivityLog;
@@ -16,6 +17,29 @@ use Illuminate\Support\Facades\DB;
 
 class WaitingListService
 {
+    /**
+     * Get waiting list dashboard data aggregated by categories (Booked, CheckedIn, Cancelled/Skipped).
+     */
+    public function getWaitingListDashboardData(Department $department, ?string $search = null): array
+    {
+        $today = Carbon::today();
+
+        $pendingModels = $this->getQueues($department, $today, [QueueStatus::Booked->value], $search);
+        $pendingBookings = $pendingModels->map(fn ($q) => WaitingListDashboardData::fromModel($q));
+
+        $checkedInModels = $this->getQueues($department, $today, [QueueStatus::CheckedIn->value], $search);
+        $checkedInBookings = $checkedInModels->map(fn ($q) => WaitingListDashboardData::fromModel($q));
+
+        $cancelledModels = $this->getQueues($department, $today, [QueueStatus::Cancelled->value, QueueStatus::Skipped->value], $search);
+        $cancelledBookings = $cancelledModels->map(fn ($q) => WaitingListDashboardData::fromModel($q));
+
+        return [
+            'pendingBookings' => $pendingBookings,
+            'checkedInBookings' => $checkedInBookings,
+            'cancelledBookings' => $cancelledBookings,
+        ];
+    }
+
     /**
      * Get queues for the department filtered by status and optional search term.
      *

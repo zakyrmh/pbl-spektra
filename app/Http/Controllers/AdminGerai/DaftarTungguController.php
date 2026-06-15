@@ -4,20 +4,17 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\AdminGerai;
 
-use App\Data\AdminGerai\WaitingListDashboardData;
-use App\Enums\QueueStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\AdminGerai\WaitingListActionRequest;
 use App\Models\Department;
 use App\Models\Queue;
 use App\Services\AdminGerai\WaitingListService;
-use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 
-class DaftarTungguController extends Controller
+final class DaftarTungguController extends Controller
 {
     public function __construct(
         protected WaitingListService $waitingListService
@@ -40,26 +37,18 @@ class DaftarTungguController extends Controller
         // Schedules are deleted, pass empty collection to keep layout fallback functional
         $schedules = collect();
 
-        $today = Carbon::today();
         $search = $request->filled('search') ? trim($request->input('search')) : null;
 
-        // Fetch queues for the three categories
-        $pendingModels = $this->waitingListService->getQueues($department, $today, [QueueStatus::Booked->value], $search);
-        $pendingBookings = $pendingModels->map(fn ($q) => WaitingListDashboardData::fromModel($q));
+        // Fetch aggregated waitlist data from service
+        $data = $this->waitingListService->getWaitingListDashboardData($department, $search);
 
-        $checkedInModels = $this->waitingListService->getQueues($department, $today, [QueueStatus::CheckedIn->value], $search);
-        $checkedInBookings = $checkedInModels->map(fn ($q) => WaitingListDashboardData::fromModel($q));
-
-        $cancelledModels = $this->waitingListService->getQueues($department, $today, [QueueStatus::Cancelled->value, QueueStatus::Skipped->value], $search);
-        $cancelledBookings = $cancelledModels->map(fn ($q) => WaitingListDashboardData::fromModel($q));
-
-        return view('admin.daftar-tunggu', compact(
-            'department',
-            'schedules',
-            'pendingBookings',
-            'checkedInBookings',
-            'cancelledBookings'
-        ));
+        return view('admin.daftar-tunggu', [
+            'department' => $department,
+            'schedules' => $schedules,
+            'pendingBookings' => $data['pendingBookings'],
+            'checkedInBookings' => $data['checkedInBookings'],
+            'cancelledBookings' => $data['cancelledBookings'],
+        ]);
     }
 
     /**

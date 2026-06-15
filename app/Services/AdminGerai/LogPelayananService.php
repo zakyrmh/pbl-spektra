@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\AdminGerai;
 
+use App\Data\AdminGerai\LogPelayananData;
 use App\Enums\QueueStatus;
 use App\Models\Department;
 use App\Models\Queue;
@@ -98,6 +99,52 @@ final class LogPelayananService
         return Queue::where('department_id', $department->id)
             ->where('status', $status)
             ->count();
+    }
+
+    /**
+     * Get the streamed CSV callback for export.
+     */
+    public function getCsvExportCallback(Department $department, array $filters): \Closure
+    {
+        $queues = $this->getAllForExport($department, $filters);
+
+        return function () use ($queues) {
+            $file = fopen('php://output', 'w');
+
+            // UTF-8 BOM for Excel compatibility
+            fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));
+
+            fputcsv($file, [
+                'Tanggal',
+                'Nomor Antrean',
+                'Kode Booking',
+                'Nama Warga',
+                'Keperluan',
+                'Jam Dipanggil',
+                'Jam Selesai',
+                'Durasi Pelayanan',
+                'Status',
+                'Catatan / Alasan',
+            ]);
+
+            foreach ($queues as $queue) {
+                $data = LogPelayananData::fromModel($queue);
+                fputcsv($file, [
+                    $data->booking_date_formatted,
+                    $data->queue_number,
+                    $data->booking_code,
+                    $data->visitor_name ?? '-',
+                    $data->purpose ?? '-',
+                    $data->called_at_formatted ?? '-',
+                    $data->completed_at_formatted ?? '-',
+                    $data->duration_label ?? '-',
+                    $data->status,
+                    $data->cancel_reason ?? '-',
+                ]);
+            }
+
+            fclose($file);
+        };
     }
 
     // ─────────────────────────────────────────────────────────────────────

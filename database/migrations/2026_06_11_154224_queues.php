@@ -24,7 +24,7 @@ return new class extends Migration
             $table->string('session_name'); // Contoh: 'Sesi 1', 'Sesi 2'
             $table->date('booking_date');
             $table->string('queue_number', 12)->nullable();
-            $table->enum('status', ['Booked', 'Checked-In', 'Serving', 'Completed', 'Skipped', 'Cancelled'])->default('Booked');
+            $table->enum('status', ['Booked', 'Checked-In', 'Serving', 'Hold', 'Completed', 'Skipped', 'Cancelled'])->default('Booked');
             $table->string('cancel_reason')->nullable();
             $table->timestamp('checked_in_at')->nullable(); // Klik check-in oleh FO
             $table->timestamp('called_at')->nullable();     // Mulai dilayani oleh Admin Gerai

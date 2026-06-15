@@ -11,7 +11,7 @@ use App\Services\AdminFO\WalkInTicketService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 
-class WalkInTicketController extends Controller
+final class WalkInTicketController extends Controller
 {
     public function __construct(
         protected WalkInTicketService $ticketService

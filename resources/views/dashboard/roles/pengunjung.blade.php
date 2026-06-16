@@ -220,16 +220,6 @@
             <div class="space-y-4">
                 <h3 class="text-lg font-bold text-ink dark:text-white font-display">Pintasan Aksi Utama</h3>
                 <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                    <!-- Booking Baru -->
-                    <a href="{{ route('booking.create') }}" class="bg-canvas dark:bg-surface-dark-elevated p-5 rounded-lg border border-hairline dark:border-white/10 shadow-xs hover:shadow-md hover:-translate-y-1 transition-all duration-300 group flex flex-col items-center text-center focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-accent-teal">
-                        <div class="w-12 h-12 bg-surface-soft dark:bg-white/5 text-primary dark:text-accent-teal rounded-lg flex items-center justify-center mb-3 group-hover:scale-110 group-hover:bg-primary group-hover:text-white transition-all border border-hairline dark:border-white/5">
-                            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                            </svg>
-                        </div>
-                        <h4 class="font-bold text-sm text-ink dark:text-white font-display">Ambil Antrean</h4>
-                        <p class="text-[10px] text-muted dark:text-on-dark-soft mt-0.5 font-body">Booking layanan baru</p>
-                    </a>
                     <!-- Riwayat -->
                     <a href="{{ route('booking.index') }}" class="bg-canvas dark:bg-surface-dark-elevated p-5 rounded-lg border border-hairline dark:border-white/10 shadow-xs hover:shadow-md hover:-translate-y-1 transition-all duration-300 group flex flex-col items-center text-center focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-accent-teal">
                         <div class="w-12 h-12 bg-surface-soft dark:bg-white/5 text-indigo-600 dark:text-indigo-400 rounded-lg flex items-center justify-center mb-3 group-hover:scale-110 group-hover:bg-indigo-600 group-hover:text-white transition-all border border-hairline dark:border-white/5">

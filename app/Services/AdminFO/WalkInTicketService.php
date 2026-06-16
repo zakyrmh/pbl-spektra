@@ -89,14 +89,20 @@ class WalkInTicketService
                 ]);
             }
 
-            // 3. Hitung nomor urut dengan lockForUpdate untuk mencegah race condition
-            $existingCount = Queue::where('department_id', $department->id)
+            // 3. Dapatkan nomor urut tertinggi hari ini dengan lockForUpdate untuk mencegah race condition
+            $queueNumbers = Queue::where('department_id', $department->id)
                 ->whereDate('booking_date', $today)
+                ->whereNotNull('queue_number')
                 ->lockForUpdate()
-                ->count();
+                ->pluck('queue_number')
+                ->map(function ($num) {
+                    $parts = explode('-', $num);
 
-            $nextNumber = $existingCount + 1;
-            $prefix = $department->inisial;
+                    return (int) end($parts);
+                });
+
+            $nextNumber = $queueNumbers->isEmpty() ? 1 : $queueNumbers->max() + 1;
+            $prefix = $department->inisial ?: 'Q';
 
             // Format: [INISIAL]-[001], contoh: DDK-001
             $queueNumber = $prefix.'-'.str_pad((string) $nextNumber, 3, '0', STR_PAD_LEFT);

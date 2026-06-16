@@ -155,6 +155,12 @@
                     <input type="text" id="txtWalkInName" disabled placeholder="Nama warga (otomatis / isi jika baru)" class="w-full h-11 bg-surface-soft dark:bg-white/5 border border-hairline dark:border-white/10 text-ink dark:text-white rounded-md px-3 font-semibold focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-accent-teal disabled:opacity-50 disabled:cursor-not-allowed">
                 </div>
 
+                <!-- Nomor Telepon Input -->
+                <div>
+                    <label for="txtWalkInPhone" class="block text-xs font-semibold text-ink dark:text-white uppercase tracking-wider mb-2 font-display">Nomor Telepon / HP</label>
+                    <input type="text" id="txtWalkInPhone" disabled placeholder="Nomor telepon warga (otomatis / isi jika baru)" class="w-full h-11 bg-surface-soft dark:bg-white/5 border border-hairline dark:border-white/10 text-ink dark:text-white rounded-md px-3 font-semibold focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-accent-teal disabled:opacity-50 disabled:cursor-not-allowed" oninput="this.value = this.value.replace(/[^0-9+]/g, '')">
+                </div>
+
                 <!-- Instansi Selection -->
                 <div>
                     <label for="selWalkInDept" class="block text-xs font-semibold text-ink dark:text-white uppercase tracking-wider mb-2 font-display">Instansi Tujuan</label>
@@ -168,7 +174,7 @@
 
                 <!-- Keperluan -->
                 <div>
-                    <label for="txtWalkInPurpose" class="block text-xs font-semibold text-ink dark:text-white uppercase tracking-wider mb-2 font-display">Keperluan (Opsional)</label>
+                    <label for="txtWalkInPurpose" class="block text-xs font-semibold text-ink dark:text-white uppercase tracking-wider mb-2 font-display">Keperluan</label>
                     <textarea id="txtWalkInPurpose" rows="2" placeholder="Tuliskan keperluan kedatangan secara singkat..." class="w-full bg-surface-soft dark:bg-white/5 border border-hairline dark:border-white/10 text-ink dark:text-white rounded-md p-3 text-sm focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-accent-teal"></textarea>
                 </div>
 
@@ -408,6 +414,7 @@
     async function checkVisitorNik() {
         const inputNik = document.getElementById('txtWalkInNik');
         const inputName = document.getElementById('txtWalkInName');
+        const inputPhone = document.getElementById('txtWalkInPhone');
         const nik = inputNik.value.trim();
 
         if (nik.length !== 16) {
@@ -420,9 +427,11 @@
             
             if (response.status === 404) {
                 inputName.value = '';
-                inputName.disabled = false; // Open for typing if new
+                inputName.disabled = false;
+                inputPhone.value = '';
+                inputPhone.disabled = false;
                 inputName.focus();
-                createToast('NIK Baru', 'Data tidak ditemukan. Silakan isi nama lengkap warga.', 'info');
+                createToast('NIK Baru', 'Data tidak ditemukan. Silakan isi nama lengkap dan nomor telepon warga.', 'info');
                 return;
             }
 
@@ -436,13 +445,17 @@
             
             if (data.is_found) {
                 inputName.value = data.name;
-                inputName.disabled = true; // Lock if found
+                inputName.disabled = true;
+                inputPhone.value = data.no_telp || '';
+                inputPhone.disabled = true;
                 createToast('NIK Ditemukan', `Data warga ${data.name} berhasil dimuat.`, 'success');
             } else {
                 inputName.value = '';
-                inputName.disabled = false; // Open for typing if new
+                inputName.disabled = false;
+                inputPhone.value = '';
+                inputPhone.disabled = false;
                 inputName.focus();
-                createToast('NIK Baru', 'Data tidak ditemukan. Silakan isi nama lengkap warga.', 'info');
+                createToast('NIK Baru', 'Data tidak ditemukan. Silakan isi nama lengkap dan nomor telepon warga.', 'info');
             }
         } catch (error) {
             console.error('Error checking NIK:', error);
@@ -455,6 +468,9 @@
         const nameInput = document.getElementById('txtWalkInName');
         nameInput.value = '';
         nameInput.disabled = true;
+        const phoneInput = document.getElementById('txtWalkInPhone');
+        phoneInput.value = '';
+        phoneInput.disabled = true;
         document.getElementById('selWalkInDept').value = '';
         document.getElementById('txtWalkInPurpose').value = '';
     }
@@ -462,6 +478,7 @@
     async function printWalkInTicket() {
         const nik = document.getElementById('txtWalkInNik').value.trim();
         const name = document.getElementById('txtWalkInName').value.trim();
+        const phone = document.getElementById('txtWalkInPhone').value.trim();
         const deptId = document.getElementById('selWalkInDept').value;
         const purpose = document.getElementById('txtWalkInPurpose').value.trim();
 
@@ -471,6 +488,15 @@
         }
         if (!name) {
             createToast('Peringatan', 'Nama lengkap tidak boleh kosong.', 'warning');
+            return;
+        }
+        if (!phone) {
+            createToast('Peringatan', 'Nomor telepon wajib diisi.', 'warning');
+            return;
+        }
+        const phoneRegex = /^(08[0-9]{8,13}|\+628[0-9]{8,11})$/;
+        if (!phoneRegex.test(phone)) {
+            createToast('Peringatan', 'Format nomor HP tidak valid (harus diawali 08 atau +628 dan berisi 10-15 angka).', 'warning');
             return;
         }
         if (!deptId) {
@@ -492,6 +518,7 @@
                 body: JSON.stringify({
                     nik: nik,
                     name: name,
+                    phone: phone,
                     department_id: deptId,
                     purpose: purpose
                 })

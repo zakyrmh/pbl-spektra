@@ -121,13 +121,20 @@ class CheckInService
      */
     public function generateQueueNumber(Department $department, string $today): string
     {
-        $existingCount = Queue::where('department_id', $department->id)
+        $queueNumbers = Queue::where('department_id', $department->id)
             ->whereDate('booking_date', $today)
+            ->whereNotNull('queue_number')
             ->lockForUpdate()
-            ->count();
+            ->pluck('queue_number')
+            ->map(function ($num) {
+                $parts = explode('-', $num);
 
+                return (int) end($parts);
+            });
+
+        $nextNumber = $queueNumbers->isEmpty() ? 1 : $queueNumbers->max() + 1;
         $prefix = $department->inisial ?: 'Q';
 
-        return $prefix.'-'.str_pad((string) ($existingCount + 1), 3, '0', STR_PAD_LEFT);
+        return $prefix.'-'.str_pad((string) $nextNumber, 3, '0', STR_PAD_LEFT);
     }
 }

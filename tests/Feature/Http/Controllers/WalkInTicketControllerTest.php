@@ -215,3 +215,91 @@ test('admin fo checking NIK of a non-visitor role user receives 404', function (
 
     $response->assertStatus(404);
 });
+
+test('admin fo can issue walk-in ticket via API', function () {
+    $user = User::factory()->create([
+        'role' => 'admin_fo',
+    ]);
+
+    $department = Department::create([
+        'name' => 'Layanan Kependudukan',
+        'inisial' => 'LK',
+        'nomor_loket' => '01',
+        'description' => 'Layanan Dukcapil',
+        'is_open' => true,
+    ]);
+
+    $response = $this->actingAs($user)->postJson(route('api.fo.queues.walkin'), [
+        'nik' => '9999888877776666',
+        'name' => 'John Doe',
+        'phone' => '081234567890',
+        'department_id' => $department->id,
+        'purpose' => 'Permohonan Layanan Baru',
+    ]);
+
+    $response->assertStatus(200);
+    $response->assertJson([
+        'success' => true,
+        'queue_number' => 'LK-001',
+        'visitor_name' => 'John Doe',
+    ]);
+});
+
+test('walk-in API validates phone number format', function () {
+    $user = User::factory()->create([
+        'role' => 'admin_fo',
+    ]);
+
+    $department = Department::create([
+        'name' => 'Layanan Kependudukan',
+        'inisial' => 'LK',
+        'nomor_loket' => '01',
+        'description' => 'Layanan Dukcapil',
+        'is_open' => true,
+    ]);
+
+    $response = $this->actingAs($user)->postJson(route('api.fo.queues.walkin'), [
+        'nik' => '9999888877776666',
+        'name' => 'John Doe',
+        'phone' => 'invalid-phone-format',
+        'department_id' => $department->id,
+        'purpose' => 'Permohonan Layanan Baru',
+    ]);
+
+    $response->assertStatus(422);
+    $response->assertJsonValidationErrors(['phone']);
+});
+
+test('walk-in API assigns queue numbers sequentially without conflict', function () {
+    $user = User::factory()->create([
+        'role' => 'admin_fo',
+    ]);
+
+    $department = Department::create([
+        'name' => 'Layanan Kependudukan',
+        'inisial' => 'LK',
+        'nomor_loket' => '01',
+        'description' => 'Layanan Dukcapil',
+        'is_open' => true,
+    ]);
+
+    // Issue first ticket
+    $response1 = $this->actingAs($user)->postJson(route('api.fo.queues.walkin'), [
+        'nik' => '9999888877776661',
+        'name' => 'Citizen One',
+        'phone' => '081234567891',
+        'department_id' => $department->id,
+        'purpose' => 'Purpose One',
+    ]);
+    $response1->assertJson(['queue_number' => 'LK-001']);
+
+    // Issue second ticket
+    $response2 = $this->actingAs($user)->postJson(route('api.fo.queues.walkin'), [
+        'nik' => '9999888877776662',
+        'name' => 'Citizen Two',
+        'phone' => '081234567892',
+        'department_id' => $department->id,
+        'purpose' => 'Purpose Two',
+    ]);
+    $response2->assertJson(['queue_number' => 'LK-002']);
+});

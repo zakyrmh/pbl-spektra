@@ -425,14 +425,24 @@
 
         try {
             const response = await fetch(`/api/fo/visitors/check-nik?nik=${nik}`);
+            
+            if (response.status === 404) {
+                inputName.value = '';
+                inputName.disabled = false; // Open for typing if new
+                inputName.focus();
+                createToast('NIK Baru', 'Data tidak ditemukan. Silakan isi nama lengkap warga.', 'info');
+                return;
+            }
+
             if (!response.ok) {
                 createToast('Gagal', 'Terjadi kesalahan saat memeriksa NIK.', 'warning');
                 return;
             }
             
-            const data = await response.json();
+            const resData = await response.json();
+            const data = resData.data || resData;
             
-            if (data.found) {
+            if (data.is_found) {
                 inputName.value = data.name;
                 inputName.disabled = true; // Lock if found
                 createToast('NIK Ditemukan', `Data warga ${data.name} berhasil dimuat.`, 'success');

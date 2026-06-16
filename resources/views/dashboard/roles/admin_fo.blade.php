@@ -155,23 +155,15 @@
                     <input type="text" id="txtWalkInName" disabled placeholder="Nama warga (otomatis / isi jika baru)" class="w-full h-11 bg-surface-soft dark:bg-white/5 border border-hairline dark:border-white/10 text-ink dark:text-white rounded-md px-3 font-semibold focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-accent-teal disabled:opacity-50 disabled:cursor-not-allowed">
                 </div>
 
-                <!-- Instansi & Layanan Selection -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                        <label for="selWalkInDept" class="block text-xs font-semibold text-ink dark:text-white uppercase tracking-wider mb-2 font-display">Instansi Tujuan</label>
-                        <select id="selWalkInDept" onchange="onWalkInDeptChange()" class="w-full h-11 bg-surface-soft dark:bg-surface-dark border border-hairline dark:border-white/10 text-ink dark:text-white rounded-md px-3 font-semibold focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-accent-teal cursor-pointer">
-                            <option value="">-- Pilih Instansi --</option>
-                            @foreach($departments as $dept)
-                                <option value="{{ $dept->id }}" data-services="{{ json_encode([$dept->name]) }}">{{ $dept->name }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div>
-                        <label for="selWalkInService" class="block text-xs font-semibold text-ink dark:text-white uppercase tracking-wider mb-2 font-display">Layanan (Opsional)</label>
-                        <select id="selWalkInService" class="w-full h-11 bg-surface-soft dark:bg-surface-dark border border-hairline dark:border-white/10 text-ink dark:text-white rounded-md px-3 font-semibold focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-accent-teal cursor-pointer disabled:opacity-50">
-                            <option value="">-- Pilih Layanan --</option>
-                        </select>
-                    </div>
+                <!-- Instansi Selection -->
+                <div>
+                    <label for="selWalkInDept" class="block text-xs font-semibold text-ink dark:text-white uppercase tracking-wider mb-2 font-display">Instansi Tujuan</label>
+                    <select id="selWalkInDept" class="w-full h-11 bg-surface-soft dark:bg-surface-dark border border-hairline dark:border-white/10 text-ink dark:text-white rounded-md px-3 font-semibold focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-accent-teal cursor-pointer">
+                        <option value="">-- Pilih Instansi --</option>
+                        @foreach($departments as $dept)
+                            <option value="{{ $dept->id }}">{{ $dept->name }}</option>
+                        @endforeach
+                    </select>
                 </div>
 
                 <!-- Keperluan -->
@@ -458,42 +450,12 @@
         }
     }
 
-    function onWalkInDeptChange() {
-        const deptSelect = document.getElementById('selWalkInDept');
-        const serviceSelect = document.getElementById('selWalkInService');
-        
-        serviceSelect.innerHTML = '<option value="">-- Pilih Layanan --</option>';
-        serviceSelect.disabled = true;
-
-        const selectedOption = deptSelect.options[deptSelect.selectedIndex];
-        if (!selectedOption.value) return;
-
-        const servicesStr = selectedOption.getAttribute('data-services');
-        if (servicesStr) {
-            const services = JSON.parse(servicesStr);
-            if (services.length > 0) {
-                services.forEach(s => {
-                    const opt = document.createElement('option');
-                    opt.value = s;
-                    opt.innerText = s;
-                    serviceSelect.appendChild(opt);
-                });
-                serviceSelect.disabled = false;
-            }
-        }
-    }
-
     function resetWalkInForm() {
         document.getElementById('txtWalkInNik').value = '';
         const nameInput = document.getElementById('txtWalkInName');
         nameInput.value = '';
         nameInput.disabled = true;
         document.getElementById('selWalkInDept').value = '';
-        
-        const serviceSelect = document.getElementById('selWalkInService');
-        serviceSelect.innerHTML = '<option value="">-- Pilih Layanan --</option>';
-        serviceSelect.disabled = true;
-        
         document.getElementById('txtWalkInPurpose').value = '';
     }
 
@@ -501,7 +463,6 @@
         const nik = document.getElementById('txtWalkInNik').value.trim();
         const name = document.getElementById('txtWalkInName').value.trim();
         const deptId = document.getElementById('selWalkInDept').value;
-        const service = document.getElementById('selWalkInService').value;
         const purpose = document.getElementById('txtWalkInPurpose').value.trim();
 
         if (nik.length !== 16) {
@@ -532,7 +493,6 @@
                     nik: nik,
                     name: name,
                     department_id: deptId,
-                    service_name: service,
                     purpose: purpose
                 })
             });

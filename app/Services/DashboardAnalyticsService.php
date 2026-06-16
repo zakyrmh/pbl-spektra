@@ -418,11 +418,61 @@ class DashboardAnalyticsService
             $estimatedTime = $remainingQueuesCount * $avgServiceTime;
         }
 
+        // 1. Kepadatan Gedung MPP
+        /** @var Builder $totalWaitingQuery */
+        $totalWaitingQuery = Queue::query();
+        $totalWaiting = $totalWaitingQuery->whereDate('booking_date', $today)
+            ->where('status', QueueStatus::CheckedIn->value)
+            ->count();
+
+        $densityPercentage = (int) min(100, round(($totalWaiting / 50) * 100));
+
+        if ($densityPercentage < 40) {
+            $densityStatus = 'Sepi';
+            $densityClass = 'text-emerald-500';
+            $densityDot = 'bg-emerald-500';
+            $densityDescription = 'Kondisi senggang, tidak ada antrean berarti.';
+        } elseif ($densityPercentage < 70) {
+            $densityStatus = 'Normal';
+            $densityClass = 'text-primary dark:text-accent-teal';
+            $densityDot = 'bg-primary';
+            $densityDescription = 'Kondisi kondusif, waktu antrean singkat.';
+        } else {
+            $densityStatus = 'Sangat Ramai';
+            $densityClass = 'text-rose-500 animate-pulse';
+            $densityDot = 'bg-rose-500 animate-pulse';
+            $densityDescription = 'Gedung padat, waktu tunggu lebih lama.';
+        }
+
+        // 2. Tenant Teramai Hari Ini
+        $topDepts = Department::withCount(['queues' => function ($query) use ($today) {
+            $query->whereDate('booking_date', $today);
+        }])
+            ->orderBy('queues_count', 'desc')
+            ->take(3)
+            ->get();
+
+        $maxQueueCount = $topDepts->max('queues_count') ?: 1;
+
+        $topDepartments = $topDepts->map(function ($dept) use ($maxQueueCount) {
+            return [
+                'name' => $dept->name,
+                'queues_count' => $dept->queues_count,
+                'progress_percent' => (int) round(($dept->queues_count / $maxQueueCount) * 100),
+            ];
+        })->toArray();
+
         return new VisitorDashboardData(
             activeBooking: $activeBooking,
             currentServingQueue: $currentServingQueue,
             remainingQueuesCount: $remainingQueuesCount,
-            estimatedTime: $estimatedTime
+            estimatedTime: $estimatedTime,
+            densityPercentage: $densityPercentage,
+            densityStatus: $densityStatus,
+            densityClass: $densityClass,
+            densityDot: $densityDot,
+            densityDescription: $densityDescription,
+            topDepartments: $topDepartments
         );
     }
 }

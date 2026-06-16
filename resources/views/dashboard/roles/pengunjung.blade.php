@@ -332,56 +332,9 @@
 
             <!-- Pixel-perfect Mock QR Code -->
             <div class="bg-white p-6 rounded-lg border border-hairline inline-block shadow-inner mx-auto relative group">
-                <svg class="w-48 h-48 mx-auto" viewBox="0 0 100 100" fill="currentColor">
-                    <!-- Positioning Squares -->
-                    <rect x="0" y="0" width="25" height="25" fill="#1e293b" />
-                    <rect x="3" y="3" width="19" height="19" fill="#ffffff" />
-                    <rect x="6" y="6" width="13" height="13" fill="#1B4FA8" />
-
-                    <rect x="75" y="0" width="25" height="25" fill="#1e293b" />
-                    <rect x="78" y="3" width="19" height="19" fill="#ffffff" />
-                    <rect x="81" y="6" width="13" height="13" fill="#1B4FA8" />
-
-                    <rect x="0" y="75" width="25" height="25" fill="#1e293b" />
-                    <rect x="3" y="78" width="19" height="19" fill="#ffffff" />
-                    <rect x="6" y="81" width="13" height="13" fill="#1B4FA8" />
-
-                    <!-- Small alignment squares -->
-                    <rect x="70" y="70" width="10" height="10" fill="#1e293b" />
-                    <rect x="72" y="72" width="6" height="6" fill="#ffffff" />
-                    <rect x="74" y="74" width="2" height="2" fill="#1B4FA8" />
-
-                    <!-- Randomly scattered blocks mimicking QR patterns -->
-                    <rect x="30" y="2" width="10" height="4" fill="#1e293b" />
-                    <rect x="45" y="5" width="8" height="5" fill="#1e293b" />
-                    <rect x="60" y="3" width="5" height="15" fill="#1B4FA8" />
-                    <rect x="35" y="12" width="12" height="6" fill="#1e293b" />
-                    
-                    <rect x="2" y="30" width="15" height="5" fill="#1e293b" />
-                    <rect x="25" y="28" width="6" height="12" fill="#1B4FA8" />
-                    <rect x="38" y="32" width="20" height="8" fill="#1e293b" />
-                    <rect x="65" y="25" width="8" height="12" fill="#1e293b" />
-                    
-                    <rect x="5" y="50" width="12" height="6" fill="#1B4FA8" />
-                    <rect x="25" y="48" width="15" height="10" fill="#1e293b" />
-                    <rect x="48" y="45" width="25" height="5" fill="#1e293b" />
-                    <rect x="80" y="35" width="12" height="15" fill="#1B4FA8" />
-                    
-                    <rect x="35" y="65" width="15" height="15" fill="#1e293b" />
-                    <rect x="55" y="60" width="10" height="10" fill="#1B4FA8" />
-                    <rect x="68" y="55" width="8" height="8" fill="#1e293b" />
-                    
-                    <rect x="30" y="85" width="25" height="6" fill="#1B4FA8" />
-                    <rect x="60" y="82" width="6" height="12" fill="#1e293b" />
-                    
-                    <!-- Custom logo in the middle -->
-                    <rect x="40" y="40" width="20" height="20" fill="#ffffff" rx="2" />
-                    <circle cx="50" cy="50" r="8" fill="#1B4FA8" />
-                    <circle cx="50" cy="50" r="5" fill="#ffffff" />
-                </svg>
-                
-                <!-- Pulse Ring around QR -->
-                <div class="absolute inset-0 border-4 border-blue-500/0 rounded-lg group-hover:border-blue-500/20 transition-all duration-700 animate-pulse pointer-events-none"></div>
+                <img src="https://api.qrserver.com/v1/create-qr-code/?size=192x192&data={{ urlencode($activeBooking->booking_code) }}" 
+                     alt="QR Code Booking" 
+                     class="w-48 h-48 mx-auto object-contain">
             </div>
 
             <div class="space-y-1.5">

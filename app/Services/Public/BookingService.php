@@ -59,17 +59,7 @@ class BookingService
                 throw new \Exception('Anda sudah memiliki booking aktif (Pending) untuk instansi ini pada tanggal tersebut.');
             }
 
-            // Lock the department's queues on the specific date to avoid race conditions on queue_number
-            $existingCount = Queue::where('department_id', $department->id)
-                ->whereDate('booking_date', $bookingDate->toDateString())
-                ->lockForUpdate()
-                ->count();
-
-            $nextNumber = $existingCount + 1;
             $prefix = $department->inisial ?: 'Q';
-
-            // Format: [INISIAL]-[001], e.g. DDK-001
-            $queueNumber = $prefix.'-'.str_pad((string) $nextNumber, 3, '0', STR_PAD_LEFT);
 
             // Generate structured booking code
             $dateStr = $bookingDate->format('Ymd');
@@ -83,7 +73,7 @@ class BookingService
                 'purpose' => $data['keperluan'],
                 'session_name' => $data['session_name'],
                 'booking_date' => $bookingDate->toDateString(),
-                'queue_number' => $queueNumber,
+                'queue_number' => null,
                 'status' => 'Booked',
             ]);
 

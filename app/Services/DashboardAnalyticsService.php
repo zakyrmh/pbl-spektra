@@ -126,6 +126,7 @@ class DashboardAnalyticsService
         $todayFoQueueQuery = Queue::query();
         $todayFoQueueCount = $todayFoQueueQuery
             ->where('booking_date', $today)
+            ->whereNull('queue_number')
             ->where('status', QueueStatus::Booked->value)
             ->count('*');
 

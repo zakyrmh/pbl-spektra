@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin\FO;
 
 use App\Http\Controllers\Controller;
-use App\Models\Booking;
 use App\Models\Department;
 use App\Models\Queue as QueueModel;
 use Carbon\Carbon;
@@ -29,13 +28,15 @@ class DashboardController extends Controller
             ->take(8)
             ->get();
 
-        $todayFoQueueCount = Booking::query()
+        $todayFoQueueCount = QueueModel::query()
             ->whereDate('booking_date', $today)
-            ->where('status', 'Pending')
+            ->whereNull('queue_number')
+            ->where('status', 'Booked')
             ->count('*');
 
         $todayTotalPrintedTickets = QueueModel::query()
-            ->whereDate('queue_date', $today)
+            ->whereDate('booking_date', $today)
+            ->whereNotNull('queue_number')
             ->count('*');
 
         return view('dashboard.dashboard', compact(

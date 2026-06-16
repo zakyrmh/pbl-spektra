@@ -43,6 +43,7 @@ final class BookingController extends Controller
         return view('booking.create', [
             'departments' => $departments,
             'schedules' => [],
+            'sessions' => ['Sesi 1', 'Sesi 2'],
         ]);
     }
 

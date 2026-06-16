@@ -32,7 +32,7 @@ class BookingService
     /**
      * Process creation of a booking/queue for a user inside a database transaction.
      *
-     * @param  array{department_id: int|string, keperluan: string, booking_date: string}  $data
+     * @param  array{department_id: int|string, keperluan: string, booking_date: string, session_name: string}  $data
      *
      * @throws \Exception
      */
@@ -81,7 +81,7 @@ class BookingService
                 'department_id' => $department->id,
                 'booking_code' => $bookingCode,
                 'purpose' => $data['keperluan'],
-                'session_name' => 'Online',
+                'session_name' => $data['session_name'],
                 'booking_date' => $bookingDate->toDateString(),
                 'queue_number' => $queueNumber,
                 'status' => 'Booked',

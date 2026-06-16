@@ -74,9 +74,10 @@ class BookingControllerTest extends TestCase
             'department_id' => '',
             'keperluan' => 'abc', // too short
             'booking_date' => now()->subDay()->toDateString(), // yesterday
+            'session_name' => 'Invalid Session',
         ]);
 
-        $response->assertSessionHasErrors(['department_id', 'keperluan', 'booking_date']);
+        $response->assertSessionHasErrors(['department_id', 'keperluan', 'booking_date', 'session_name']);
     }
 
     public function test_user_can_successfully_store_booking(): void
@@ -93,6 +94,7 @@ class BookingControllerTest extends TestCase
             'department_id' => $department->id,
             'keperluan' => 'Pengurusan izin praktik apoteker',
             'booking_date' => now()->toDateString(),
+            'session_name' => 'Sesi 1',
         ]);
 
         $booking = Queue::first();
@@ -102,6 +104,7 @@ class BookingControllerTest extends TestCase
         $this->assertEquals($user->id, $booking->user_id);
         $this->assertEquals($department->id, $booking->department_id);
         $this->assertEquals('Booked', $booking->status);
+        $this->assertEquals('Sesi 1', $booking->session_name);
         $this->assertStringStartsWith('BK-DK-', $booking->booking_code);
     }
 

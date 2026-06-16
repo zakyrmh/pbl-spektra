@@ -27,6 +27,7 @@ final class StoreBookingRequest extends FormRequest
             'department_id' => ['required', 'exists:departments,id'],
             'keperluan' => ['required', 'string', 'min:5', 'max:255'],
             'booking_date' => ['required', 'date', 'after_or_equal:today'],
+            'session_name' => ['required', 'string', 'in:Sesi 1,Sesi 2'],
         ];
     }
 
@@ -46,6 +47,8 @@ final class StoreBookingRequest extends FormRequest
             'booking_date.required' => 'Silakan pilih tanggal booking.',
             'booking_date.date' => 'Format tanggal booking tidak valid.',
             'booking_date.after_or_equal' => 'Tanggal booking tidak boleh hari kemarin.',
+            'session_name.required' => 'Silakan pilih sesi booking.',
+            'session_name.in' => 'Sesi booking terpilih tidak valid.',
         ];
     }
 }

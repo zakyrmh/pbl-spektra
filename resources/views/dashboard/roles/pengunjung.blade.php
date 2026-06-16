@@ -210,7 +210,7 @@
                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
                         </svg>
-                        Ambil Nomor Antrean Sekarang
+                        Buat Bookingan Sekarang
                     </a>
                 </div>
             </div>
@@ -314,7 +314,7 @@
     </div>
 @if($activeBooking)
 <!-- Custom QR Code Modal Overlay -->
-<div id="qr-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 opacity-0 transition-opacity duration-300 hidden">
+<div id="qr-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 items-center justify-center p-4 opacity-0 transition-opacity duration-300 hidden">
     <div class="bg-canvas dark:bg-surface-dark-elevated rounded-lg p-6 md:p-8 max-w-sm w-full border border-hairline dark:border-white/10 shadow-2xl relative transform scale-95 transition-transform duration-300" id="qr-modal-card">
         <!-- Close Button -->
         <button onclick="closeQrModal()" class="absolute top-4 right-4 text-muted hover:text-ink dark:hover:text-white p-1 rounded-full hover:bg-surface-soft dark:hover:bg-white/10 transition-colors focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-accent-teal">
@@ -429,6 +429,7 @@
         const card = document.getElementById('qr-modal-card');
         if (modal && card) {
             modal.classList.remove('hidden');
+            modal.classList.add('flex');
             setTimeout(() => {
                 modal.classList.remove('opacity-0');
                 card.classList.remove('scale-95');
@@ -445,6 +446,7 @@
             card.classList.remove('scale-100');
             card.classList.add('scale-95');
             setTimeout(() => {
+                modal.classList.remove('flex');
                 modal.classList.add('hidden');
             }, 300);
         }

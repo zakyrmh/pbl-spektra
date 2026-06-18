@@ -50,10 +50,10 @@ final class BookingCancellationController extends Controller
         $reason = trim($request->input('reason'));
 
         try {
+            $booking->cancelled_at = now();
             $this->cancellationService->cancelBooking($booking, $reason, $actor);
 
-            return redirect()
-                ->route('admin.fo.bookings.index')
+            return back()
                 ->with('success', "Booking <strong>{$booking->booking_code}</strong> atas nama <strong>{$booking->user->name}</strong> berhasil dibatalkan.");
         } catch (\Exception $e) {
             return back()

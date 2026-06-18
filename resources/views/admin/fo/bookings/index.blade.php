@@ -106,7 +106,7 @@
                             <th class="py-4 px-6">Identitas Warga</th>
                             <th class="py-4 px-6">Tujuan Layanan</th>
                             <th class="py-4 px-6">Tanggal & Sesi</th>
-                            {{-- <th class="py-4 px-6 text-right">Aksi</th> --}}
+                            <th class="py-4 px-6 text-right">Aksi</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-hairline dark:divide-white/10 text-sm font-body text-body dark:text-on-dark">
@@ -129,12 +129,20 @@
                                     <div class="font-semibold">{{ $booking->booking_date->translatedFormat('d M Y') }}</div>
                                     <div class="text-xs text-muted dark:text-on-dark-soft mt-0.5">Sesi: {{ $booking->session_name ?? 'Umum' }}</div>
                                 </td>
-                                {{-- Aksi pembatalan dinonaktifkan sesuai Change Request #1 --}}
+                                <td class="py-4 px-6 text-right">
+                                    <button type="button" 
+                                            @click="openCancelModal('{{ route('admin.fo.bookings.cancel', $booking->id) }}', '{{ $booking->booking_code }}', '{{ $booking->user ? addslashes($booking->user->name) : 'Warga' }}', '{{ addslashes($booking->department->name) }}')"
+                                            class="h-9 px-4 bg-red-50 hover:bg-red-100 text-red-600 dark:bg-red-950/20 dark:hover:bg-red-950/40 dark:text-red-400 border border-red-200/60 dark:border-red-900/40 text-xs font-semibold rounded-pill inline-flex items-center gap-1.5 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-red-500/20 transition-all cursor-pointer">
+                                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                        </svg>
+                                        Batalkan Booking
+                                    </button>
                                 </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="4" class="py-12 text-center text-muted dark:text-on-dark-soft font-body">
+                                <td colspan="5" class="py-12 text-center text-muted dark:text-on-dark-soft font-body">
                                     <div class="w-12 h-12 bg-surface-soft dark:bg-white/5 rounded-full flex items-center justify-center mx-auto mb-3 border border-hairline dark:border-white/5">
                                         <svg class="w-6 h-6 text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -150,9 +158,9 @@
             </div>
         </div>
 
-        {{-- Cancellation Modal Overlay (Disabled under Change Request #1)
-        <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 opacity-0 transition-opacity duration-300 pointer-events-none"
-             :class="modalOpen ? 'opacity-100 pointer-events-auto' : ''"
+        {{-- Cancellation Modal Overlay --}}
+        <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 transition-opacity duration-300"
+             :class="modalOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'"
              x-cloak>
             
             <div class="bg-canvas dark:bg-surface-dark-elevated rounded-xl p-6 md:p-8 max-w-md w-full border border-hairline dark:border-white/10 shadow-2xl transform scale-95 transition-transform duration-300 relative"
@@ -209,8 +217,8 @@
                         </button>
                         <button type="submit" 
                                 :disabled="reason.trim().length < 5"
-                                :class="reason.trim().length < 5 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-red-700'"
-                                class="h-11 px-6 bg-status-skipped text-white font-bold rounded-pill text-xs shadow-md transition-all cursor-pointer flex items-center justify-center gap-1">
+                                :class="reason.trim().length < 5 ? 'opacity-50 cursor-not-allowed bg-red-600/50' : 'bg-red-600 hover:bg-red-700'"
+                                class="h-11 px-6 text-white font-bold rounded-pill text-xs shadow-md transition-all cursor-pointer flex items-center justify-center gap-1">
                             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
@@ -221,7 +229,6 @@
 
             </div>
         </div>
-        --}}
 
     </div>
 @endsection

@@ -2,7 +2,7 @@
 
 namespace App\Mail;
 
-use App\Models\Booking;
+use App\Models\Queue;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Attachment;
@@ -14,12 +14,12 @@ class BookingCancelledMail extends Mailable
 {
     use Queueable, SerializesModels;
 
-    public Booking $booking;
+    public Queue $booking;
 
     /**
      * Create a new message instance.
      */
-    public function __construct(Booking $booking)
+    public function __construct(Queue $booking)
     {
         $this->booking = $booking;
     }

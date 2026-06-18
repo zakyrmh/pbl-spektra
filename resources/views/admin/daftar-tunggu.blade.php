@@ -101,23 +101,7 @@
     </form>
 
     {{-- Main Tabs Grid --}}
-    <div x-data="{ 
-        activeTab: 'pending',
-        modalOpen: false,
-        actionUrl: '',
-        bookingCode: '',
-        userName: '',
-        serviceName: '',
-        reason: '',
-        openCancelModal(url, code, name, service) {
-            this.actionUrl = url;
-            this.bookingCode = code;
-            this.userName = name;
-            this.serviceName = service;
-            this.reason = '';
-            this.modalOpen = true;
-        }
-    }" class="bg-canvas dark:bg-surface-dark-elevated rounded-lg border border-hairline dark:border-white/10 shadow-xs p-6 space-y-6">
+    <div x-data="{ activeTab: 'pending' }" class="bg-canvas dark:bg-surface-dark-elevated rounded-lg border border-hairline dark:border-white/10 shadow-xs p-6 space-y-6">
         {{-- Navigation Tabs --}}
         <div class="border-b border-hairline dark:border-white/10 flex flex-wrap gap-4 md:gap-8">
             <button type="button" 
@@ -174,25 +158,15 @@
                                         <div class="text-caption text-muted dark:text-on-dark-soft mt-0.5">{{ $bk->booking_date->translatedFormat('d F Y') }}</div>
                                     </td>
                                     <td class="px-4 py-4 text-right">
-                                        <div class="inline-flex items-center gap-2 justify-end w-full">
-                                            <form action="{{ route('admin.daftar-tunggu.check-in', $bk->id) }}" method="POST" class="inline-block">
-                                                @csrf
-                                                <button type="submit" class="h-10 px-4 bg-primary hover:bg-primary-hover text-white text-caption font-semibold rounded-pill inline-flex items-center gap-1.5 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-accent-teal transition-all cursor-pointer">
-                                                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
-                                                    </svg>
-                                                    Check-In
-                                                </button>
-                                            </form>
-                                            <button type="button" 
-                                                    @click="openCancelModal('{{ route('admin.daftar-tunggu.cancel', $bk->id) }}', '{{ $bk->booking_code }}', '{{ $bk->user ? addslashes($bk->user->name) : 'Warga' }}', '{{ addslashes($bk->purpose) }}')"
-                                                    class="h-10 px-4 bg-red-50 hover:bg-red-100 text-red-600 dark:bg-red-950/20 dark:hover:bg-red-950/40 dark:text-red-400 border border-red-200/60 dark:border-red-900/40 text-caption font-semibold rounded-pill inline-flex items-center gap-1.5 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-red-500/20 transition-all cursor-pointer">
+                                        <form action="{{ route('admin.daftar-tunggu.check-in', $bk->id) }}" method="POST" class="inline-block">
+                                            @csrf
+                                            <button type="submit" class="h-10 px-4 bg-primary hover:bg-primary-hover text-white text-caption font-semibold rounded-pill inline-flex items-center gap-1.5 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-accent-teal transition-all cursor-pointer">
                                                 <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
                                                 </svg>
-                                                Batalkan Booking
+                                                Check-In
                                             </button>
-                                        </div>
+                                        </form>
                                     </td>
                                 </tr>
                             @empty
@@ -306,79 +280,6 @@
                             @endforelse
                         </tbody>
                     </table>
-                </div>
-            </div>
-            </div>
-
-            {{-- Cancellation Modal Overlay --}}
-            <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 opacity-0 transition-opacity duration-300 pointer-events-none"
-                 :class="modalOpen ? 'opacity-100 pointer-events-auto' : ''"
-                 x-cloak>
-                
-                <div class="bg-canvas dark:bg-surface-dark-elevated rounded-xl p-6 md:p-8 max-w-md w-full border border-hairline dark:border-white/10 shadow-2xl transform scale-95 transition-transform duration-300 relative"
-                     :class="modalOpen ? 'scale-100' : 'scale-95'"
-                     @click.away="modalOpen = false">
-                    
-                    <button type="button" 
-                            @click="modalOpen = false" 
-                            class="absolute top-4 right-4 text-muted hover:text-ink dark:hover:text-white p-1 rounded-full hover:bg-surface-soft dark:hover:bg-white/10 transition-colors cursor-pointer">
-                        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                    </button>
-
-                    <h3 class="font-extrabold text-xl text-ink dark:text-white leading-tight font-display mb-2">Konfirmasi Pembatalan</h3>
-                    <p class="text-xs text-muted dark:text-on-dark-soft mb-6 font-body">Anda akan membatalkan reservasi antrean berikut. Aksi ini tidak dapat diurungkan.</p>
-
-                    <div class="bg-surface-soft dark:bg-white/5 border border-hairline dark:border-white/5 p-4 rounded-lg text-xs space-y-2 mb-6">
-                        <div class="flex justify-between">
-                            <span class="text-muted font-medium">Kode Booking</span>
-                            <span class="font-mono font-bold text-primary dark:text-accent-teal" x-text="bookingCode"></span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span class="text-muted font-medium">Nama Warga</span>
-                            <span class="font-bold text-ink dark:text-white" x-text="userName"></span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span class="text-muted font-medium">Layanan</span>
-                            <span class="font-bold text-ink dark:text-white" x-text="serviceName"></span>
-                        </div>
-                    </div>
-
-                    <form :action="actionUrl" method="POST" class="space-y-4">
-                        @csrf
-                        <div class="space-y-2">
-                            <label for="reason" class="block text-sm font-bold text-ink dark:text-white font-display">
-                                Alasan Pembatalan
-                            </label>
-                            <textarea id="reason" 
-                                      name="reason" 
-                                      rows="3" 
-                                      required 
-                                      x-model="reason"
-                                      placeholder="Contoh: Dokumen persyaratan tidak lengkap, atau atas permohonan warga..." 
-                                      class="w-full text-sm bg-canvas dark:bg-white/5 border border-hairline dark:border-white/15 text-ink dark:text-white rounded-md p-3 focus:border-primary dark:focus:border-accent-teal focus:outline-none focus:ring-3 focus:ring-primary/12 dark:focus:ring-accent-teal/20 transition-all"></textarea>
-                            <p class="text-[10px] text-muted dark:text-on-dark-soft font-body">Minimal 5 karakter. Alasan ini akan dicantumkan pada notifikasi email warga.</p>
-                        </div>
-
-                        <div class="pt-4 border-t border-hairline dark:border-white/10 flex justify-end gap-3">
-                            <button type="button" 
-                                    @click="modalOpen = false" 
-                                    class="h-11 px-5 bg-surface-soft hover:bg-surface-strong dark:bg-white/5 dark:hover:bg-white/10 text-ink dark:text-white font-semibold rounded-pill text-xs border border-hairline dark:border-white/10 transition-all cursor-pointer">
-                                Kembali
-                            </button>
-                            <button type="submit" 
-                                    :disabled="reason.trim().length < 5"
-                                    :class="reason.trim().length < 5 ? 'opacity-50 cursor-not-allowed bg-red-600/50' : 'bg-red-600 hover:bg-red-700'"
-                                    class="h-11 px-6 text-white font-bold rounded-pill text-xs shadow-md transition-all cursor-pointer flex items-center justify-center gap-1">
-                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
-                                Batalkan Booking
-                            </button>
-                        </div>
-                    </form>
-
                 </div>
             </div>
         </div>

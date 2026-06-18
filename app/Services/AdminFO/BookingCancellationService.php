@@ -52,30 +52,36 @@ class BookingCancellationService
             $booking->update([
                 'status' => QueueStatus::Cancelled->value,
                 'cancel_reason' => $reason,
+                'cancelled_at' => $booking->cancelled_at ?? now(),
             ]);
 
             // Buat notifikasi sistem untuk customer
-            Notification::create([
-                'user_id' => $booking->user_id,
-                'title' => 'Booking Dibatalkan oleh FO',
-                'message' => "Reservasi antrean untuk layanan {$booking->purpose} pada {$booking->booking_date->translatedFormat('d F Y')} dibatalkan oleh petugas Front Office dengan alasan: {$reason}.",
-            ]);
+            if ($booking->user_id) {
+                Notification::create([
+                    'user_id' => $booking->user_id,
+                    'title' => 'Booking Dibatalkan oleh FO',
+                    'message' => "Reservasi antrean untuk layanan {$booking->purpose} pada {$booking->booking_date->translatedFormat('d F Y')} dibatalkan oleh petugas Front Office dengan alasan: {$reason}.",
+                ]);
+            }
 
             // Catat activity log
+            $userName = $booking->user?->name ?? 'Walk-In Warga';
             ActivityLog::record(
                 action: 'CANCEL_BOOKING',
                 modelType: 'Booking',
                 modelId: $booking->id,
-                description: "Petugas FO '{$actor->name}' membatalkan booking {$booking->booking_code} milik {$booking->user->name} dengan alasan: {$reason}.",
+                description: "Petugas FO '{$actor->name}' membatalkan booking {$booking->booking_code} milik {$userName} dengan alasan: {$reason}.",
                 actorUserId: $actor->id
             );
         });
 
         // Kirim email
-        try {
-            Mail::to($booking->user->email)->send(new BookingCancelledMail($booking));
-        } catch (\Exception $e) {
-            Log::warning("CANCEL_BOOKING: Gagal mengirim email pembatalan ke {$booking->user->email} untuk booking {$booking->booking_code}: ".$e->getMessage());
+        if ($booking->user?->email) {
+            try {
+                Mail::to($booking->user->email)->send(new BookingCancelledMail($booking));
+            } catch (\Exception $e) {
+                Log::warning("CANCEL_BOOKING: Gagal mengirim email pembatalan ke {$booking->user->email} untuk booking {$booking->booking_code}: ".$e->getMessage());
+            }
         }
     }
 }

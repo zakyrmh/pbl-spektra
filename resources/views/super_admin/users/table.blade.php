@@ -51,8 +51,8 @@
                     <td class="px-5 py-4 hidden lg:table-cell">
                         @if($user->department)
                             <p class="text-xs font-semibold text-body dark:text-on-dark-soft">{{ $user->department->name }}</p>
-                            @if($user->nomor_loket)
-                                <p class="text-[10px] text-muted mt-0.5">Loket {{ $user->nomor_loket }}</p>
+                            @if($user->department && $user->department->nomor_loket)
+                                <p class="text-[10px] text-muted mt-0.5">Loket {{ $user->department->nomor_loket }}</p>
                             @endif
                         @else
                             <span class="text-xs text-muted">—</span>
@@ -114,7 +114,7 @@
                             >
                                 {{-- Edit --}}
                                 <button
-                                    onclick="openEditModal({{ $user->id }}, {{ json_encode(['name' => $user->name, 'nik' => $user->nik, 'email' => $user->email, 'no_telp' => $user->no_telp, 'role' => $user->role?->value, 'departments_id' => $user->departments_id, 'instansi' => $user->departments_id, 'nomor_loket' => $user->nomor_loket]) }})"
+                                    onclick="openEditModal({{ $user->id }}, {{ json_encode(['name' => $user->name, 'nik' => $user->nik, 'email' => $user->email, 'no_telp' => $user->no_telp, 'role' => $user->role?->value, 'departments_id' => $user->departments_id, 'instansi' => $user->departments_id, 'nomor_loket' => $user->department?->nomor_loket]) }})"
                                     class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-ink dark:text-white hover:bg-surface-soft dark:hover:bg-white/5 hover:text-primary dark:hover:text-accent-teal transition-colors text-left cursor-pointer"
                                 >
                                     <svg class="w-4 h-4 text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>

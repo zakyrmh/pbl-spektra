@@ -6,27 +6,31 @@
     <div class="max-w-6xl mx-auto space-y-8 pb-16" 
          x-data="{
              departments: @js($departments),
-             schedules: @js($schedules),
+             sessions: @js($sessions ?? ['Sesi 1', 'Sesi 2']),
              selectedDepartmentId: '{{ old('department_id', '') }}',
              keperluan: '{{ old('keperluan', '') }}',
              selectedDate: '{{ old('booking_date', '') }}',
+             selectedSession: '{{ old('session_name', '') }}',
              
              get availableDates() {
                  if (!this.selectedDepartmentId) return [];
                  let dept = this.departments.find(d => d.id == this.selectedDepartmentId);
                  if (!dept) return [];
-                 let serviceIds = dept.services.map(s => s.id);
                  
+                 // Fallback/Default: generate next 3 working days dynamically
                  let dates = [];
-                 this.schedules.forEach(s => {
-                     if (serviceIds.includes(s.service_id)) {
-                         let dStr = s.date.split('T')[0];
-                         if (!dates.includes(dStr)) {
-                             dates.push(dStr);
-                         }
+                 let current = new Date();
+                 while (dates.length < 3) {
+                     let day = current.getDay();
+                     if (day !== 0 && day !== 6) { // Skip Sunday (0) and Saturday (6)
+                         let yyyy = current.getFullYear();
+                         let mm = String(current.getMonth() + 1).padStart(2, '0');
+                         let dd = String(current.getDate()).padStart(2, '0');
+                         dates.push(`${yyyy}-${mm}-${dd}`);
                      }
-                 });
-                 return dates.sort();
+                     current.setDate(current.getDate() + 1);
+                 }
+                 return dates;
              },
              
              get selectedDepartment() {
@@ -51,6 +55,7 @@
              
              resetDate() {
                  this.selectedDate = '';
+                 this.selectedSession = '';
              }
          }">
          
@@ -142,33 +147,23 @@
                             <p class="text-xs text-muted dark:text-on-dark-soft font-body">Misal: Pengurusan KTP hilang, legalisir KK, dll.</p>
                         </div>
 
-                        {{-- Field 3: Booking Date --}}
-                        <div class="space-y-2" x-cloak x-show="selectedDepartmentId">
-                            <label for="booking_date" class="block text-sm font-bold text-ink dark:text-white font-display">
-                                3. Pilih Tanggal Booking
+                        {{-- Field 3: Booking Date & Session --}}
+                        <div class="space-y-4" x-cloak x-show="selectedDepartmentId">
+                            <label class="block text-sm font-bold text-ink dark:text-white font-display">
+                                3. Pilih Tanggal dan Sesi Booking
                             </label>
-                            <div class="relative">
-                                <select id="booking_date" 
-                                        name="booking_date" 
-                                        x-model="selectedDate"
-                                        class="w-full h-12 text-sm bg-canvas dark:bg-white/5 border border-hairline dark:border-white/15 text-ink dark:text-white rounded-md px-4 pr-10 focus:border-primary dark:focus:border-accent-teal focus:outline-none focus:ring-3 focus:ring-primary/12 dark:focus:ring-accent-teal/20 transition-all cursor-pointer">
-                                    <option value="" disabled>-- Pilih Tanggal Booking --</option>
-                                    <template x-for="d in availableDates" :key="d">
-                                        <option :value="d" x-text="formatDate(d)"></option>
-                                    </template>
-                                </select>
-                            </div>
-                            @error('booking_date')
-                                <p class="text-xs text-status-skipped mt-1">{{ $message }}</p>
-                            @enderror
-
-                            {{-- Available Dates helper badges --}}
-                            <div class="mt-3 text-xs font-body text-muted dark:text-on-dark-soft">
-                                <span class="font-semibold block mb-2">Tanggal dengan Kuota Tersedia:</span>
+                            
+                            {{-- Hidden Form Inputs --}}
+                            <input type="hidden" name="booking_date" :value="selectedDate">
+                            <input type="hidden" name="session_name" :value="selectedSession">
+                            
+                            {{-- Date Badges --}}
+                            <div class="text-xs font-body text-muted dark:text-on-dark-soft">
+                                <span class="font-semibold block mb-2 text-ink dark:text-white">Pilih Tanggal:</span>
                                 <div class="flex flex-wrap gap-1.5">
                                     <template x-for="d in availableDates" :key="d">
                                         <button type="button"
-                                                @click="selectedDate = d" 
+                                                @click="selectedDate = d; selectedSession = ''" 
                                                 class="px-3 py-1.5 bg-surface-soft hover:bg-primary/10 dark:bg-white/5 dark:hover:bg-accent-teal/15 rounded text-[11px] font-mono cursor-pointer transition-colors border border-hairline dark:border-white/10"
                                                 :class="selectedDate === d ? 'border-primary dark:border-accent-teal text-primary dark:text-accent-teal bg-primary/5 dark:bg-accent-teal/5 font-bold' : ''">
                                             <span x-text="formatDate(d)"></span>
@@ -178,11 +173,32 @@
                                         <p class="text-status-skipped font-semibold">Tidak ada jadwal pelayanan terbuka dengan kuota tersedia saat ini.</p>
                                     </template>
                                 </div>
+                                @error('booking_date')
+                                    <p class="text-xs text-status-skipped mt-1">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            {{-- Session Badges --}}
+                            <div class="text-xs font-body text-muted dark:text-on-dark-soft" x-show="selectedDate">
+                                <span class="font-semibold block mb-2 text-ink dark:text-white">Pilih Sesi Pelayanan:</span>
+                                <div class="flex flex-wrap gap-1.5">
+                                    <template x-for="s in sessions" :key="s">
+                                        <button type="button"
+                                                @click="selectedSession = s" 
+                                                class="px-3 py-1.5 bg-surface-soft hover:bg-primary/10 dark:bg-white/5 dark:hover:bg-accent-teal/15 rounded text-[11px] font-mono cursor-pointer transition-colors border border-hairline dark:border-white/10"
+                                                :class="selectedSession === s ? 'border-primary dark:border-accent-teal text-primary dark:text-accent-teal bg-primary/5 dark:bg-accent-teal/5 font-bold' : ''">
+                                            <span x-text="s"></span>
+                                        </button>
+                                    </template>
+                                </div>
+                                @error('session_name')
+                                    <p class="text-xs text-status-skipped mt-1">{{ $message }}</p>
+                                @enderror
                             </div>
                         </div>
 
                         {{-- Submit Button --}}
-                        <div class="pt-4 border-t border-hairline dark:border-white/10" x-cloak x-show="selectedDepartmentId && selectedDate">
+                        <div class="pt-4 border-t border-hairline dark:border-white/10" x-cloak x-show="selectedDepartmentId && selectedDate && selectedSession">
                             <button type="submit" class="w-full sm:w-auto h-11 inline-flex items-center justify-center gap-2 px-8 bg-primary hover:bg-primary-hover text-white font-semibold rounded-pill shadow-md hover:shadow-lg transition-all focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-accent-teal cursor-pointer">
                                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -200,7 +216,7 @@
                 
                 {{-- Live Ticket Draft Preview --}}
                 <div class="bg-canvas dark:bg-surface-dark-elevated rounded-lg border border-hairline dark:border-white/10 shadow-sm overflow-hidden"
-                     :class="selectedDate ? 'border-primary dark:border-accent-teal shadow-md' : ''">
+                     :class="(selectedDate && selectedSession) ? 'border-primary dark:border-accent-teal shadow-md' : ''">
                     <div class="bg-linear-to-r from-primary to-primary-hover px-5 py-3 text-white font-display text-xs font-bold uppercase tracking-wider flex items-center justify-between">
                         <span>Preview Tiket Anda</span>
                         <span x-show="selectedDate" class="w-2.5 h-2.5 bg-green-400 rounded-full animate-pulse"></span>
@@ -228,13 +244,17 @@
                                 
                                 <div x-show="keperluan">
                                     <span class="text-[10px] font-bold text-muted dark:text-on-dark-soft uppercase tracking-wider block font-display">Keperluan</span>
-                                    <span class="font-bold text-ink dark:text-white break-words" x-text="keperluan"></span>
+                                    <span class="font-bold text-ink dark:text-white wrap-break-word" x-text="keperluan"></span>
                                 </div>
                                 
-                                <div x-show="selectedDate" class="pt-3 border-t border-hairline dark:border-white/10">
+                                <div x-show="selectedDate" class="pt-3 border-t border-hairline dark:border-white/10 space-y-3">
                                     <div>
                                         <span class="text-[10px] font-bold text-muted dark:text-on-dark-soft uppercase tracking-wider block font-display">Hari & Tanggal</span>
                                         <span class="font-semibold text-primary dark:text-accent-teal" x-text="formatDate(selectedDate)"></span>
+                                    </div>
+                                    <div x-show="selectedSession">
+                                        <span class="text-[10px] font-bold text-muted dark:text-on-dark-soft uppercase tracking-wider block font-display">Sesi Pelayanan</span>
+                                        <span class="font-semibold text-primary dark:text-accent-teal" x-text="selectedSession"></span>
                                     </div>
                                 </div>
                             </div>

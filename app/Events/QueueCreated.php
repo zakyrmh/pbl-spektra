@@ -15,14 +15,14 @@ class QueueCreated implements ShouldBroadcast
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
-    public Queue $queue;
+    public Queue $queueEntry;
 
     /**
      * Create a new event instance.
      */
-    public function __construct(Queue $queue)
+    public function __construct(Queue $queueEntry)
     {
-        $this->queue = $queue;
+        $this->queueEntry = $queueEntry;
     }
 
     /**

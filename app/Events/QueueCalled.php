@@ -15,7 +15,7 @@ class QueueCalled implements ShouldBroadcast
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
-    public Queue $queue;
+    public Queue $queueEntry;
 
     public string $queueNumber;
 
@@ -26,14 +26,14 @@ class QueueCalled implements ShouldBroadcast
     /**
      * Create a new event instance.
      */
-    public function __construct(Queue $queue)
+    public function __construct(Queue $queueEntry)
     {
-        $this->queue = $queue;
-        $this->queueNumber = $queue->queue_number;
+        $this->queueEntry = $queueEntry;
+        $this->queueNumber = $queueEntry->queue_number;
 
-        $counter = $queue->counter;
-        $this->counterName = $counter ? $counter->name : 'Loket';
-        $this->departmentName = ($counter && $counter->department) ? $counter->department->name : '';
+        $department = $queueEntry->department;
+        $this->counterName = $department ? 'Loket '.$department->nomor_loket : 'Loket';
+        $this->departmentName = $department ? $department->name : '';
     }
 
     /**

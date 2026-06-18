@@ -300,15 +300,15 @@
                             <div class="bg-surface-soft dark:bg-white/5 p-4 rounded-lg space-y-3 border border-hairline dark:border-white/5">
                                 <div class="flex justify-between">
                                     <span class="text-muted">Instansi</span>
-                                    <span class="font-bold text-ink dark:text-white">{{ $bk->service->department->name }}</span>
+                                    <span class="font-bold text-ink dark:text-white">{{ $bk->department->name }}</span>
                                 </div>
                                 <div class="flex justify-between">
                                     <span class="text-muted">Layanan</span>
-                                    <span class="font-bold text-primary dark:text-accent-teal">{{ $bk->service->name }}</span>
+                                    <span class="font-bold text-primary dark:text-accent-teal">{{ $bk->purpose }}</span>
                                 </div>
                                 <div class="flex justify-between">
                                     <span class="text-muted">Jadwal & Sesi</span>
-                                    <span class="font-bold text-ink dark:text-white">{{ $bk->booking_date->translatedFormat('d M Y') }} ({{ $bk->schedule->session_name ?? 'Umum' }})</span>
+                                    <span class="font-bold text-ink dark:text-white">{{ $bk->booking_date->translatedFormat('d M Y') }} ({{ $bk->session_name ?? 'Umum' }})</span>
                                 </div>
                             </div>
                         </div>
@@ -348,7 +348,7 @@
         @if (session('checkin_result'))
             @php 
                 $cr = session('checkin_result');
-                $queue = $cr->queue;
+                $queue = $cr->queue ?? $cr;
             @endphp
             <div class="bg-canvas dark:bg-surface-dark-elevated rounded-xl border-2 border-status-serving/40 shadow-sm overflow-hidden"
                 id="checkin-result-card">
@@ -399,15 +399,15 @@
                         </div>
                         <div class="flex justify-between gap-4">
                             <span class="text-muted dark:text-on-dark-soft font-medium">Instansi</span>
-                            <span class="font-bold text-ink dark:text-white text-right">{{ $queue->counter->department->name ?? '-' }}</span>
+                            <span class="font-bold text-ink dark:text-white text-right">{{ $queue->department->name ?? '-' }}</span>
                         </div>
                         <div class="flex justify-between gap-4">
                             <span class="text-muted dark:text-on-dark-soft font-medium">Layanan</span>
-                            <span class="font-bold text-primary dark:text-accent-teal text-right">{{ $cr->service->name }}</span>
+                            <span class="font-bold text-primary dark:text-accent-teal text-right">{{ $queue->purpose ?? '-' }}</span>
                         </div>
                         <div class="flex justify-between gap-4">
                             <span class="text-muted dark:text-on-dark-soft font-medium">Tanggal Check-In</span>
-                            <span class="font-bold text-ink dark:text-white text-right">{{ $cr->checked_in_at?->translatedFormat('d F Y · H:i') }}</span>
+                            <span class="font-bold text-ink dark:text-white text-right">{{ ($queue->checked_in_at ?? $cr->checked_in_at)?->translatedFormat('d F Y · H:i') }}</span>
                         </div>
                     </div>
                 </div>

@@ -6,15 +6,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 
 class Setting extends Model
 {
-    /**
-     * Matikan timestamp created_at karena hanya ada updated_at di tabel settings.
-     */
-    public const CREATED_AT = null;
-
     /**
      * Atribut yang dapat diisi secara massal.
      *
@@ -44,7 +40,7 @@ class Setting extends Model
     public static function getVal(string $key, ?string $default = null): ?string
     {
         return Cache::rememberForever("setting.{$key}", function () use ($key, $default) {
-            $setting = self::where('key', $key)->first();
+            $setting = self::query()->where('key', '=', $key, 'and')->first();
 
             return $setting ? $setting->value : $default;
         });
@@ -60,7 +56,7 @@ class Setting extends Model
             [
                 'value' => $value,
                 'description' => $description,
-                'updated_by' => auth()->id(),
+                'updated_by' => Auth::id(),
             ]
         );
 

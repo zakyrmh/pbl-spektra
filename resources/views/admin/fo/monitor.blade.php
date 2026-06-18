@@ -112,31 +112,12 @@
                         <th class="py-3.5 px-6 font-display">Nama Instansi / Gerai</th>
                         <th class="py-3.5 px-4 font-display text-center">Inisial</th>
                         <th class="py-3.5 px-4 font-display text-center">Antrean Menunggu</th>
-                        <th class="py-3.5 px-4 font-display text-center">Sedang Dilayani</th>
+                        <th class="py-3.5 px-4 font-display text-center">Sudah Dilayani</th>
                         <th class="py-3.5 px-6 font-display text-center">Tingkat Kepadatan</th>
                     </tr>
                 </thead>
                 <tbody id="monitor-table-body" class="text-xs divide-y divide-hairline dark:divide-white/5">
                     @forelse ($departments as $dept)
-                        @php
-                            $waiting = $dept->queues->where('status', 'Waiting')->count();
-                            $serving = $dept->queues->where('status', 'Serving')->count();
-
-                            // Density logic
-                            if ($waiting > 5) {
-                                $density = 'Padat';
-                                $badgeClass = 'bg-red-50 dark:bg-red-950/30 text-red-700 dark:text-red-400 border border-red-200/50 dark:border-red-900/50';
-                                $dotClass = 'bg-red-500';
-                            } elseif ($waiting > 0) {
-                                $density = 'Lancar';
-                                $badgeClass = 'bg-green-50 dark:bg-green-950/30 text-green-700 dark:text-green-400 border border-green-200/50 dark:border-green-900/50';
-                                $dotClass = 'bg-green-500';
-                            } else {
-                                $density = 'Kosong';
-                                $badgeClass = 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200/50 dark:border-white/5';
-                                $dotClass = 'bg-gray-400 dark:bg-gray-500';
-                            }
-                        @endphp
                         <tr class="hover:bg-surface-soft/50 dark:hover:bg-white/5 transition-colors duration-150 dept-row" data-name="{{ strtolower($dept->name) }}" data-inisial="{{ strtolower($dept->inisial) }}">
                             <td class="py-3 px-6">
                                 <div class="font-bold text-ink dark:text-white font-display text-sm">{{ $dept->name }}</div>
@@ -146,15 +127,15 @@
                                 {{ $dept->inisial }}
                             </td>
                             <td class="py-3 px-4 font-mono text-ink dark:text-white text-center font-bold text-sm">
-                                {{ $waiting }}
+                                {{ $dept->waitingCount }}
                             </td>
                             <td class="py-3 px-4 font-mono text-ink dark:text-white text-center font-bold text-sm">
-                                {{ $serving }}
+                                {{ $dept->completedCount }}
                             </td>
                             <td class="py-3 px-6 text-center">
-                                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold font-display {{ $badgeClass }}">
-                                    <span class="w-1.5 h-1.5 rounded-full {{ $dotClass }} animate-pulse"></span>
-                                    {{ $density }}
+                                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold font-display {{ $dept->densityClass }}">
+                                    <span class="w-1.5 h-1.5 rounded-full {{ $dept->densityDot }} animate-pulse"></span>
+                                    {{ $dept->density }}
                                 </span>
                             </td>
                         </tr>
@@ -247,7 +228,7 @@
                                 ${dept.waiting_count}
                             </td>
                             <td class="py-3 px-4 font-mono text-ink dark:text-white text-center font-bold text-sm">
-                                ${dept.serving_count}
+                                ${dept.completed_count}
                             </td>
                             <td class="py-3 px-6 text-center">
                                 <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold font-display ${dept.density_class}">

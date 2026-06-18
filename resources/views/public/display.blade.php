@@ -27,25 +27,25 @@
 
     <!-- Grid Loket -->
     <div class="grow grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 py-6 overflow-y-auto" id="monitorGrid">
-        @foreach($counters as $counter)
+        @foreach($departments as $department)
         @php
-            $activeQueue = $counter->queues->first();
+            $activeQueue = $department->queues->first();
         @endphp
-        <div class="bg-surface-dark-elevated rounded-xl border border-white/5 p-6 flex flex-col justify-between shadow-lg relative overflow-hidden transition-all duration-500 hover:border-white/15" data-counter-id="{{ $counter->id }}">
+        <div class="bg-surface-dark-elevated rounded-xl border border-white/5 p-6 flex flex-col justify-between shadow-lg relative overflow-hidden transition-all duration-500 hover:border-white/15" data-counter-id="{{ $department->id }}">
             
             <!-- Loket Meta -->
             <div>
                 <div class="flex items-center justify-between">
-                    <span class="text-xs font-bold text-on-dark-soft uppercase tracking-wider">{{ $counter->department->name }}</span>
-                    @if($counter->status === 'istirahat')
+                    <span class="text-xs font-bold text-on-dark-soft uppercase tracking-wider">{{ $department->name }}</span>
+                    @if($department->status->value === 'istirahat')
                         <span class="px-2 py-0.5 bg-amber-500/10 text-amber-400 border border-amber-500/20 text-[9px] font-bold rounded-md">Istirahat</span>
-                    @elseif($counter->status === 'nonaktif')
+                    @elseif($department->status->value === 'tutup' || $department->status->value === 'nonaktif')
                         <span class="px-2 py-0.5 bg-rose-500/10 text-rose-400 border border-rose-500/20 text-[9px] font-bold rounded-md">Tutup</span>
                     @else
                         <span class="px-2 py-0.5 bg-green-500/10 text-green-400 border border-green-500/20 text-[9px] font-bold rounded-md">Aktif</span>
                     @endif
                 </div>
-                <h3 class="text-base font-bold text-white mt-1">{{ $counter->name }}</h3>
+                <h3 class="text-base font-bold text-white mt-1">Loket {{ $department->nomor_loket }}</h3>
             </div>
 
             <!-- Giant Active Number -->

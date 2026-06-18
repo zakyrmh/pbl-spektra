@@ -16,13 +16,11 @@
             ['title' => 'Monitor Antrean', 'url' => route('admin.fo.monitor'), 'icon' => 'tv'],
             ['title' => 'Pencetakan Tiket', 'url' => route('admin.fo.ticket.create'), 'icon' => 'printer'],
             ['title' => 'Verifikasi & Check-In', 'url' => route('admin.fo.checkin'), 'icon' => 'check-circle'],
-            ['title' => 'Panggilan Antrean FO', 'url' => route('admin.fo.call'), 'icon' => 'megaphone'],
             ['title' => 'Kelola Laporan', 'url' => route('admin.fo.reports.index'), 'icon' => 'clipboard-list'],
         ];
     } elseif ($role === 'admin_gerai') {
         $menu = [
             ['title' => 'Dashboard Gerai', 'url' => route('dashboard'), 'icon' => 'home'],
-            ['title' => 'Papan Panggil', 'url' => route('admin.papan-panggil'), 'icon' => 'tv'],
             ['title' => 'Daftar Tunggu Gerai', 'url' => route('admin.daftar-tunggu'), 'icon' => 'users'],
             ['title' => 'Log Pelayanan', 'url' => route('admin.log-pelayanan'), 'icon' => 'clipboard-list'],
         ];

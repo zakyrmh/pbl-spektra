@@ -1,8 +1,6 @@
 <?php
 
-use App\Models\Counter;
 use App\Models\Department;
-use App\Models\Service;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -35,16 +33,18 @@ test('guest and non-super-admin are blocked from Gerai & Loket configuration rou
 });
 
 test('super admin can view Gerai & Loket configuration dashboard index', function () {
-    $department = Department::create(['name' => 'Dispenduk', 'inisial' => 'DPK']);
-    $service = Service::create(['department_id' => $department->id, 'name' => 'KTP']);
-    $counter = Counter::create(['department_id' => $department->id, 'name' => 'Loket 1', 'status' => 'aktif']);
+    $department = Department::create([
+        'name' => 'Dispenduk',
+        'inisial' => 'DPK',
+        'nomor_loket' => '01',
+    ]);
     $officer = User::factory()->create(['role' => 'admin_gerai']);
 
     $response = $this->actingAs($this->superAdmin)->get(route('config.index'));
 
     $response->assertStatus(200);
     $response->assertViewIs('super_admin.gerai.index');
-    $response->assertViewHasAll(['totalDepartments', 'totalStaff', 'departments', 'counters', 'services', 'officers']);
+    $response->assertViewHasAll(['totalDepartments', 'totalStaff', 'departments', 'officers']);
 
     $response->assertSee('Dispenduk');
     $response->assertSee('DPK');
@@ -56,6 +56,7 @@ test('super admin can create a department without a logo', function () {
     $response = $this->actingAs($this->superAdmin)->post(route('config.departments.store'), [
         'name' => 'Dinas Kesehatan',
         'inisial' => 'DKS',
+        'nomor_loket' => '02',
         'description' => 'Pelayanan kesehatan umum',
     ]);
 
@@ -65,6 +66,7 @@ test('super admin can create a department without a logo', function () {
     $this->assertDatabaseHas('departments', [
         'name' => 'Dinas Kesehatan',
         'inisial' => 'DKS',
+        'nomor_loket' => '02',
         'description' => 'Pelayanan kesehatan umum',
         'logo' => null,
     ]);
@@ -85,6 +87,7 @@ test('super admin can create a department with a logo', function () {
     $response = $this->actingAs($this->superAdmin)->post(route('config.departments.store'), [
         'name' => 'Dinas Sosial',
         'inisial' => 'DSS',
+        'nomor_loket' => '03',
         'logo' => $logo,
         'description' => 'Pelayanan bantuan sosial',
     ]);
@@ -101,17 +104,22 @@ test('super admin can create a department with a logo', function () {
 });
 
 test('department creation fails on validation errors', function () {
-    Department::create(['name' => 'Existing', 'inisial' => 'EXT']);
+    Department::create([
+        'name' => 'Existing',
+        'inisial' => 'EXT',
+        'nomor_loket' => '04',
+    ]);
 
     $response = $this->actingAs($this->superAdmin)
         ->from(route('config.index'))
         ->post(route('config.departments.store'), [
             'name' => '', // required
             'inisial' => 'EXT', // unique validation fail
+            'nomor_loket' => '', // required
         ]);
 
     $response->assertRedirect(route('config.index'));
-    $response->assertSessionHasErrors(['name', 'inisial']);
+    $response->assertSessionHasErrors(['name', 'inisial', 'nomor_loket']);
 });
 
 test('super admin can update a department and replace its logo', function () {
@@ -124,6 +132,7 @@ test('super admin can update a department and replace its logo', function () {
     $department = Department::create([
         'name' => 'Dinas Perhubungan Lama',
         'inisial' => 'DPH',
+        'nomor_loket' => '05',
         'logo' => $oldLogoPath,
         'description' => 'Deskripsi lama',
     ]);
@@ -133,6 +142,7 @@ test('super admin can update a department and replace its logo', function () {
     $response = $this->actingAs($this->superAdmin)->put(route('config.departments.update', $department->id), [
         'name' => 'Dinas Perhubungan Baru',
         'inisial' => 'DPHN',
+        'nomor_loket' => '06',
         'logo' => $newLogo,
         'description' => 'Deskripsi baru',
     ]);
@@ -142,6 +152,7 @@ test('super admin can update a department and replace its logo', function () {
     $department->refresh();
     expect($department->name)->toBe('Dinas Perhubungan Baru');
     expect($department->inisial)->toBe('DPHN');
+    expect($department->nomor_loket)->toBe('06');
     expect($department->logo)->toEndWith('.webp');
 
     // Old logo should be deleted
@@ -166,6 +177,7 @@ test('super admin can delete a department and its logo', function () {
     $department = Department::create([
         'name' => 'Dinas Pekerjaan Umum',
         'inisial' => 'DPU',
+        'nomor_loket' => '07',
         'logo' => $logoPath,
     ]);
 
@@ -181,232 +193,5 @@ test('super admin can delete a department and its logo', function () {
         'causer_id' => $this->superAdmin->id,
         'event' => 'department_deleted',
         'description' => "Gerai 'Dinas Pekerjaan Umum' (Inisial: DPU) dihapus dari sistem.",
-    ]);
-});
-
-// ── Counter CRUD ─────────────────────────────────────────────────────────────
-
-test('super admin can create a counter and assign services and officers', function () {
-    $department = Department::create(['name' => 'Disdukcapil', 'inisial' => 'DDK']);
-    $service1 = Service::create(['department_id' => $department->id, 'name' => 'A']);
-    $service2 = Service::create(['department_id' => $department->id, 'name' => 'B']);
-    $officer = User::factory()->create([
-        'role' => 'admin_gerai',
-        'departments_id' => null,
-    ]);
-
-    $response = $this->actingAs($this->superAdmin)->post(route('config.counters.store'), [
-        'department_id' => $department->id,
-        'name' => 'Loket A',
-        'location' => 'Lantai 1',
-        'status' => 'aktif',
-        'officer_id' => $officer->id,
-        'services' => [$service1->id, $service2->id],
-    ]);
-
-    $response->assertRedirect(route('config.index', ['tab' => 'loket']));
-
-    $counter = Counter::where('name', 'Loket A')->first();
-    expect($counter)->not->toBeNull();
-    expect($counter->status)->toBe('aktif');
-
-    // Services synced
-    expect($counter->services)->toHaveCount(2);
-
-    // Officer assigned (departments_id updated to matching department)
-    $officer->refresh();
-    expect($officer->departments_id)->toBe($department->id);
-
-    // Assert Audit Trail
-    $this->assertDatabaseHas('activity_logs', [
-        'causer_id' => $this->superAdmin->id,
-        'event' => 'counter_created',
-        'description' => "Loket baru 'Loket A' untuk gerai 'Disdukcapil' berhasil dibuat.",
-    ]);
-});
-
-test('super admin can update a counter, sync new services and reassign officer', function () {
-    $department = Department::create(['name' => 'Disdukcapil', 'inisial' => 'DDK']);
-
-    $counter = Counter::create([
-        'department_id' => $department->id,
-        'name' => 'Loket Lama',
-        'status' => 'aktif',
-    ]);
-
-    $service = Service::create(['department_id' => $department->id, 'name' => 'A']);
-    $counter->services()->sync([$service->id]);
-
-    // Current officer
-    $oldOfficer = User::factory()->create([
-        'role' => 'admin_gerai',
-        'departments_id' => $department->id,
-    ]);
-
-    // New officer
-    $newOfficer = User::factory()->create([
-        'role' => 'admin_gerai',
-        'departments_id' => null,
-    ]);
-
-    $response = $this->actingAs($this->superAdmin)->put(route('config.counters.update', $counter->id), [
-        'department_id' => $department->id,
-        'name' => 'Loket Baru',
-        'location' => 'Lantai 2',
-        'status' => 'istirahat',
-        'officer_id' => $newOfficer->id,
-        'services' => [], // clear services
-    ]);
-
-    $response->assertRedirect(route('config.index', ['tab' => 'loket']));
-
-    $counter->refresh();
-    expect($counter->name)->toBe('Loket Baru');
-    expect($counter->status)->toBe('istirahat');
-    expect($counter->services)->toHaveCount(0);
-
-    // Old officer reset
-    $oldOfficer->refresh();
-    expect($oldOfficer->departments_id)->toBeNull();
-
-    // New officer set
-    $newOfficer->refresh();
-    expect($newOfficer->departments_id)->toBe($department->id);
-
-    // Assert Audit Trail
-    $this->assertDatabaseHas('activity_logs', [
-        'causer_id' => $this->superAdmin->id,
-        'event' => 'counter_updated',
-        'description' => "Data Loket 'Loket Baru' berhasil diperbarui.",
-    ]);
-});
-
-test('super admin can delete a counter', function () {
-    $department = Department::create(['name' => 'Disdukcapil', 'inisial' => 'DDK']);
-    $counter = Counter::create([
-        'department_id' => $department->id,
-        'name' => 'Loket DDK',
-        'status' => 'aktif',
-    ]);
-
-    $officer = User::factory()->create([
-        'role' => 'admin_gerai',
-        'departments_id' => $department->id,
-    ]);
-
-    $response = $this->actingAs($this->superAdmin)->delete(route('config.counters.destroy', $counter->id));
-
-    $response->assertRedirect(route('config.index', ['tab' => 'loket']));
-
-    $this->assertDatabaseMissing('counters', ['id' => $counter->id]);
-
-    // Officer department_id is reset to null
-    $officer->refresh();
-    expect($officer->departments_id)->toBeNull();
-
-    // Assert Audit Trail
-    $this->assertDatabaseHas('activity_logs', [
-        'causer_id' => $this->superAdmin->id,
-        'event' => 'counter_deleted',
-        'description' => "Loket 'Loket DDK' berhasil dihapus dari sistem.",
-    ]);
-});
-
-test('super admin can toggle counter status', function () {
-    $department = Department::create(['name' => 'Disdukcapil', 'inisial' => 'DDK']);
-    $counter = Counter::create([
-        'department_id' => $department->id,
-        'name' => 'Loket A',
-        'status' => 'aktif',
-    ]);
-
-    $response = $this->actingAs($this->superAdmin)->patch(route('config.counters.toggle-status', $counter->id), [
-        'status' => 'istirahat',
-    ]);
-
-    $response->assertRedirect();
-    $counter->refresh();
-    expect($counter->status)->toBe('istirahat');
-
-    // Assert Audit Trail
-    $this->assertDatabaseHas('activity_logs', [
-        'causer_id' => $this->superAdmin->id,
-        'event' => 'counter_status_toggled',
-        'description' => "Status loket 'Loket A' diubah dari 'aktif' menjadi 'istirahat'.",
-    ]);
-});
-
-// ── Service CRUD ─────────────────────────────────────────────────────────────
-
-test('super admin can create a service', function () {
-    $department = Department::create(['name' => 'Disdukcapil', 'inisial' => 'DDK']);
-
-    $response = $this->actingAs($this->superAdmin)->post(route('config.services.store'), [
-        'department_id' => $department->id,
-        'name' => 'Perekaman KTP-el',
-        'description' => 'Proses rekam foto & iris mata',
-    ]);
-
-    $response->assertRedirect(route('config.index', ['tab' => 'layanan']));
-
-    $this->assertDatabaseHas('services', [
-        'department_id' => $department->id,
-        'name' => 'Perekaman KTP-el',
-        'description' => 'Proses rekam foto & iris mata',
-    ]);
-
-    // Assert Audit Trail
-    $this->assertDatabaseHas('activity_logs', [
-        'causer_id' => $this->superAdmin->id,
-        'event' => 'service_created',
-        'description' => "Layanan baru 'Perekaman KTP-el' untuk gerai 'Disdukcapil' berhasil ditambahkan.",
-    ]);
-});
-
-test('super admin can update a service', function () {
-    $department = Department::create(['name' => 'Disdukcapil', 'inisial' => 'DDK']);
-    $service = Service::create([
-        'department_id' => $department->id,
-        'name' => 'Layanan Lama',
-    ]);
-
-    $response = $this->actingAs($this->superAdmin)->put(route('config.services.update', $service->id), [
-        'department_id' => $department->id,
-        'name' => 'Layanan Baru',
-        'description' => 'Deskripsi Baru',
-    ]);
-
-    $response->assertRedirect(route('config.index', ['tab' => 'layanan']));
-
-    $service->refresh();
-    expect($service->name)->toBe('Layanan Baru');
-    expect($service->description)->toBe('Deskripsi Baru');
-
-    // Assert Audit Trail
-    $this->assertDatabaseHas('activity_logs', [
-        'causer_id' => $this->superAdmin->id,
-        'event' => 'service_updated',
-        'description' => "Data Layanan 'Layanan Baru' berhasil diperbarui.",
-    ]);
-});
-
-test('super admin can delete a service', function () {
-    $department = Department::create(['name' => 'Disdukcapil', 'inisial' => 'DDK']);
-    $service = Service::create([
-        'department_id' => $department->id,
-        'name' => 'Layanan Hapus',
-    ]);
-
-    $response = $this->actingAs($this->superAdmin)->delete(route('config.services.destroy', $service->id));
-
-    $response->assertRedirect(route('config.index', ['tab' => 'layanan']));
-
-    $this->assertDatabaseMissing('services', ['id' => $service->id]);
-
-    // Assert Audit Trail
-    $this->assertDatabaseHas('activity_logs', [
-        'causer_id' => $this->superAdmin->id,
-        'event' => 'service_deleted',
-        'description' => "Layanan 'Layanan Hapus' berhasil dihapus dari sistem.",
     ]);
 });

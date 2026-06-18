@@ -155,28 +155,26 @@
                     <input type="text" id="txtWalkInName" disabled placeholder="Nama warga (otomatis / isi jika baru)" class="w-full h-11 bg-surface-soft dark:bg-white/5 border border-hairline dark:border-white/10 text-ink dark:text-white rounded-md px-3 font-semibold focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-accent-teal disabled:opacity-50 disabled:cursor-not-allowed">
                 </div>
 
-                <!-- Instansi & Layanan Selection -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                        <label for="selWalkInDept" class="block text-xs font-semibold text-ink dark:text-white uppercase tracking-wider mb-2 font-display">Instansi Tujuan</label>
-                        <select id="selWalkInDept" onchange="onWalkInDeptChange()" class="w-full h-11 bg-surface-soft dark:bg-surface-dark border border-hairline dark:border-white/10 text-ink dark:text-white rounded-md px-3 font-semibold focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-accent-teal cursor-pointer">
-                            <option value="">-- Pilih Instansi --</option>
-                            @foreach($departments as $dept)
-                                <option value="{{ $dept->id }}" data-services="{{ json_encode($dept->counters->pluck('name')) }}">{{ $dept->name }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div>
-                        <label for="selWalkInService" class="block text-xs font-semibold text-ink dark:text-white uppercase tracking-wider mb-2 font-display">Layanan (Opsional)</label>
-                        <select id="selWalkInService" class="w-full h-11 bg-surface-soft dark:bg-surface-dark border border-hairline dark:border-white/10 text-ink dark:text-white rounded-md px-3 font-semibold focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-accent-teal cursor-pointer disabled:opacity-50">
-                            <option value="">-- Pilih Layanan --</option>
-                        </select>
-                    </div>
+                <!-- Nomor Telepon Input -->
+                <div>
+                    <label for="txtWalkInPhone" class="block text-xs font-semibold text-ink dark:text-white uppercase tracking-wider mb-2 font-display">Nomor Telepon / HP</label>
+                    <input type="text" id="txtWalkInPhone" disabled placeholder="Nomor telepon warga (otomatis / isi jika baru)" class="w-full h-11 bg-surface-soft dark:bg-white/5 border border-hairline dark:border-white/10 text-ink dark:text-white rounded-md px-3 font-semibold focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-accent-teal disabled:opacity-50 disabled:cursor-not-allowed" oninput="this.value = this.value.replace(/[^0-9+]/g, '')">
+                </div>
+
+                <!-- Instansi Selection -->
+                <div>
+                    <label for="selWalkInDept" class="block text-xs font-semibold text-ink dark:text-white uppercase tracking-wider mb-2 font-display">Instansi Tujuan</label>
+                    <select id="selWalkInDept" class="w-full h-11 bg-surface-soft dark:bg-surface-dark border border-hairline dark:border-white/10 text-ink dark:text-white rounded-md px-3 font-semibold focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-accent-teal cursor-pointer">
+                        <option value="">-- Pilih Instansi --</option>
+                        @foreach($departments as $dept)
+                            <option value="{{ $dept->id }}">{{ $dept->name }}</option>
+                        @endforeach
+                    </select>
                 </div>
 
                 <!-- Keperluan -->
                 <div>
-                    <label for="txtWalkInPurpose" class="block text-xs font-semibold text-ink dark:text-white uppercase tracking-wider mb-2 font-display">Keperluan (Opsional)</label>
+                    <label for="txtWalkInPurpose" class="block text-xs font-semibold text-ink dark:text-white uppercase tracking-wider mb-2 font-display">Keperluan</label>
                     <textarea id="txtWalkInPurpose" rows="2" placeholder="Tuliskan keperluan kedatangan secara singkat..." class="w-full bg-surface-soft dark:bg-white/5 border border-hairline dark:border-white/10 text-ink dark:text-white rounded-md p-3 text-sm focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-accent-teal"></textarea>
                 </div>
 
@@ -217,16 +215,16 @@
                     @forelse($recentQueues as $q)
                         <tr class="hover:bg-surface-soft/50 dark:hover:bg-white/5 transition-colors">
                             <td class="py-3 px-6 font-bold text-ink dark:text-white">
-                                {{ $q->booking?->user?->name ?? $q->visitor?->name ?? 'Walk-In Citizen' }}
+                                {{ $q->user?->name ?? 'Walk-In Citizen' }}
                             </td>
                             <td class="py-3 px-4 font-mono font-bold text-primary dark:text-accent-teal">
                                 {{ $q->queue_number }}
                             </td>
                             <td class="py-3 px-4 font-medium text-muted dark:text-on-dark-soft">
-                                {{ $q->service?->department?->name ?? $q->counter?->department?->name ?? '-' }}
+                                {{ $q->department?->name ?? '-' }}
                             </td>
                             <td class="py-3 px-4 text-muted dark:text-on-dark-soft">
-                                {{ $q->booking_id ? 'Online Booking' : 'Walk-In (Tiket Mandiri)' }}
+                                {{ ($q->checked_in_at && $q->created_at->diffInSeconds($q->checked_in_at) > 5) ? 'Online Booking' : 'Walk-In (Tiket Mandiri)' }}
                             </td>
                             <td class="py-3 px-4 font-mono text-muted dark:text-on-dark-soft">
                                 {{ $q->created_at->format('H:i') }}
@@ -416,6 +414,7 @@
     async function checkVisitorNik() {
         const inputNik = document.getElementById('txtWalkInNik');
         const inputName = document.getElementById('txtWalkInName');
+        const inputPhone = document.getElementById('txtWalkInPhone');
         const nik = inputNik.value.trim();
 
         if (nik.length !== 16) {
@@ -425,51 +424,42 @@
 
         try {
             const response = await fetch(`/api/fo/visitors/check-nik?nik=${nik}`);
+            
+            if (response.status === 404) {
+                inputName.value = '';
+                inputName.disabled = false;
+                inputPhone.value = '';
+                inputPhone.disabled = false;
+                inputName.focus();
+                createToast('NIK Baru', 'Data tidak ditemukan. Silakan isi nama lengkap dan nomor telepon warga.', 'info');
+                return;
+            }
+
             if (!response.ok) {
                 createToast('Gagal', 'Terjadi kesalahan saat memeriksa NIK.', 'warning');
                 return;
             }
             
-            const data = await response.json();
+            const resData = await response.json();
+            const data = resData.data || resData;
             
-            if (data.found) {
+            if (data.is_found) {
                 inputName.value = data.name;
-                inputName.disabled = true; // Lock if found
+                inputName.disabled = true;
+                inputPhone.value = data.no_telp || '';
+                inputPhone.disabled = true;
                 createToast('NIK Ditemukan', `Data warga ${data.name} berhasil dimuat.`, 'success');
             } else {
                 inputName.value = '';
-                inputName.disabled = false; // Open for typing if new
+                inputName.disabled = false;
+                inputPhone.value = '';
+                inputPhone.disabled = false;
                 inputName.focus();
-                createToast('NIK Baru', 'Data tidak ditemukan. Silakan isi nama lengkap warga.', 'info');
+                createToast('NIK Baru', 'Data tidak ditemukan. Silakan isi nama lengkap dan nomor telepon warga.', 'info');
             }
         } catch (error) {
             console.error('Error checking NIK:', error);
             createToast('Koneksi Gagal', 'Tidak dapat terhubung ke server.', 'warning');
-        }
-    }
-
-    function onWalkInDeptChange() {
-        const deptSelect = document.getElementById('selWalkInDept');
-        const serviceSelect = document.getElementById('selWalkInService');
-        
-        serviceSelect.innerHTML = '<option value="">-- Pilih Layanan --</option>';
-        serviceSelect.disabled = true;
-
-        const selectedOption = deptSelect.options[deptSelect.selectedIndex];
-        if (!selectedOption.value) return;
-
-        const servicesStr = selectedOption.getAttribute('data-services');
-        if (servicesStr) {
-            const services = JSON.parse(servicesStr);
-            if (services.length > 0) {
-                services.forEach(s => {
-                    const opt = document.createElement('option');
-                    opt.value = s;
-                    opt.innerText = s;
-                    serviceSelect.appendChild(opt);
-                });
-                serviceSelect.disabled = false;
-            }
         }
     }
 
@@ -478,20 +468,18 @@
         const nameInput = document.getElementById('txtWalkInName');
         nameInput.value = '';
         nameInput.disabled = true;
+        const phoneInput = document.getElementById('txtWalkInPhone');
+        phoneInput.value = '';
+        phoneInput.disabled = true;
         document.getElementById('selWalkInDept').value = '';
-        
-        const serviceSelect = document.getElementById('selWalkInService');
-        serviceSelect.innerHTML = '<option value="">-- Pilih Layanan --</option>';
-        serviceSelect.disabled = true;
-        
         document.getElementById('txtWalkInPurpose').value = '';
     }
 
     async function printWalkInTicket() {
         const nik = document.getElementById('txtWalkInNik').value.trim();
         const name = document.getElementById('txtWalkInName').value.trim();
+        const phone = document.getElementById('txtWalkInPhone').value.trim();
         const deptId = document.getElementById('selWalkInDept').value;
-        const service = document.getElementById('selWalkInService').value;
         const purpose = document.getElementById('txtWalkInPurpose').value.trim();
 
         if (nik.length !== 16) {
@@ -500,6 +488,15 @@
         }
         if (!name) {
             createToast('Peringatan', 'Nama lengkap tidak boleh kosong.', 'warning');
+            return;
+        }
+        if (!phone) {
+            createToast('Peringatan', 'Nomor telepon wajib diisi.', 'warning');
+            return;
+        }
+        const phoneRegex = /^(08[0-9]{8,13}|\+628[0-9]{8,11})$/;
+        if (!phoneRegex.test(phone)) {
+            createToast('Peringatan', 'Format nomor HP tidak valid (harus diawali 08 atau +628 dan berisi 10-15 angka).', 'warning');
             return;
         }
         if (!deptId) {
@@ -521,8 +518,8 @@
                 body: JSON.stringify({
                     nik: nik,
                     name: name,
+                    phone: phone,
                     department_id: deptId,
-                    service_name: service,
                     purpose: purpose
                 })
             });

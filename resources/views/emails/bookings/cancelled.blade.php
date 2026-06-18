@@ -115,11 +115,11 @@
             <div class="ticket-box">
                 <div class="ticket-row">
                     <span class="label">Layanan</span>
-                    <span class="value">{{ $booking->service->name }}</span>
+                    <span class="value">{{ $booking->purpose }}</span>
                 </div>
                 <div class="ticket-row">
                     <span class="label">Instansi</span>
-                    <span class="value">{{ $booking->service->department->name }}</span>
+                    <span class="value">{{ $booking->department->name }}</span>
                 </div>
                 <div class="ticket-row">
                     <span class="label">Rencana Tanggal Kunjungan</span>
@@ -127,7 +127,7 @@
                 </div>
                 <div class="ticket-row">
                     <span class="label">Sesi Waktu</span>
-                    <span class="value">{{ $booking->schedule?->session_name ?? 'Harian' }}</span>
+                    <span class="value">{{ $booking->session_name ?? 'Harian' }}</span>
                 </div>
                 <div class="ticket-row">
                     <span class="label">Kode Booking</span>

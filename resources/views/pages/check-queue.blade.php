@@ -45,16 +45,16 @@
                         <span class="font-bold text-primary text-right">{{ $queue->queue_number }}</span>
                         
                         <span class="text-muted">Instansi:</span>
-                        <span class="font-semibold text-ink text-right">{{ $queue->counter?->department?->name ?? '-' }}</span>
+                        <span class="font-semibold text-ink text-right">{{ $queue->department?->name ?? '-' }}</span>
 
-                        <span class="text-muted">Layanan:</span>
-                        <span class="font-semibold text-ink text-right">{{ $queue->service?->name ?? '-' }}</span>
+                        <span class="text-muted">Keperluan / Layanan:</span>
+                        <span class="font-semibold text-ink text-right">{{ $queue->purpose ?? '-' }}</span>
 
                         <span class="text-muted">Status:</span>
                         <span class="text-right">
                             <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold
                                 @if($queue->status === 'Serving') bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400
-                                @elseif($queue->status === 'Waiting') bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400
+                                @elseif(in_array($queue->status, ['Checked-In', 'Booked'])) bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400
                                 @else bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300 @endif">
                                 {{ $queue->status }}
                             </span>

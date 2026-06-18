@@ -23,7 +23,7 @@
         </div>
 
         {{-- Ticket Container --}}
-        <div class="bg-canvas dark:bg-surface-dark-elevated rounded-xl border border-hairline dark:border-white/10 shadow-lg overflow-hidden print:border-none print:shadow-none">
+        <div class="bg-canvas dark:bg-surface-dark-elevated rounded-xl border border-hairline dark:border-white/10 shadow-[0_4px_16px_rgba(27,79,168,0.1)] dark:shadow-none overflow-hidden print:border-none print:shadow-none">
             
             {{-- Ticket Header --}}
             <div class="bg-linear-to-r from-primary to-primary-hover p-6 text-white text-center space-y-2 relative">
@@ -45,11 +45,11 @@
             <div class="p-6 md:p-8 space-y-6 pt-8">
                 
                 {{-- Queue Number Section (If Checked-In) or Status Badge --}}
-                <div class="text-center space-y-2">
+                <div class="text-center space-y-2 flex flex-col items-center justify-center">
                     @if($booking->status === 'Cancelled')
                         <span class="text-[10px] font-bold text-muted dark:text-on-dark-soft uppercase tracking-wider block font-display">Status Booking</span>
-                        <div class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 rounded-full text-sm font-bold border border-red-200/50">
-                            <span class="w-1.5 h-1.5 rounded-full bg-red-500"></span>
+                        <div class="inline-flex items-center gap-1.5 px-3 py-1 bg-status-skipped/12 text-[#991B1B] dark:text-red-400 rounded-pill text-[13px] font-medium border border-status-skipped/20">
+                            <span class="w-2 h-2 rounded-full bg-status-skipped"></span>
                             Dibatalkan / Kadaluarsa
                         </div>
                         @if($booking->cancel_reason)
@@ -57,19 +57,19 @@
                                 Alasan: {{ $booking->cancel_reason }}
                             </p>
                         @endif
-                    @elseif($booking->queue)
+                    @elseif(in_array($booking->status, ['Checked-In', 'Serving', 'Completed', 'Skipped', 'Hold']))
                         <span class="text-[10px] font-bold text-muted dark:text-on-dark-soft uppercase tracking-wider block font-display">Nomor Antrean Anda</span>
-                        <div class="text-4xl sm:text-5xl font-extrabold text-primary dark:text-accent-teal tracking-tight font-mono">
-                            {{ $booking->queue->queue_number }}
+                        <div class="text-queue-number font-bold text-primary dark:text-accent-teal font-mono tracking-tight leading-none my-1">
+                            {{ $booking->queue_number }}
                         </div>
-                        <span class="inline-flex items-center gap-1 px-3 py-1 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 rounded-full text-xs font-bold border border-green-200/50">
-                            <span class="w-1.5 h-1.5 rounded-full bg-green-500 animate-ping"></span>
+                        <div class="inline-flex items-center gap-1.5 px-3 py-1 bg-status-serving/12 text-[#065F46] dark:text-green-400 rounded-pill text-[13px] font-medium border border-status-serving/20">
+                            <span class="w-2 h-2 rounded-full bg-status-serving animate-ping"></span>
                             Telah Terkonfirmasi FO
-                        </span>
+                        </div>
                     @else
                         <span class="text-[10px] font-bold text-muted dark:text-on-dark-soft uppercase tracking-wider block font-display">Status Booking</span>
-                        <div class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 rounded-full text-sm font-bold border border-amber-200/50">
-                            <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                        <div class="inline-flex items-center gap-1.5 px-3 py-1 bg-status-waiting/12 text-[#92400E] dark:text-amber-400 rounded-pill text-[13px] font-medium border border-status-waiting/20">
+                            <span class="w-2 h-2 rounded-full bg-status-waiting animate-pulse"></span>
                             Menunggu Check-In FO
                         </div>
                     @endif
@@ -78,63 +78,19 @@
                 {{-- QR Code Area --}}
                 <div class="flex flex-col items-center space-y-3">
                     <div class="bg-white p-4 rounded-lg border border-hairline inline-block shadow-inner mx-auto relative group {{ $booking->status === 'Cancelled' ? 'opacity-40 select-none pointer-events-none' : '' }}">
-                        <svg class="w-40 h-40 mx-auto" viewBox="0 0 100 100" fill="currentColor">
-                            <!-- Positioning Squares -->
-                            <rect x="0" y="0" width="25" height="25" fill="#1e293b" />
-                            <rect x="3" y="3" width="19" height="19" fill="#ffffff" />
-                            <rect x="6" y="6" width="13" height="13" fill="#1B4FA8" />
-
-                            <rect x="75" y="0" width="25" height="25" fill="#1e293b" />
-                            <rect x="78" y="3" width="19" height="19" fill="#ffffff" />
-                            <rect x="81" y="6" width="13" height="13" fill="#1B4FA8" />
-
-                            <rect x="0" y="75" width="25" height="25" fill="#1e293b" />
-                            <rect x="3" y="78" width="19" height="19" fill="#ffffff" />
-                            <rect x="6" y="81" width="13" height="13" fill="#1B4FA8" />
-
-                            <!-- Small alignment squares -->
-                            <rect x="70" y="70" width="10" height="10" fill="#1e293b" />
-                            <rect x="72" y="72" width="6" height="6" fill="#ffffff" />
-                            <rect x="74" y="74" width="2" height="2" fill="#1B4FA8" />
-
-                            <!-- Randomly scattered blocks mimicking QR patterns -->
-                            <rect x="30" y="2" width="10" height="4" fill="#1e293b" />
-                            <rect x="45" y="5" width="8" height="5" fill="#1e293b" />
-                            <rect x="60" y="3" width="5" height="15" fill="#1B4FA8" />
-                            <rect x="35" y="12" width="12" height="6" fill="#1e293b" />
-                            
-                            <rect x="2" y="30" width="15" height="5" fill="#1e293b" />
-                            <rect x="25" y="28" width="6" height="12" fill="#1B4FA8" />
-                            <rect x="38" y="32" width="20" height="8" fill="#1e293b" />
-                            <rect x="65" y="25" width="8" height="12" fill="#1e293b" />
-                            
-                            <rect x="5" y="50" width="12" height="6" fill="#1B4FA8" />
-                            <rect x="25" y="48" width="15" height="10" fill="#1e293b" />
-                            <rect x="48" y="45" width="25" height="5" fill="#1e293b" />
-                            <rect x="80" y="35" width="12" height="15" fill="#1B4FA8" />
-                            
-                            <rect x="35" y="65" width="15" height="15" fill="#1e293b" />
-                            <rect x="55" y="60" width="10" height="10" fill="#1B4FA8" />
-                            <rect x="68" y="55" width="8" height="8" fill="#1e293b" />
-                            
-                            <rect x="30" y="85" width="25" height="6" fill="#1B4FA8" />
-                            <rect x="60" y="82" width="6" height="12" fill="#1e293b" />
-                            
-                            <!-- Custom logo in the middle -->
-                            <rect x="40" y="40" width="20" height="20" fill="#ffffff" rx="2" />
-                            <circle cx="50" cy="50" r="8" fill="#1B4FA8" />
-                            <circle cx="50" cy="50" r="5" fill="#ffffff" />
-                        </svg>
+                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=160x160&data={{ urlencode($booking->booking_code) }}" 
+                             alt="QR Code Booking" 
+                             class="w-40 h-40 mx-auto object-contain">
                     </div>
                     @if($booking->status === 'Cancelled')
-                        <span class="text-[10px] text-status-skipped dark:text-red-400 font-body font-bold tracking-normal text-center flex items-center gap-1 justify-center">
+                        <span class="text-caption text-status-skipped dark:text-red-400 font-body font-bold tracking-normal text-center flex items-center gap-1 justify-center">
                             <svg class="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
                             Tiket tidak aktif / tidak dapat dipindai
                         </span>
                     @else
-                        <span class="text-[10px] text-muted font-body tracking-normal text-center">Scan kode ini di barcode reader stasiun check-in Front Office</span>
+                        <span class="text-caption text-muted font-body tracking-normal text-center">Scan kode ini di barcode reader stasiun check-in Front Office</span>
                     @endif
                 </div>
 
@@ -146,9 +102,9 @@
                     
                     <button type="button" 
                             @click="navigator.clipboard.writeText('{{ $booking->booking_code }}'); copied = true; setTimeout(() => copied = false, 2000)"
-                            class="inline-flex items-center gap-1 text-[11px] font-bold text-primary dark:text-accent-teal hover:underline focus:outline-none cursor-pointer mt-1 print:hidden">
+                            class="inline-flex items-center gap-1 text-caption font-bold text-primary dark:text-accent-teal hover:underline focus:outline-none cursor-pointer mt-1 print:hidden">
                         <svg x-show="!copied" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
                         </svg>
                         <span x-show="!copied">Salin Kode Booking</span>
                         <span x-show="copied" class="text-status-serving flex items-center gap-1 font-bold">
@@ -161,7 +117,7 @@
                 </div>
 
                 {{-- Ticket Details --}}
-                <div class="space-y-3.5 border-t border-dashed border-hairline dark:border-white/15 pt-6 text-sm font-body">
+                <div class="space-y-3.5 border-t border-dashed border-hairline dark:border-white/15 pt-6 text-body-md font-body">
                     <div class="flex justify-between gap-4">
                         <span class="text-muted dark:text-on-dark-soft font-medium">Nama Warga</span>
                         <span class="font-bold text-ink dark:text-white text-right">{{ $booking->user->name }}</span>
@@ -172,28 +128,22 @@
                     </div>
                     <div class="flex justify-between gap-4">
                         <span class="text-muted dark:text-on-dark-soft font-medium">Instansi</span>
-                        <span class="font-bold text-ink dark:text-white text-right">{{ $booking->service->department->name }}</span>
+                        <span class="font-bold text-ink dark:text-white text-right">{{ $booking->department->name }}</span>
                     </div>
                     <div class="flex justify-between gap-4">
-                        <span class="text-muted dark:text-on-dark-soft font-medium">Pelayanan</span>
-                        <span class="font-bold text-primary dark:text-accent-teal text-right">{{ $booking->service->name }}</span>
+                        <span class="text-muted dark:text-on-dark-soft font-medium">Keperluan / Pelayanan</span>
+                        <span class="font-bold text-primary dark:text-accent-teal text-right">{{ $booking->purpose }}</span>
                     </div>
-                    @if($booking->purpose)
-                    <div class="flex justify-between gap-4">
-                        <span class="text-muted dark:text-on-dark-soft font-medium">Keperluan</span>
-                        <span class="font-bold text-ink dark:text-white text-right">{{ $booking->purpose }}</span>
-                    </div>
-                    @endif
                     <div class="flex justify-between gap-4">
                         <span class="text-muted dark:text-on-dark-soft font-medium">Tanggal</span>
                         <span class="font-bold text-ink dark:text-white text-right">{{ $booking->booking_date->translatedFormat('d F Y') }}</span>
                     </div>
                     <div class="flex justify-between gap-4">
                         <span class="text-muted dark:text-on-dark-soft font-medium">Sesi</span>
-                        <span class="font-bold text-ink dark:text-white text-right">{{ $booking->schedule->session_name ?? '-' }}</span>
+                        <span class="font-bold text-ink dark:text-white text-right">{{ $booking->session_name ?? '-' }}</span>
                     </div>
                     
-                    @if($booking->status !== 'Cancelled' && !$booking->queue)
+                    @if($booking->status !== 'Cancelled' && !$booking->queue_number)
                     <div class="flex justify-between gap-4 pt-3 border-t border-hairline dark:border-white/10">
                         <span class="text-muted dark:text-on-dark-soft font-medium flex items-center gap-1">
                             Estimasi Urutan
@@ -216,7 +166,7 @@
                             </svg>
                             TIKET TIDAK VALID
                         </h4>
-                        <p class="text-[11px] text-red-700 dark:text-red-400/90 leading-relaxed font-body">
+                        <p class="text-caption text-red-700 dark:text-red-400/90 leading-relaxed font-body">
                             Tiket booking antrean ini telah dibatalkan atau telah melewati batas waktu check-in (kadaluarsa). Tiket ini tidak dapat digunakan lagi untuk melakukan check-in di loket.
                         </p>
                     </div>
@@ -228,7 +178,7 @@
                             </svg>
                             PENTING: Langkah Konfirmasi
                         </h4>
-                        <p class="text-[11px] text-amber-700 dark:text-amber-400/90 leading-relaxed font-body">
+                        <p class="text-caption text-amber-700 dark:text-amber-400/90 leading-relaxed font-body">
                             Tiket ini belum sah dipanggil sebelum Anda melakukan <strong>Check-In di loket Front Office MPP</strong> dengan memindai kode QR di atas. Datang paling lambat 15 menit sebelum sesi dimulai.
                         </p>
                     </div>

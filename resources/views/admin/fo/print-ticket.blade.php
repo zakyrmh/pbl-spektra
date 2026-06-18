@@ -7,42 +7,9 @@
          x-data="{
              departments: @js($departments),
              selectedDepartmentId: '{{ old('department_id', '') }}',
-             selectedServiceId: '{{ old('service_id', '') }}',
-             selectedCounterId: '{{ old('counter_id', '') }}',
-             
-             get filteredServices() {
-                 if (!this.selectedDepartmentId) return [];
-                 let dept = this.departments.find(d => d.id == this.selectedDepartmentId);
-                 return dept ? dept.services : [];
-             },
-             
-             get filteredCounters() {
-                 if (!this.selectedDepartmentId) return [];
-                 let dept = this.departments.find(d => d.id == this.selectedDepartmentId);
-                 return dept ? dept.counters : [];
-             },
              
              get selectedDepartment() {
                  return this.departments.find(d => d.id == this.selectedDepartmentId) || null;
-             },
-             
-             get selectedService() {
-                 let services = this.filteredServices;
-                 return services.find(s => s.id == this.selectedServiceId) || null;
-             },
-
-             get selectedCounter() {
-                 let counters = this.filteredCounters;
-                 return counters.find(c => c.id == this.selectedCounterId) || null;
-             },
-             
-             resetService() {
-                 this.selectedServiceId = '';
-                 this.resetCounter();
-             },
-             
-             resetCounter() {
-                 this.selectedCounterId = '';
              }
          }">
 
@@ -97,7 +64,13 @@
 
         {{-- Main Result / Receipt Karcis (Tampil Setelah Sukses Diterbitkan) --}}
         @if (session('ticket'))
-            @php $ticket = session('ticket'); @endphp
+            @php
+                $ticket = session('ticket');
+                $ticketCreatedAt = data_get($ticket, 'created_at') ?? now();
+                if (is_string($ticketCreatedAt)) {
+                    $ticketCreatedAt = \Carbon\Carbon::parse($ticketCreatedAt);
+                }
+            @endphp
             <div class="bg-canvas dark:bg-surface-dark-elevated rounded-xl border-2 border-status-serving/45 shadow-lg overflow-hidden max-w-md mx-auto" id="ticket-receipt-card">
                 
                 <div class="flex items-center justify-between px-5 py-3.5 bg-status-serving/10 border-b border-status-serving/20 print:hidden">
@@ -127,7 +100,7 @@
                         </div>
                         <span class="text-[10px] font-bold text-muted dark:text-on-dark-soft uppercase tracking-wider block font-display">NOMOR ANTREAN</span>
                         <div class="text-5xl sm:text-6xl font-extrabold text-primary dark:text-accent-teal tracking-tight font-mono">
-                            {{ $ticket->queue_number }}
+                            {{ data_get($ticket, 'queue_number') }}
                         </div>
                         <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 rounded-full text-xs font-bold border border-green-200/50 print:hidden mt-2">
                             <span class="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
@@ -138,27 +111,27 @@
                     <div class="space-y-3.5 text-sm font-body">
                         <div class="flex justify-between gap-4">
                             <span class="text-muted dark:text-on-dark-soft font-medium">Nama Pengunjung</span>
-                            <span class="font-bold text-ink dark:text-white text-right">{{ $ticket->visitor->name }}</span>
+                            <span class="font-bold text-ink dark:text-white text-right">{{ data_get($ticket, 'user.name') }}</span>
                         </div>
                         <div class="flex justify-between gap-4">
                             <span class="text-muted dark:text-on-dark-soft font-medium">NIK</span>
-                            <span class="font-bold text-ink dark:text-white font-mono text-right">{{ $ticket->visitor->nik }}</span>
+                            <span class="font-bold text-ink dark:text-white font-mono text-right">{{ data_get($ticket, 'user.nik') }}</span>
                         </div>
                         <div class="flex justify-between gap-4">
                             <span class="text-muted dark:text-on-dark-soft font-medium">Instansi</span>
-                            <span class="font-bold text-ink dark:text-white text-right">{{ $ticket->counter->department->name }}</span>
+                            <span class="font-bold text-ink dark:text-white text-right">{{ data_get($ticket, 'department.name') }}</span>
                         </div>
                         <div class="flex justify-between gap-4">
                             <span class="text-muted dark:text-on-dark-soft font-medium">Loket Pelayanan</span>
-                            <span class="font-bold text-primary dark:text-accent-teal text-right">{{ $ticket->counter->name }}</span>
+                            <span class="font-bold text-primary dark:text-accent-teal text-right">Loket {{ data_get($ticket, 'department.nomor_loket') }}</span>
                         </div>
                         <div class="flex justify-between gap-4">
-                            <span class="text-muted dark:text-on-dark-soft font-medium">Jenis Layanan</span>
-                            <span class="font-bold text-ink dark:text-white text-right">{{ $ticket->service->name }}</span>
+                            <span class="text-muted dark:text-on-dark-soft font-medium">Keperluan</span>
+                            <span class="font-bold text-ink dark:text-white text-right">{{ data_get($ticket, 'purpose') }}</span>
                         </div>
                         <div class="flex justify-between gap-4">
                             <span class="text-muted dark:text-on-dark-soft font-medium">Waktu Cetak</span>
-                            <span class="font-bold text-ink dark:text-white text-right">{{ $ticket->created_at->translatedFormat('d M Y · H:i') }}</span>
+                            <span class="font-bold text-ink dark:text-white text-right">{{ $ticketCreatedAt->translatedFormat('d M Y · H:i') }}</span>
                         </div>
                     </div>
                 </div>
@@ -186,9 +159,27 @@
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div class="space-y-2">
                                     <label for="nik" class="block text-sm font-bold text-ink dark:text-white font-display">NIK Warga</label>
-                                    <input type="text" id="nik" name="nik" value="{{ old('nik') }}" maxlength="16" required
-                                           placeholder="Contoh: 1373021408990002"
-                                           class="w-full h-11 text-sm bg-canvas dark:bg-white/5 border border-hairline dark:border-white/15 text-ink dark:text-white rounded-md px-4 font-mono focus:border-primary dark:focus:border-accent-teal focus:outline-none focus:ring-3 focus:ring-primary/12 dark:focus:ring-accent-teal/20 transition-all">
+                                    <div class="flex gap-2">
+                                        <div class="relative grow">
+                                            <input type="text" id="nik" name="nik" value="{{ old('nik') }}" maxlength="16" required
+                                                   placeholder="Contoh: 1373021408990002"
+                                                   class="w-full h-11 text-sm bg-canvas dark:bg-white/5 border border-hairline dark:border-white/15 text-ink dark:text-white rounded-md px-4 font-mono focus:border-primary dark:focus:border-accent-teal focus:outline-none focus:ring-3 focus:ring-primary/12 dark:focus:ring-accent-teal/20 transition-all">
+                                        </div>
+                                        <button type="button" id="btn-cari-nik"
+                                                class="px-4 bg-primary hover:bg-primary-hover text-white text-xs font-bold rounded-md transition-all cursor-pointer flex items-center justify-center gap-1.5 h-11 border border-primary/10 shadow-sm shrink-0">
+                                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                            </svg>
+                                            <span id="btn-cari-text">Cari</span>
+                                        </button>
+                                        <button type="button" id="btn-reset-nik"
+                                                class="hidden px-4 bg-status-skipped/10 hover:bg-status-skipped/25 text-status-skipped text-xs font-bold rounded-md transition-all cursor-pointer flex items-center justify-center gap-1.5 h-11 border border-status-skipped/20 shadow-sm shrink-0">
+                                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                            </svg>
+                                            <span>Reset</span>
+                                        </button>
+                                    </div>
                                 </div>
                                 <div class="space-y-2">
                                     <label for="name" class="block text-sm font-bold text-ink dark:text-white font-display">Nama Lengkap</label>
@@ -199,8 +190,8 @@
                             </div>
 
                             <div class="space-y-2">
-                                <label for="phone" class="block text-sm font-bold text-ink dark:text-white font-display">Nomor Telepon / WhatsApp</label>
-                                <input type="text" id="phone" name="phone" value="{{ old('phone') }}" required
+                                <label for="no_telp" class="block text-sm font-bold text-ink dark:text-white font-display">Nomor Telepon / WhatsApp</label>
+                                <input type="text" id="no_telp" name="phone" value="{{ old('phone') }}" required
                                        placeholder="Contoh: 081234567890"
                                        class="w-full h-11 text-sm bg-canvas dark:bg-white/5 border border-hairline dark:border-white/15 text-ink dark:text-white rounded-md px-4 font-mono focus:border-primary dark:focus:border-accent-teal focus:outline-none focus:ring-3 focus:ring-primary/12 dark:focus:ring-accent-teal/20 transition-all">
                             </div>
@@ -221,44 +212,16 @@
                                 </svg>
                                 Destinasi Pelayanan & Gerai
                             </h3>
-
+                            
                             {{-- Department Select --}}
                             <div class="space-y-2">
                                 <label for="department_id" class="block text-sm font-bold text-ink dark:text-white font-display">Instansi / Lembaga</label>
                                 <div class="relative">
-                                    <select id="department_id" name="department_id" x-model="selectedDepartmentId" @change="resetService()" required
+                                    <select id="department_id" name="department_id" x-model="selectedDepartmentId" required
                                             class="w-full h-11 text-sm bg-canvas dark:bg-white/5 border border-hairline dark:border-white/15 text-ink dark:text-white rounded-md px-4 pr-10 focus:border-primary dark:focus:border-accent-teal focus:outline-none focus:ring-3 focus:ring-primary/12 dark:focus:ring-accent-teal/20 transition-all cursor-pointer">
                                         <option value="" disabled>-- Pilih Instansi / Lembaga --</option>
                                         <template x-for="dept in departments" :key="dept.id">
                                             <option :value="dept.id" x-text="dept.name"></option>
-                                        </template>
-                                    </select>
-                                </div>
-                            </div>
-
-                            {{-- Service Select (Cascading) --}}
-                            <div class="space-y-2" x-show="selectedDepartmentId" x-cloak>
-                                <label for="service_id" class="block text-sm font-bold text-ink dark:text-white font-display">Jenis Layanan</label>
-                                <div class="relative">
-                                    <select id="service_id" name="service_id" x-model="selectedServiceId" required
-                                            class="w-full h-11 text-sm bg-canvas dark:bg-white/5 border border-hairline dark:border-white/15 text-ink dark:text-white rounded-md px-4 pr-10 focus:border-primary dark:focus:border-accent-teal focus:outline-none focus:ring-3 focus:ring-primary/12 dark:focus:ring-accent-teal/20 transition-all cursor-pointer">
-                                        <option value="" disabled>-- Pilih Layanan --</option>
-                                        <template x-for="svc in filteredServices" :key="svc.id">
-                                            <option :value="svc.id" x-text="svc.name"></option>
-                                        </template>
-                                    </select>
-                                </div>
-                            </div>
-
-                            {{-- Counter Select (Cascading) --}}
-                            <div class="space-y-2" x-show="selectedDepartmentId" x-cloak>
-                                <label for="counter_id" class="block text-sm font-bold text-ink dark:text-white font-display">Loket / Counter Pelayanan</label>
-                                <div class="relative">
-                                    <select id="counter_id" name="counter_id" x-model="selectedCounterId" required
-                                            class="w-full h-11 text-sm bg-canvas dark:bg-white/5 border border-hairline dark:border-white/15 text-ink dark:text-white rounded-md px-4 pr-10 focus:border-primary dark:focus:border-accent-teal focus:outline-none focus:ring-3 focus:ring-primary/12 dark:focus:ring-accent-teal/20 transition-all cursor-pointer">
-                                        <option value="" disabled>-- Pilih Loket --</option>
-                                        <template x-for="cnt in filteredCounters" :key="cnt.id">
-                                            <option :value="cnt.id" x-text="`${cnt.name} (Loket ${cnt.counter_number})`"></option>
                                         </template>
                                     </select>
                                 </div>
@@ -282,10 +245,10 @@
             {{-- Draft Preview Column --}}
             <div class="space-y-6">
                 <div class="bg-canvas dark:bg-surface-dark-elevated rounded-lg border border-hairline dark:border-white/10 shadow-sm overflow-hidden"
-                     :class="selectedCounterId ? 'border-primary dark:border-accent-teal shadow-md' : ''">
+                     :class="selectedDepartmentId ? 'border-primary dark:border-accent-teal shadow-md' : ''">
                     <div class="bg-linear-to-r from-primary to-primary-hover px-5 py-3 text-white font-display text-xs font-bold uppercase tracking-wider flex items-center justify-between">
                         <span>Preview Draf Karcis</span>
-                        <span x-show="selectedCounterId" class="w-2.5 h-2.5 bg-green-400 rounded-full animate-pulse"></span>
+                        <span x-show="selectedDepartmentId" class="w-2.5 h-2.5 bg-green-400 rounded-full animate-pulse"></span>
                     </div>
                     
                     <div class="p-6 space-y-4 text-sm font-body">
@@ -299,20 +262,16 @@
                                 <p class="text-xs text-muted dark:text-on-dark-soft font-body leading-relaxed max-w-[180px] mx-auto">Lengkapi destinasi gerai untuk melihat draf karcis.</p>
                             </div>
                         </template>
-
+ 
                         <template x-if="selectedDepartmentId">
                             <div class="space-y-4">
                                 <div>
                                     <span class="text-[10px] font-bold text-muted dark:text-on-dark-soft uppercase tracking-wider block font-display">Instansi Tujuan</span>
                                     <span class="font-bold text-ink dark:text-white" x-text="selectedDepartment ? selectedDepartment.name : ''"></span>
                                 </div>
-                                <div x-show="selectedServiceId">
-                                    <span class="text-[10px] font-bold text-muted dark:text-on-dark-soft uppercase tracking-wider block font-display">Jenis Layanan</span>
-                                    <span class="font-bold text-primary dark:text-accent-teal" x-text="selectedService ? selectedService.name : ''"></span>
-                                </div>
-                                <div x-show="selectedCounterId">
-                                    <span class="text-[10px] font-bold text-muted dark:text-on-dark-soft uppercase tracking-wider block font-display">Loket / Counter</span>
-                                    <span class="font-bold text-ink dark:text-white" x-text="selectedCounter ? `${selectedCounter.name} (Loket ${selectedCounter.counter_number})` : ''"></span>
+                                <div>
+                                    <span class="text-[10px] font-bold text-muted dark:text-on-dark-soft uppercase tracking-wider block font-display">Nomor Loket</span>
+                                    <span class="font-bold text-ink dark:text-white" x-text="selectedDepartment ? 'Loket ' + selectedDepartment.nomor_loket : ''"></span>
                                 </div>
                             </div>
                         </template>
@@ -365,11 +324,68 @@
             }
         }
     </style>
+    <!-- Notification Toast Container -->
+    <div id="toastContainer" class="fixed bottom-6 right-6 z-50 flex flex-col gap-3 max-w-sm w-full pointer-events-none"></div>
 @endsection
 
 @push('scripts')
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            // Toast Alert
+            function createToast(title, message, type = 'success') {
+                const container = document.getElementById('toastContainer');
+                if (!container) return;
+
+                const toast = document.createElement('div');
+                let borderClr = 'border-green-500';
+                let bgClr = 'bg-white dark:bg-gray-800';
+                let iconHtml = '';
+
+                if (type === 'success') {
+                    borderClr = 'border-l-4 border-green-500';
+                    iconHtml = `<svg class="w-5 h-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>`;
+                } else if (type === 'warning') {
+                    borderClr = 'border-l-4 border-amber-500';
+                    iconHtml = `<svg class="w-5 h-5 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>`;
+                } else {
+                    borderClr = 'border-l-4 border-blue-500';
+                    iconHtml = `<svg class="w-5 h-5 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>`;
+                }
+
+                toast.className = `flex items-start gap-3 p-4 rounded-lg shadow-xl border border-hairline dark:border-white/10 ${bgClr} ${borderClr} max-w-sm pointer-events-auto transition-all duration-300 transform translate-y-2 opacity-0`;
+                toast.innerHTML = `
+                    <div class="shrink-0">${iconHtml}</div>
+                    <div class="flex-grow">
+                        <h5 class="text-xs font-bold text-ink dark:text-white font-display">${title}</h5>
+                        <p class="text-[11px] text-muted dark:text-on-dark-soft mt-0.5 font-body leading-tight">${message}</p>
+                    </div>
+                    <button type="button" onclick="this.parentElement.remove()" class="shrink-0 text-gray-400 hover:text-gray-600 dark:hover:text-white transition-colors">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                    </button>
+                `;
+
+                container.appendChild(toast);
+                
+                // Trigger reflow & animate in
+                setTimeout(() => {
+                    if (toast.isConnected) {
+                        toast.classList.remove('translate-y-2', 'opacity-0');
+                    }
+                }, 50);
+
+                // Auto remove after 4s
+                setTimeout(() => {
+                    if (toast.isConnected) {
+                        toast.classList.add('opacity-0', 'translate-y-[-10px]');
+                        setTimeout(() => {
+                            if (toast.isConnected) {
+                                toast.remove();
+                            }
+                        }, 300);
+                    }
+                }, 4000);
+            }
+
             // Auto format NIK input: only numbers, max 16 digits
             const nikField = document.getElementById('nik');
             if (nikField) {
@@ -379,10 +395,115 @@
             }
 
             // Auto format phone input: only numbers, max 15 digits
-            const phoneField = document.getElementById('phone');
+            const phoneField = document.getElementById('no_telp');
             if (phoneField) {
                 phoneField.addEventListener('input', (e) => {
                     e.target.value = e.target.value.replace(/\D/g, '').slice(0, 15);
+                });
+            }
+
+            // NIK lookup using Fetch API
+            const btnCari = document.getElementById('btn-cari-nik');
+            const btnReset = document.getElementById('btn-reset-nik');
+            const nameField = document.getElementById('name');
+            const cariText = document.getElementById('btn-cari-text');
+
+            if (btnCari && nikField && nameField && phoneField) {
+                btnCari.addEventListener('click', async (e) => {
+                    e.preventDefault();
+                    const nikValue = nikField.value.trim();
+
+                    if (nikValue.length !== 16) {
+                        createToast('Format Salah', 'NIK harus terdiri dari 16 digit.', 'warning');
+                        return;
+                    }
+
+                    // Set loading state
+                    btnCari.disabled = true;
+                    if (cariText) cariText.innerText = 'Mencari...';
+
+                    try {
+                        const response = await fetch(`/api/fo/visitors/check-nik?nik=${nikValue}`);
+                        
+                        if (response.ok) {
+                            const result = await response.json();
+                            const visitor = result.data;
+
+                            if (visitor && visitor.is_found) {
+                                // Populate fields
+                                nameField.value = visitor.name || '';
+                                phoneField.value = visitor.no_telp || '';
+
+                                // Set read-only and styles
+                                nameField.readOnly = true;
+                                phoneField.readOnly = true;
+                                nameField.classList.add('bg-gray-100', 'dark:bg-white/10', 'opacity-75');
+                                phoneField.classList.add('bg-gray-100', 'dark:bg-white/10', 'opacity-75');
+
+                                // Toggle buttons
+                                btnCari.classList.add('hidden');
+                                if (btnReset) btnReset.classList.remove('hidden');
+
+                                createToast('Warga Ditemukan', `Data warga ${visitor.name} berhasil dimuat secara otomatis.`, 'success');
+                            } else {
+                                handleNotFound();
+                            }
+                        } else {
+                            // Status 404 or others
+                            const errData = await response.json().catch(() => ({}));
+                            const msg = errData.message || 'Warga baru, silakan isi data manual.';
+                            handleNotFound(msg);
+                        }
+                    } catch (error) {
+                        console.error('Lookup NIK error:', error);
+                        createToast('Kesalahan Koneksi', 'Gagal menghubungi server untuk verifikasi NIK.', 'warning');
+                        btnCari.disabled = false;
+                        if (cariText) cariText.innerText = 'Cari';
+                    }
+                });
+            }
+
+            function handleNotFound(msg = 'Warga baru, silakan isi data manual.') {
+                // Ensure editable and clean loading state
+                nameField.readOnly = false;
+                phoneField.readOnly = false;
+                nameField.classList.remove('bg-gray-100', 'dark:bg-white/10', 'opacity-75');
+                phoneField.classList.remove('bg-gray-100', 'dark:bg-white/10', 'opacity-75');
+
+                btnCari.disabled = false;
+                if (cariText) cariText.innerText = 'Cari';
+                
+                // Keep buttons in search state
+                btnCari.classList.remove('hidden');
+                if (btnReset) btnReset.classList.add('hidden');
+
+                createToast('Warga Baru', msg, 'info');
+                nameField.focus();
+            }
+
+            if (btnReset && nikField && nameField && phoneField) {
+                btnReset.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    
+                    // Clear inputs
+                    nikField.value = '';
+                    nameField.value = '';
+                    phoneField.value = '';
+
+                    // Unlock fields
+                    nameField.readOnly = false;
+                    phoneField.readOnly = false;
+                    nameField.classList.remove('bg-gray-100', 'dark:bg-white/10', 'opacity-75');
+                    phoneField.classList.remove('bg-gray-100', 'dark:bg-white/10', 'opacity-75');
+
+                    // Toggle buttons
+                    btnCari.disabled = false;
+                    if (cariText) cariText.innerText = 'Cari';
+                    btnCari.classList.remove('hidden');
+                    btnReset.classList.add('hidden');
+
+                    createToast('Formulir Direset', 'Semua kolom identitas telah dibersihkan.', 'info');
+                    nikField.focus();
                 });
             }
         });

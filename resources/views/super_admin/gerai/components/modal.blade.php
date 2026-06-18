@@ -31,6 +31,12 @@
                 </div>
 
                 <div>
+                    <label for="g-nomor-loket" class="block text-title-sm font-semibold text-ink dark:text-white font-display mb-2">Nomor Loket / Booth <span class="text-status-skipped">*</span></label>
+                    <input type="text" id="g-nomor-loket" name="nomor_loket" required class="w-full text-body-md rounded-md border border-hairline px-4 py-3 h-12 bg-canvas dark:bg-surface-dark-elevated text-ink dark:text-white focus:border-primary focus:ring-3 focus:ring-primary/12 focus:outline-none transition-all font-body" placeholder="e.g. 01">
+                    <p class="text-caption text-muted dark:text-on-dark-soft mt-1.5 block font-body">Nomor loket fisik tempat pelayanan berlangsung (e.g. 01, 02).</p>
+                </div>
+
+                <div>
                     <label for="g-logo" class="block text-title-sm font-semibold text-ink dark:text-white font-display mb-2">Logo Instansi</label>
                     
                     {{-- Logo Preview Container --}}
@@ -109,6 +115,7 @@
         
         document.getElementById('g-name').value = '';
         document.getElementById('g-inisial').value = '';
+        document.getElementById('g-nomor-loket').value = '';
         document.getElementById('g-desc').value = '';
         
         clearLogoSelection();
@@ -123,6 +130,7 @@
         
         document.getElementById('g-name').value = department.name;
         document.getElementById('g-inisial').value = department.inisial;
+        document.getElementById('g-nomor-loket').value = department.nomor_loket || '';
         document.getElementById('g-desc').value = department.description || '';
         
         // Tampilkan logo saat ini jika ada di database

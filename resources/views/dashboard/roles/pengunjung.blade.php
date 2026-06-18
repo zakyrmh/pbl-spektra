@@ -58,8 +58,8 @@
                     <div class="flex items-start justify-between gap-4">
                         <div>
                             <h3 class="text-muted dark:text-on-dark-soft text-xs font-semibold uppercase tracking-wider font-display">Instansi & Layanan</h3>
-                            <h4 class="text-xl md:text-2xl font-bold text-ink dark:text-white mt-1 font-display">{{ $activeBooking->service->department->name }}</h4>
-                            <p class="text-sm font-semibold text-primary dark:text-accent-teal mt-0.5 font-body">{{ $activeBooking->service->name }}</p>
+                            <h4 class="text-xl md:text-2xl font-bold text-ink dark:text-white mt-1 font-display">{{ $activeBooking->department->name }}</h4>
+                            <p class="text-sm font-semibold text-primary dark:text-accent-teal mt-0.5 font-body">{{ $activeBooking->purpose }}</p>
                         </div>
                         <div class="bg-surface-soft dark:bg-white/5 text-primary dark:text-accent-teal p-3 rounded-lg shrink-0 border border-hairline dark:border-white/5">
                             <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
@@ -73,17 +73,17 @@
                         <div class="col-span-2 sm:col-span-1 border-b sm:border-b-0 sm:border-r border-hairline dark:border-white/10 pb-4 sm:pb-0">
                             <p class="text-xs text-muted dark:text-on-dark-soft font-semibold uppercase tracking-wider font-display">Nomor Antrean Anda</p>
                             <p class="text-3xl md:text-4xl font-extrabold text-primary dark:text-accent-teal mt-1 tracking-tight font-mono">
-                                {{ $activeBooking->queue ? $activeBooking->queue->queue_number : 'Belum Check-In' }}
+                                {{ $activeBooking->queue_number ?: 'Belum Check-In' }}
                             </p>
                         </div>
                         <div class="sm:border-r border-hairline dark:border-white/10 sm:pl-4">
                             <p class="text-xs text-muted dark:text-on-dark-soft font-semibold uppercase tracking-wider font-display">Panggilan Sekarang</p>
                             <p id="live-current-queue" class="text-3xl md:text-4xl font-extrabold text-ink dark:text-white mt-1 tracking-tight font-mono">
-                                {{ $activeBooking->queue ? $currentServingQueue : '-' }}
+                                {{ $activeBooking->queue_number ? $currentServingQueue : '-' }}
                             </p>
                         </div>
                         <div class="sm:pl-4 flex flex-col justify-between">
-                            @if($activeBooking->queue)
+                            @if($activeBooking->queue_number)
                             <div>
                                 <p class="text-xs text-muted dark:text-on-dark-soft font-semibold uppercase tracking-wider font-display">Sisa Antrean</p>
                                 <p id="live-remaining-queues" class="text-3xl md:text-4xl font-extrabold text-status-waiting mt-1 tracking-tight font-mono animate-pulse">
@@ -107,11 +107,11 @@
                         
                         @php
                             $step = 1;
-                            if ($activeBooking->queue) {
+                            if ($activeBooking->queue_number) {
                                 $step = 2; // Check-In FO
-                                if ($activeBooking->queue->status === 'Serving') {
+                                if ($activeBooking->status === 'Serving') {
                                     $step = 3; // Menunggu Panggilan
-                                } elseif (in_array($activeBooking->queue->status, ['Completed', 'Skipped'])) {
+                                } elseif (in_array($activeBooking->status, ['Completed', 'Skipped'])) {
                                     $step = 4; // Dilayani / Selesai
                                 }
                             }
@@ -210,7 +210,7 @@
                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
                         </svg>
-                        Ambil Nomor Antrean Sekarang
+                        Buat Bookingan Sekarang
                     </a>
                 </div>
             </div>
@@ -220,16 +220,6 @@
             <div class="space-y-4">
                 <h3 class="text-lg font-bold text-ink dark:text-white font-display">Pintasan Aksi Utama</h3>
                 <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                    <!-- Booking Baru -->
-                    <a href="{{ route('booking.create') }}" class="bg-canvas dark:bg-surface-dark-elevated p-5 rounded-lg border border-hairline dark:border-white/10 shadow-xs hover:shadow-md hover:-translate-y-1 transition-all duration-300 group flex flex-col items-center text-center focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-accent-teal">
-                        <div class="w-12 h-12 bg-surface-soft dark:bg-white/5 text-primary dark:text-accent-teal rounded-lg flex items-center justify-center mb-3 group-hover:scale-110 group-hover:bg-primary group-hover:text-white transition-all border border-hairline dark:border-white/5">
-                            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                            </svg>
-                        </div>
-                        <h4 class="font-bold text-sm text-ink dark:text-white font-display">Ambil Antrean</h4>
-                        <p class="text-[10px] text-muted dark:text-on-dark-soft mt-0.5 font-body">Booking layanan baru</p>
-                    </a>
                     <!-- Riwayat -->
                     <a href="{{ route('booking.index') }}" class="bg-canvas dark:bg-surface-dark-elevated p-5 rounded-lg border border-hairline dark:border-white/10 shadow-xs hover:shadow-md hover:-translate-y-1 transition-all duration-300 group flex flex-col items-center text-center focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-accent-teal">
                         <div class="w-12 h-12 bg-surface-soft dark:bg-white/5 text-indigo-600 dark:text-indigo-400 rounded-lg flex items-center justify-center mb-3 group-hover:scale-110 group-hover:bg-indigo-600 group-hover:text-white transition-all border border-hairline dark:border-white/5">
@@ -283,19 +273,19 @@
                             <!-- Background circle -->
                             <path class="text-surface-strong dark:text-gray-700" stroke-width="3" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
                             <!-- Dynamic Progress circle -->
-                            <path id="density-gauge-circle" class="text-primary dark:text-accent-teal transition-all duration-1000 ease-out" stroke-dasharray="45, 100" stroke-width="3" stroke-linecap="round" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                            <path id="density-gauge-circle" class="{{ $densityClass }} transition-all duration-1000 ease-out" stroke-dasharray="{{ $densityPercentage }}, 100" stroke-width="3" stroke-linecap="round" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
                         </svg>
                         <div class="absolute inset-0 flex items-center justify-center">
-                            <span class="text-sm font-extrabold text-ink dark:text-white font-mono" id="density-percentage-text">45%</span>
+                            <span class="text-sm font-extrabold text-ink dark:text-white font-mono" id="density-percentage-text">{{ $densityPercentage }}%</span>
                         </div>
                     </div>
                     <div>
                         <div class="text-xs text-muted dark:text-on-dark-soft font-semibold font-display">Status Kepadatan</div>
                         <div class="text-lg font-extrabold text-ink dark:text-white mt-0.5 flex items-center gap-2 font-display">
-                            <span class="inline-block w-2.5 h-2.5 rounded-full bg-primary" id="density-status-dot"></span>
-                            <span id="density-status-text">Normal</span>
+                            <span class="inline-block w-2.5 h-2.5 rounded-full {{ $densityDot }}" id="density-status-dot"></span>
+                            <span id="density-status-text">{{ $densityStatus }}</span>
                         </div>
-                        <div class="text-[11px] text-muted dark:text-on-dark-soft mt-0.5 font-body" id="density-status-desc">Kondisi kondusif, waktu antrean singkat.</div>
+                        <div class="text-[11px] text-muted dark:text-on-dark-soft mt-0.5 font-body" id="density-status-desc">{{ $densityDescription }}</div>
                     </div>
                 </div>
             </div>
@@ -305,76 +295,23 @@
                 <h3 class="text-xs font-bold text-muted dark:text-on-dark-soft uppercase tracking-wider mb-4 font-display">Tenant Teramai Hari Ini</h3>
                 
                 <div class="space-y-4">
-                    <!-- Tenant 1: Disdukcapil -->
+                    @forelse($topDepartments as $index => $dept)
                     <div>
                         <div class="flex justify-between items-center text-xs font-bold mb-1 font-display">
-                            <span class="text-ink dark:text-white">Disdukcapil</span>
-                            <span class="text-primary dark:text-accent-teal font-mono" id="tenant-1-counter">18 Antrean</span>
+                            <span class="text-ink dark:text-white">{{ $dept['name'] }}</span>
+                            <span class="text-primary dark:text-accent-teal font-mono" id="tenant-{{ $index + 1 }}-counter">{{ $dept['queues_count'] }} Antrean</span>
                         </div>
                         <div class="w-full bg-surface-soft dark:bg-gray-700 rounded-full h-1.5 overflow-hidden">
-                            <div class="bg-primary h-1.5 rounded-full transition-all duration-1000" id="tenant-1-progress" style="width: 78%;"></div>
+                            <div class="bg-primary h-1.5 rounded-full transition-all duration-1000" id="tenant-{{ $index + 1 }}-progress" style="width: {{ $dept['progress_percent'] }}%;"></div>
                         </div>
                     </div>
-                    <!-- Tenant 2: Imigrasi -->
-                    <div>
-                        <div class="flex justify-between items-center text-xs font-bold mb-1 font-display">
-                            <span class="text-ink dark:text-white">Imigrasi</span>
-                            <span class="text-indigo-600 dark:text-indigo-400 font-mono" id="tenant-2-counter">12 Antrean</span>
-                        </div>
-                        <div class="w-full bg-surface-soft dark:bg-gray-700 rounded-full h-1.5 overflow-hidden">
-                            <div class="bg-indigo-500 h-1.5 rounded-full transition-all duration-1000" id="tenant-2-progress" style="width: 52%;"></div>
-                        </div>
-                    </div>
-                    <!-- Tenant 3: Samsat -->
-                    <div>
-                        <div class="flex justify-between items-center text-xs font-bold mb-1 font-display">
-                            <span class="text-ink dark:text-white">Samsat</span>
-                            <span class="text-status-waiting font-mono" id="tenant-3-counter">6 Antrean</span>
-                        </div>
-                        <div class="w-full bg-surface-soft dark:bg-gray-700 rounded-full h-1.5 overflow-hidden">
-                            <div class="bg-status-waiting h-1.5 rounded-full transition-all duration-1000" id="tenant-3-progress" style="width: 32%;"></div>
-                        </div>
-                    </div>
+                    @empty
+                    <p class="text-xs text-muted font-body">Belum ada antrean masuk hari ini.</p>
+                    @endforelse
                 </div>
             </div>
         </div>
     </div>
-
-    <!-- Demo Simulation Controller (Interactive Sandbox) -->
-    <div class="bg-surface-dark text-slate-100 rounded-lg p-6 border border-white/5 shadow-2xl relative overflow-hidden">
-        <div class="absolute right-0 bottom-0 translate-x-8 translate-y-8 opacity-10 pointer-events-none">
-            <svg class="w-48 h-48 animate-spin-slow" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /></svg>
-        </div>
-        <div class="relative z-10 space-y-4">
-            <div class="flex items-center justify-between border-b border-white/10 pb-3">
-                <div class="flex items-center gap-2">
-                    <span class="w-2.5 h-2.5 bg-accent-teal rounded-full animate-pulse"></span>
-                    <h4 class="font-extrabold text-sm tracking-wide uppercase font-display">Sandbox Simulasi Real-time</h4>
-                </div>
-                <span class="text-[10px] bg-white/10 px-2 py-0.5 rounded-md text-on-dark-soft font-bold uppercase font-display">Demo Mode</span>
-            </div>
-            
-            <p class="text-xs text-on-dark-soft leading-relaxed max-w-2xl font-body">Sandbox client-side ini mensimulasikan data live antrean MPP. Anda dapat membiarkannya berjalan otomatis (polling client-side) atau mengontrolnya secara manual untuk melihat transisi visual, kemajuan stepper, status kepadatan, dan alarm panggilan.</p>
-            
-            <div class="flex flex-wrap items-center gap-3 pt-2">
-                <button type="button" onclick="advanceSimQueue()" class="h-11 flex items-center gap-1.5 px-4 bg-primary hover:bg-primary-hover active:scale-95 text-white font-semibold rounded-pill text-xs transition-all shadow-md focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-accent-teal cursor-pointer">
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                    Panggil Antrean (+1)
-                </button>
-                <button type="button" onclick="toggleSimAuto()" id="btn-auto-sim" class="h-11 flex items-center gap-1.5 px-4 bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-semibold rounded-pill text-xs transition-all shadow-md focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-accent-teal cursor-pointer">
-                    <span class="w-2 h-2 bg-white rounded-full animate-ping" id="auto-ping"></span>
-                    <span>Auto-Play: ON (5s)</span>
-                </button>
-                <button type="button" onclick="resetSim()" class="h-11 flex items-center gap-1.5 px-4 bg-white/5 hover:bg-white/10 active:scale-95 text-white font-semibold rounded-pill text-xs transition-all focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-accent-teal cursor-pointer border border-white/10">
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.21 7.89" /></svg>
-                    Reset
-                </button>
-                <div class="ml-auto text-[10px] text-on-dark-soft font-mono" id="sim-status-log">Status: Menunggu Antrean...</div>
-            </div>
-        </div>
-    </div>
-</div>
-
 @if($activeBooking)
 <!-- Custom QR Code Modal Overlay -->
 <div id="qr-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 items-center justify-center p-4 opacity-0 transition-opacity duration-300 hidden">
@@ -395,56 +332,9 @@
 
             <!-- Pixel-perfect Mock QR Code -->
             <div class="bg-white p-6 rounded-lg border border-hairline inline-block shadow-inner mx-auto relative group">
-                <svg class="w-48 h-48 mx-auto" viewBox="0 0 100 100" fill="currentColor">
-                    <!-- Positioning Squares -->
-                    <rect x="0" y="0" width="25" height="25" fill="#1e293b" />
-                    <rect x="3" y="3" width="19" height="19" fill="#ffffff" />
-                    <rect x="6" y="6" width="13" height="13" fill="#1B4FA8" />
-
-                    <rect x="75" y="0" width="25" height="25" fill="#1e293b" />
-                    <rect x="78" y="3" width="19" height="19" fill="#ffffff" />
-                    <rect x="81" y="6" width="13" height="13" fill="#1B4FA8" />
-
-                    <rect x="0" y="75" width="25" height="25" fill="#1e293b" />
-                    <rect x="3" y="78" width="19" height="19" fill="#ffffff" />
-                    <rect x="6" y="81" width="13" height="13" fill="#1B4FA8" />
-
-                    <!-- Small alignment squares -->
-                    <rect x="70" y="70" width="10" height="10" fill="#1e293b" />
-                    <rect x="72" y="72" width="6" height="6" fill="#ffffff" />
-                    <rect x="74" y="74" width="2" height="2" fill="#1B4FA8" />
-
-                    <!-- Randomly scattered blocks mimicking QR patterns -->
-                    <rect x="30" y="2" width="10" height="4" fill="#1e293b" />
-                    <rect x="45" y="5" width="8" height="5" fill="#1e293b" />
-                    <rect x="60" y="3" width="5" height="15" fill="#1B4FA8" />
-                    <rect x="35" y="12" width="12" height="6" fill="#1e293b" />
-                    
-                    <rect x="2" y="30" width="15" height="5" fill="#1e293b" />
-                    <rect x="25" y="28" width="6" height="12" fill="#1B4FA8" />
-                    <rect x="38" y="32" width="20" height="8" fill="#1e293b" />
-                    <rect x="65" y="25" width="8" height="12" fill="#1e293b" />
-                    
-                    <rect x="5" y="50" width="12" height="6" fill="#1B4FA8" />
-                    <rect x="25" y="48" width="15" height="10" fill="#1e293b" />
-                    <rect x="48" y="45" width="25" height="5" fill="#1e293b" />
-                    <rect x="80" y="35" width="12" height="15" fill="#1B4FA8" />
-                    
-                    <rect x="35" y="65" width="15" height="15" fill="#1e293b" />
-                    <rect x="55" y="60" width="10" height="10" fill="#1B4FA8" />
-                    <rect x="68" y="55" width="8" height="8" fill="#1e293b" />
-                    
-                    <rect x="30" y="85" width="25" height="6" fill="#1B4FA8" />
-                    <rect x="60" y="82" width="6" height="12" fill="#1e293b" />
-                    
-                    <!-- Custom logo in the middle -->
-                    <rect x="40" y="40" width="20" height="20" fill="#ffffff" rx="2" />
-                    <circle cx="50" cy="50" r="8" fill="#1B4FA8" />
-                    <circle cx="50" cy="50" r="5" fill="#ffffff" />
-                </svg>
-                
-                <!-- Pulse Ring around QR -->
-                <div class="absolute inset-0 border-4 border-blue-500/0 rounded-lg group-hover:border-blue-500/20 transition-all duration-700 animate-pulse pointer-events-none"></div>
+                <img src="https://api.qrserver.com/v1/create-qr-code/?size=192x192&data={{ urlencode($activeBooking->booking_code) }}" 
+                     alt="QR Code Booking" 
+                     class="w-48 h-48 mx-auto object-contain">
             </div>
 
             <div class="space-y-1.5">
@@ -469,21 +359,7 @@
 </div>
 @endif
 
-<!-- Custom Notification Audio Alert -->
-<audio id="notif-sound" src="https://assets.mixkit.co/active_storage/sfx/2568/2568-84.wav" preload="auto"></audio>
-
-<!-- Simulation Javascript Logic -->
 <script>
-    // State variables
-    let simState = {
-        userQueue: 15, // A-015
-        currentQueue: 10, // A-010
-        totalRemaining: 5,
-        autoPlay: true,
-        buildingDensity: 45,
-        intervalId: null
-    };
-
     // Format date helper
     function formatIndonesianDate() {
         const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
@@ -494,248 +370,38 @@
 
     // Init state
     document.addEventListener('DOMContentLoaded', () => {
-        document.getElementById('live-date-display').innerText = formatIndonesianDate();
-        
-        // Start auto-play by default
-        startSimTimer();
+        const liveDate = document.getElementById('live-date-display');
+        if (liveDate) {
+            liveDate.innerText = formatIndonesianDate();
+        }
     });
-
-    // Start Timer
-    function startSimTimer() {
-        if (simState.intervalId) clearInterval(simState.intervalId);
-        simState.intervalId = setInterval(() => {
-            advanceSimQueue();
-        }, 5000);
-    }
-
-    // Stop Timer
-    function stopSimTimer() {
-        if (simState.intervalId) {
-            clearInterval(simState.intervalId);
-            simState.intervalId = null;
-        }
-    }
-
-    // Toggle Timer
-    function toggleSimAuto() {
-        simState.autoPlay = !simState.autoPlay;
-        const btn = document.getElementById('btn-auto-sim');
-        const ping = document.getElementById('auto-ping');
-        
-        if (simState.autoPlay) {
-            btn.classList.remove('bg-rose-600', 'hover:bg-rose-500');
-            btn.classList.add('bg-emerald-600', 'hover:bg-emerald-500');
-            btn.querySelector('span:not(#auto-ping)').innerText = 'Auto-Play: ON (5s)';
-            ping.classList.remove('hidden');
-            startSimTimer();
-        } else {
-            btn.classList.remove('bg-emerald-600', 'hover:bg-emerald-500');
-            btn.classList.add('bg-rose-600', 'hover:bg-rose-500');
-            btn.querySelector('span:not(#auto-ping)').innerText = 'Auto-Play: OFF';
-            ping.classList.add('hidden');
-            stopSimTimer();
-        }
-    }
-
-    // Reset Simulation
-    function resetSim() {
-        simState.currentQueue = 10;
-        simState.totalRemaining = 5;
-        simState.buildingDensity = 45;
-        updateDOM();
-        
-        // Reset stepper visual elements
-        const step3Badge = document.getElementById('step-3-badge');
-        if (step3Badge) {
-            step3Badge.className = "w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm bg-primary/10 dark:bg-primary/20 text-primary dark:text-accent-teal border-2 border-primary animate-pulse transition-all duration-300";
-            step3Badge.innerText = "3";
-        }
-        
-        const step4Badge = document.getElementById('step-4-badge');
-        if (step4Badge) {
-            step4Badge.className = "w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm bg-surface-strong dark:bg-gray-700 text-muted border-2 border-hairline dark:border-gray-600 transition-all duration-300";
-            step4Badge.innerText = "4";
-        }
-        
-        const stepperLine = document.getElementById('stepper-progress-line');
-        if (stepperLine) {
-            stepperLine.style.width = "33.33%";
-        }
-        
-        const simStatusLog = document.getElementById('sim-status-log');
-        if (simStatusLog) {
-            simStatusLog.innerText = "Status: Reset ke A-010";
-        }
-    }
-
-    // Increment queue
-    function advanceSimQueue() {
-        if (simState.currentQueue < simState.userQueue) {
-            simState.currentQueue++;
-            simState.totalRemaining = simState.userQueue - simState.currentQueue;
-            
-            // Fluctuating building density
-            simState.buildingDensity = Math.min(95, Math.max(20, simState.buildingDensity + Math.floor(Math.random() * 9) - 4));
-            
-            updateDOM();
-            triggerAlertSound();
-            
-            const simStatusLog = document.getElementById('sim-status-log');
-            if (simStatusLog) {
-                simStatusLog.innerText = `Status: Antrean dipanggil -> A-0${simState.currentQueue}`;
-            }
-            
-            // When it reaches user's queue
-            if (simState.currentQueue === simState.userQueue) {
-                // Change stepper state to "Sedang Dilayani"
-                const stepperLine = document.getElementById('stepper-progress-line');
-                if (stepperLine) {
-                    stepperLine.style.width = "100%";
-                }
-                
-                const step3Badge = document.getElementById('step-3-badge');
-                if (step3Badge) {
-                    step3Badge.className = "w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm bg-green-100 dark:bg-green-900/40 text-green-600 dark:text-green-400 border-2 border-green-500 transition-all duration-300";
-                    step3Badge.innerHTML = `<svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg>`;
-                }
-                
-                const step4Badge = document.getElementById('step-4-badge');
-                if (step4Badge) {
-                    step4Badge.className = "w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm bg-primary/10 dark:bg-primary/20 text-primary dark:text-accent-teal border-2 border-primary animate-pulse transition-all duration-300";
-                    step4Badge.innerText = "4";
-                }
-                
-                // Notify user via browser toast/alert
-                setTimeout(() => {
-                    alert("🔔 GILIRAN ANDA! Nomor antrean A-015 dipanggil ke Gerai Disdukcapil.");
-                }, 500);
-                
-                if (simStatusLog) {
-                    simStatusLog.innerText = "Status: Giliran Anda!";
-                }
-                stopSimTimer();
-            }
-        } else {
-            const simStatusLog = document.getElementById('sim-status-log');
-            if (simStatusLog) {
-                simStatusLog.innerText = "Status: Mencapai batas antrean";
-            }
-        }
-    }
-
-    // Update DOM elements
-    function updateDOM() {
-        if (simState.currentQueue === 0) return;
-        
-        // Update queue counters
-        const liveCurrent = document.getElementById('live-current-queue');
-        if (liveCurrent) liveCurrent.innerText = `A-0${simState.currentQueue}`;
-        
-        const liveRemaining = document.getElementById('live-remaining-queues');
-        if (liveRemaining) liveRemaining.innerText = `${simState.totalRemaining} Orang`;
-        
-        // Update estimated waiting time
-        const waitTime = simState.totalRemaining * 3;
-        const liveWaitingTime = document.getElementById('live-waiting-time');
-        if (liveWaitingTime) liveWaitingTime.innerText = `Estimasi: ±${waitTime} Menit`;
-        
-        // Update density gauge elements
-        const percent = simState.buildingDensity;
-        const densityPercentText = document.getElementById('density-percentage-text');
-        if (densityPercentText) densityPercentText.innerText = `${percent}%`;
-        
-        const circle = document.getElementById('density-gauge-circle');
-        if (circle) circle.setAttribute('stroke-dasharray', `${percent}, 100`);
-        
-        const dot = document.getElementById('density-status-dot');
-        const text = document.getElementById('density-status-text');
-        const desc = document.getElementById('density-status-desc');
-        
-        if (percent < 40) {
-            if (text) text.innerText = 'Sepi';
-            if (dot) dot.className = 'inline-block w-2.5 h-2.5 rounded-full bg-emerald-500';
-            if (circle) circle.className = 'text-emerald-500 transition-all duration-1000 ease-out';
-            if (desc) desc.innerText = 'Kondisi senggang, tidak ada antrean berarti.';
-        } else if (percent < 70) {
-            if (text) text.innerText = 'Normal';
-            if (dot) dot.className = 'inline-block w-2.5 h-2.5 rounded-full bg-primary';
-            if (circle) circle.className = 'text-primary dark:text-accent-teal transition-all duration-1000 ease-out';
-            if (desc) desc.innerText = 'Kondisi kondusif, waktu antrean singkat.';
-        } else {
-            if (text) text.innerText = 'Sangat Ramai';
-            if (dot) dot.className = 'inline-block w-2.5 h-2.5 rounded-full bg-rose-500 animate-pulse';
-            if (circle) circle.className = 'text-rose-500 transition-all duration-1000 ease-out';
-            if (desc) desc.innerText = 'Gedung padat, waktu tunggu lebih lama.';
-        }
-        
-        // Tenant fluctuations
-        const t1 = Math.max(1, 18 + Math.floor(Math.random() * 5) - 2);
-        const tenant1Counter = document.getElementById('tenant-1-counter');
-        if (tenant1Counter) tenant1Counter.innerText = `${t1} Antrean`;
-        const tenant1Progress = document.getElementById('tenant-1-progress');
-        if (tenant1Progress) tenant1Progress.style.width = `${Math.min(100, Math.floor(t1 / 22 * 100))}%`;
-
-        const t2 = Math.max(1, 12 + Math.floor(Math.random() * 3) - 1);
-        const tenant2Counter = document.getElementById('tenant-2-counter');
-        if (tenant2Counter) tenant2Counter.innerText = `${t2} Antrean`;
-        const tenant2Progress = document.getElementById('tenant-2-progress');
-        if (tenant2Progress) tenant2Progress.style.width = `${Math.min(100, Math.floor(t2 / 20 * 100))}%`;
-
-        const t3 = Math.max(1, 6 + Math.floor(Math.random() * 3) - 1);
-        const tenant3Counter = document.getElementById('tenant-3-counter');
-        if (tenant3Counter) tenant3Counter.innerText = `${t3} Antrean`;
-        const tenant3Progress = document.getElementById('tenant-3-progress');
-        if (tenant3Progress) tenant3Progress.style.width = `${Math.min(100, Math.floor(t3 / 15 * 100))}%`;
-    }
-
-    // Play chime sound
-    function triggerAlertSound() {
-        const aud = document.getElementById('notif-sound');
-        if (aud) {
-            aud.currentTime = 0;
-            aud.play().catch(e => console.log("Audio play prevented. Interaction needed."));
-        }
-    }
 
     // QR Modal Controls
     function openQrModal() {
         const modal = document.getElementById('qr-modal');
         const card = document.getElementById('qr-modal-card');
-        modal.classList.remove('hidden');
-        setTimeout(() => {
-            modal.classList.remove('opacity-0');
-            card.classList.remove('scale-95');
-            card.classList.add('scale-100');
-        }, 50);
+        if (modal && card) {
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                card.classList.remove('scale-95');
+                card.classList.add('scale-100');
+            }, 50);
+        }
     }
 
     function closeQrModal() {
         const modal = document.getElementById('qr-modal');
         const card = document.getElementById('qr-modal-card');
-        modal.classList.add('opacity-0');
-        card.classList.remove('scale-100');
-        card.classList.add('scale-95');
-        setTimeout(() => {
-            modal.classList.add('hidden');
-        }, 300);
-    }
-
-    // New action scripts
-    function rescheduleQueue() {
-        if (confirm("Apakah Anda yakin ingin mengubah jadwal antrean?")) {
-            alert("Fitur Ubah Jadwal: Pendaftaran berhasil dipindahkan ke sesi waktu berikutnya.");
-        }
-    }
-    
-    function cancelQueue() {
-        if (confirm("Apakah Anda yakin ingin membatalkan antrean ini?")) {
-            simState.currentQueue = 0;
-            simState.totalRemaining = 0;
-            stopSimTimer();
-            document.getElementById('live-current-queue').innerText = '-';
-            document.getElementById('live-remaining-queues').innerText = 'Dibatalkan';
-            document.getElementById('live-waiting-time').innerText = '-';
-            alert("Antrean Anda telah berhasil dibatalkan.");
+        if (modal && card) {
+            modal.classList.add('opacity-0');
+            card.classList.remove('scale-100');
+            card.classList.add('scale-95');
+            setTimeout(() => {
+                modal.classList.remove('flex');
+                modal.classList.add('hidden');
+            }, 300);
         }
     }
 </script>

@@ -16,7 +16,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-#[Fillable(['name', 'nik', 'email', 'phone_number', 'no_telp', 'avatar_path', 'ktp_photo_path', 'password', 'role', 'departments_id', 'nomor_loket', 'is_active', 'last_login_at'])]
+#[Fillable(['name', 'nik', 'email', 'no_telp', 'phone_number', 'avatar_path', 'ktp_photo_path', 'password', 'role', 'department_id', 'is_active', 'last_login_at'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable implements MustVerifyEmail
 {
@@ -62,9 +62,9 @@ class User extends Authenticatable implements MustVerifyEmail
      *
      * @param  Builder  $query
      */
-    public function scopeByInstansi($query, $departments_id): void
+    public function scopeByInstansi($query, $department_id): void
     {
-        $query->where('departments_id', $departments_id);
+        $query->where('department_id', $department_id);
     }
 
     /** Filter hanya akun aktif. */
@@ -175,16 +175,6 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
-     * Get the notifications for the user.
-     *
-     * @return HasMany<Notification>
-     */
-    public function notifications(): HasMany
-    {
-        return $this->hasMany(Notification::class);
-    }
-
-    /**
      * Get the feedbacks submitted by the user.
      *
      * @return HasMany<Feedback>
@@ -211,40 +201,56 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
+     * Accessor untuk keselarasan dengan attribute lama departments_id.
+     */
+    public function getDepartmentsIdAttribute(): ?int
+    {
+        return $this->department_id ? (int) $this->department_id : null;
+    }
+
+    /**
+     * Mutator untuk keselarasan dengan attribute lama departments_id.
+     */
+    public function setDepartmentsIdAttribute(?int $value): void
+    {
+        $this->attributes['department_id'] = $value;
+    }
+
+    /**
      * Get the department that owns this user.
      */
     public function department(): BelongsTo
     {
-        return $this->belongsTo(Department::class, 'departments_id');
+        return $this->belongsTo(Department::class, 'department_id');
     }
 
     /**
-     * Sesi loket fisik petugas secara dinamis dari departemennya.
-     */
-    public function getCounterAttribute(): ?Counter
-    {
-        if (! $this->departments_id) {
-            return null;
-        }
-
-        return Counter::where('department_id', $this->departments_id)->first();
-    }
-
-    /**
-     * Dapatkan ID loket secara dinamis.
-     */
-    public function getCounterIdAttribute(): ?int
-    {
-        return $this->counter?->id;
-    }
-
-    /**
-     * Bookings made by this user (customer).
+     * Get the queues for this user.
      *
-     * @return HasMany<Booking>
+     * @return HasMany<Queue>
      */
-    public function bookings(): HasMany
+    public function queues(): HasMany
     {
-        return $this->hasMany(Booking::class);
+        return $this->hasMany(Queue::class);
+    }
+
+    /**
+     * Get the reports created by this user.
+     *
+     * @return HasMany<Report>
+     */
+    public function reports(): HasMany
+    {
+        return $this->hasMany(Report::class, 'created_by');
+    }
+
+    /**
+     * Get the settings updated by this user.
+     *
+     * @return HasMany<Setting>
+     */
+    public function updatedSettings(): HasMany
+    {
+        return $this->hasMany(Setting::class, 'updated_by');
     }
 }

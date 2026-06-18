@@ -182,18 +182,18 @@
         <tbody>
             @forelse ($queues as $index => $q)
                 @php
-                    $name = $q->visitor ? $q->visitor->name : ($q->booking?->user?->name ?? '-');
-                    $nik = $q->visitor ? $q->visitor->nik : ($q->booking?->user?->nik ?? '-');
-                    $deptName = $q->service?->department?->name ?? '-';
+                    $name = $q->user?->name ?? '-';
+                    $nik = $q->user?->nik ?? '-';
+                    $deptName = $q->department?->name ?? '-';
                 @endphp
                 <tr>
                     <td style="text-align: center;">{{ $index + 1 }}</td>
-                    <td>{{ $q->queue_date instanceof \Carbon\Carbon ? $q->queue_date->format('d-m-Y') : (string) $q->queue_date }}</td>
+                    <td>{{ $q->booking_date instanceof \Carbon\Carbon ? $q->booking_date->format('d-m-Y') : (string) $q->booking_date }}</td>
                     <td style="font-weight: bold; color: #1B4FA8;">{{ $q->queue_number }}</td>
                     <td>{{ $nik }}</td>
                     <td style="font-weight: bold;">{{ $name }}</td>
                     <td>{{ $deptName }}</td>
-                    <td>{{ $q->service?->name ?? '-' }}</td>
+                    <td>{{ $q->purpose ?? '-' }}</td>
                     <td>{{ $q->called_at ? \Carbon\Carbon::parse($q->called_at)->format('H:i:s') : '—' }}</td>
                     <td>{{ $q->completed_at ? \Carbon\Carbon::parse($q->completed_at)->format('H:i:s') : '—' }}</td>
                 </tr>

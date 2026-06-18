@@ -2,12 +2,13 @@
 
 namespace App\Models;
 
+use App\Enums\BoothStatus;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\HasManyThrough;
+use Illuminate\Support\Facades\Cache;
 
-#[Fillable(['name', 'inisial', 'logo', 'description', 'is_open'])]
+#[Fillable(['name', 'inisial', 'nomor_loket', 'logo', 'description', 'is_open'])]
 class Department extends Model
 {
     protected $casts = [
@@ -15,33 +16,46 @@ class Department extends Model
     ];
 
     /**
-     * Get the services offered by this department.
-     *
-     * @return HasMany<Service, $this>
+     * Get the booth operational status.
      */
-    public function services(): HasMany
+    public function getStatusAttribute(): BoothStatus
     {
-        return $this->hasMany(Service::class);
+        $cached = Cache::get("loket_status_{$this->id}");
+        if ($cached) {
+            if ($cached === 'aktif' || $cached === 'buka') {
+                return BoothStatus::Buka;
+            }
+            if ($cached === 'nonaktif' || $cached === 'tutup') {
+                return BoothStatus::Tutup;
+            }
+
+            return BoothStatus::tryFrom((string) $cached) ?? BoothStatus::Buka;
+        }
+
+        return $this->is_open ? BoothStatus::Buka : BoothStatus::Tutup;
     }
 
     /**
-     * Get the counters (loket) associated with this department.
-     *
-     * @return HasMany<Counter, $this>
+     * Set the booth operational status.
      */
-    public function counters(): HasMany
+    public function setStatusAttribute(BoothStatus|string $value): void
     {
-        return $this->hasMany(Counter::class);
+        $statusEnum = $value instanceof BoothStatus ? $value : BoothStatus::tryFrom((string) $value);
+
+        if ($statusEnum) {
+            Cache::put("loket_status_{$this->id}", $statusEnum->value, now()->addDay());
+            $this->is_open = ($statusEnum === BoothStatus::Buka);
+        }
     }
 
     /**
-     * Get the queues for this department through counters.
+     * Get the queues for this department.
      *
-     * @return HasManyThrough<Queue, Counter, $this>
+     * @return HasMany<Queue, $this>
      */
-    public function queues(): HasManyThrough
+    public function queues(): HasMany
     {
-        return $this->hasManyThrough(Queue::class, Counter::class);
+        return $this->hasMany(Queue::class);
     }
 
     /**
@@ -51,6 +65,6 @@ class Department extends Model
      */
     public function users(): HasMany
     {
-        return $this->hasMany(User::class, 'departments_id');
+        return $this->hasMany(User::class, 'department_id');
     }
 }

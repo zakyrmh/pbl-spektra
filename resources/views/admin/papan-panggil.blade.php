@@ -133,7 +133,7 @@
                         </form>
 
                         @if($activeBooking)
-                            <form action="{{ route('admin.papan-panggil.complete', $activeBooking) }}" method="POST" class="inline-block">
+                            <form action="{{ route('admin.papan-panggil.complete', $activeBooking->id) }}" method="POST" class="inline-block">
                                 @csrf
                                 <button type="submit" class="h-11 px-6 bg-status-serving/10 hover:bg-status-serving/20 text-status-serving border border-status-serving/20 font-semibold rounded-pill shadow-xs transition-all cursor-pointer inline-flex items-center gap-2 text-sm focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-accent-teal">
                                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
@@ -177,7 +177,7 @@
                              x-cloak
                              class="mt-4 p-4 bg-rose-50 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-800/30 rounded-lg space-y-3">
                             <h4 class="text-title-sm font-bold text-rose-800 dark:text-rose-400">Lewati / Batalkan Antrean Aktif</h4>
-                            <form action="{{ route('admin.papan-panggil.skip', $activeBooking) }}" method="POST" class="space-y-3">
+                            <form action="{{ route('admin.papan-panggil.skip', $activeBooking->id) }}" method="POST" class="space-y-3">
                                 @csrf
                                 <div class="space-y-1">
                                     <label for="cancel_reason" class="block text-title-sm font-semibold text-rose-700 dark:text-rose-300 mb-2">Alasan Lewati / Batal</label>

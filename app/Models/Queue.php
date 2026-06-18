@@ -10,24 +10,28 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
 #[Fillable([
-    'booking_id',
-    'visitor_id',
-    'counter_id',
-    'service_id',
+    'user_id',
+    'department_id',
+    'booking_code',
+    'purpose',
+    'session_name',
+    'booking_date',
     'queue_number',
     'status',
+    'cancel_reason',
+    'checked_in_at',
     'called_at',
     'completed_at',
-    'queue_date',
 ])]
 class Queue extends Model
 {
     protected function casts(): array
     {
         return [
+            'booking_date' => 'date',
+            'checked_in_at' => 'datetime',
             'called_at' => 'datetime',
             'completed_at' => 'datetime',
-            'queue_date' => 'date',
         ];
     }
 
@@ -52,42 +56,22 @@ class Queue extends Model
     }
 
     /**
-     * Get the booking that triggered this queue.
+     * Get the user who owns this queue.
      *
-     * @return BelongsTo<Booking, $this>
+     * @return BelongsTo<User, $this>
      */
-    public function booking(): BelongsTo
+    public function user(): BelongsTo
     {
-        return $this->belongsTo(Booking::class);
+        return $this->belongsTo(User::class);
     }
 
     /**
-     * Get the walk-in visitor that owns this queue ticket.
+     * Get the department associated with this queue.
      *
-     * @return BelongsTo<Visitor, $this>
+     * @return BelongsTo<Department, $this>
      */
-    public function visitor(): BelongsTo
+    public function department(): BelongsTo
     {
-        return $this->belongsTo(Visitor::class);
-    }
-
-    /**
-     * Get the counter (loket) processing this queue.
-     *
-     * @return BelongsTo<Counter, $this>
-     */
-    public function counter(): BelongsTo
-    {
-        return $this->belongsTo(Counter::class);
-    }
-
-    /**
-     * Get the service for this queue.
-     *
-     * @return BelongsTo<Service, $this>
-     */
-    public function service(): BelongsTo
-    {
-        return $this->belongsTo(Service::class);
+        return $this->belongsTo(Department::class);
     }
 }

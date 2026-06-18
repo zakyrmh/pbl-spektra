@@ -88,6 +88,32 @@ class WaitingListService
     }
 
     /**
+     * Cancel booking.
+     */
+    public function cancel(Queue $queue, string $reason): void
+    {
+        DB::transaction(function () use ($queue, $reason) {
+
+            $queue->update([
+                'status' => QueueStatus::Cancelled->value,
+                'cancel_reason' => $reason,
+                'cancelled_at' => now(),
+            ]);
+
+            ActivityLog::record(
+                action: 'CANCEL_BOOKING',
+                modelType: 'Queue',
+                modelId: $queue->id,
+                description: "Operator Gerai membatalkan booking {$queue->booking_code}. Alasan: {$reason}",
+                actorUserId: Auth::id(),
+            );
+
+            // Dispatch broadcast event
+            event(new QueueCreated($queue));
+        });
+    }
+
+    /**
      * Restore cancelled queue status.
      */
     public function restore(Queue $queue): void

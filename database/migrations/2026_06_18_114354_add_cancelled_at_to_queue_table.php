@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('queue', function (Blueprint $table) {
+        Schema::table('queues', function (Blueprint $table) {
             $table->timestamp('cancelled_at')->nullable()->after('completed_at');
         });
     }

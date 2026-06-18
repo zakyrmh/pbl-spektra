@@ -21,6 +21,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
     'cancel_reason',
     'checked_in_at',
     'called_at',
+    'cancelled_at',
     'completed_at',
 ])]
 class Queue extends Model
@@ -31,6 +32,7 @@ class Queue extends Model
             'booking_date' => 'date',
             'checked_in_at' => 'datetime',
             'called_at' => 'datetime',
+            'cancelled_at' => 'datetime',
             'completed_at' => 'datetime',
         ];
     }

@@ -157,7 +157,7 @@ Route::middleware('auth')->group(function () {
 
         // Pembatalan Booking
         Route::get('/fo/bookings', [BookingCancellationController::class, 'index'])->name('admin.fo.bookings.index');
-        Route::post('/fo/bookings/{booking}/cancel', [BookingCancellationController::class, 'cancel'])->name('admin.fo.bookings.cancel');
+        // Route::post('/fo/bookings/{booking}/cancel', [BookingCancellationController::class, 'cancel'])->name('admin.fo.bookings.cancel');
 
         // Tiket Walk-In
         Route::get('/fo/ticket/create', [WalkInTicketController::class, 'create'])->name('admin.fo.ticket.create');
@@ -186,6 +186,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/admin/daftar-tunggu', [DaftarTungguController::class, 'index'])->name('admin.daftar-tunggu');
         Route::post('/admin/daftar-tunggu/{booking}/check-in', [DaftarTungguController::class, 'checkIn'])->name('admin.daftar-tunggu.check-in');
         Route::post('/admin/daftar-tunggu/{booking}/restore', [DaftarTungguController::class, 'restore'])->name('admin.daftar-tunggu.restore');
+        Route::post('/admin/daftar-tunggu/{booking}/cancel', [DaftarTungguController::class, 'cancel'])->name('admin.daftar-tunggu.cancel');
 
         // ── Log Pelayanan ─────────────────────────────────────────────────
         Route::get('/admin/log-pelayanan', [LogPelayananController::class, 'index'])->name('admin.log-pelayanan');

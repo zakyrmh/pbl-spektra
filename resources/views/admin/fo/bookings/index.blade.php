@@ -106,7 +106,7 @@
                             <th class="py-4 px-6">Identitas Warga</th>
                             <th class="py-4 px-6">Tujuan Layanan</th>
                             <th class="py-4 px-6">Tanggal & Sesi</th>
-                            <th class="py-4 px-6 text-right">Aksi</th>
+                            {{-- <th class="py-4 px-6 text-right">Aksi</th> --}}
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-hairline dark:divide-white/10 text-sm font-body text-body dark:text-on-dark">
@@ -129,20 +129,12 @@
                                     <div class="font-semibold">{{ $booking->booking_date->translatedFormat('d M Y') }}</div>
                                     <div class="text-xs text-muted dark:text-on-dark-soft mt-0.5">Sesi: {{ $booking->session_name ?? 'Umum' }}</div>
                                 </td>
-                                <td class="py-4 px-6 text-right whitespace-nowrap">
-                                    <button type="button" 
-                                            @click="openCancelModal('{{ route('admin.fo.bookings.cancel', $booking) }}', '{{ $booking->booking_code }}', '{{ $booking->user->name }}', '{{ $booking->purpose }}')"
-                                            class="inline-flex h-9 items-center justify-center gap-1 px-4 bg-status-skipped/10 hover:bg-status-skipped text-status-skipped hover:text-white font-bold text-xs rounded-pill border border-status-skipped/20 transition-all cursor-pointer">
-                                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                        </svg>
-                                        Batalkan
-                                    </button>
+                                {{-- Aksi pembatalan dinonaktifkan sesuai Change Request #1 --}}
                                 </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="5" class="py-12 text-center text-muted dark:text-on-dark-soft font-body">
+                                <td colspan="4" class="py-12 text-center text-muted dark:text-on-dark-soft font-body">
                                     <div class="w-12 h-12 bg-surface-soft dark:bg-white/5 rounded-full flex items-center justify-center mx-auto mb-3 border border-hairline dark:border-white/5">
                                         <svg class="w-6 h-6 text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -158,7 +150,7 @@
             </div>
         </div>
 
-        {{-- Cancellation Modal Overlay --}}
+        {{-- Cancellation Modal Overlay (Disabled under Change Request #1)
         <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 opacity-0 transition-opacity duration-300 pointer-events-none"
              :class="modalOpen ? 'opacity-100 pointer-events-auto' : ''"
              x-cloak>
@@ -167,7 +159,6 @@
                  :class="modalOpen ? 'scale-100' : 'scale-95'"
                  @click.away="modalOpen = false">
                 
-                {{-- Close button --}}
                 <button type="button" 
                         @click="modalOpen = false" 
                         class="absolute top-4 right-4 text-muted hover:text-ink dark:hover:text-white p-1 rounded-full hover:bg-surface-soft dark:hover:bg-white/10 transition-colors cursor-pointer">
@@ -179,7 +170,6 @@
                 <h3 class="font-extrabold text-xl text-ink dark:text-white leading-tight font-display mb-2">Konfirmasi Pembatalan</h3>
                 <p class="text-xs text-muted dark:text-on-dark-soft mb-6 font-body">Anda akan membatalkan reservasi antrean berikut. Aksi ini tidak dapat diurungkan.</p>
 
-                {{-- Target Booking Detail Card --}}
                 <div class="bg-surface-soft dark:bg-white/5 border border-hairline dark:border-white/5 p-4 rounded-lg text-xs space-y-2 mb-6">
                     <div class="flex justify-between">
                         <span class="text-muted font-medium">Kode Booking</span>
@@ -195,7 +185,6 @@
                     </div>
                 </div>
 
-                {{-- Form input reason --}}
                 <form :action="actionUrl" method="POST" class="space-y-4">
                     @csrf
                     <div class="space-y-2">
@@ -232,6 +221,7 @@
 
             </div>
         </div>
+        --}}
 
     </div>
 @endsection

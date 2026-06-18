@@ -80,4 +80,23 @@ final class DaftarTungguController extends Controller
             return back()->with('error', 'Gagal memulihkan booking: '.$e->getMessage());
         }
     }
+
+    /**
+     * Batalkan booking dari daftar tunggu.
+     * POST /admin/daftar-tunggu/{booking}/cancel
+     */
+    public function cancel(WaitingListActionRequest $request, Queue $booking): RedirectResponse
+    {
+        if ($booking->department_id !== Auth::user()->departments_id) {
+            abort(403, 'Anda tidak memiliki hak akses untuk membatalkan booking ini.');
+        }
+
+        try {
+            $this->waitingListService->cancel($booking, $request->reason);
+
+            return back()->with('success', 'Booking berhasil dibatalkan');
+        } catch (\Exception $e) {
+            return back()->with('error', 'Gagal memproses pembatalan: '.$e->getMessage());
+        }
+    }
 }

@@ -12,7 +12,6 @@ class DepartmentSeeder extends Seeder
     public function run(): void
     {
         $departments = [
-            ['name' => 'Front Office', 'inisial' => 'FO', 'nomor_loket' => '00', 'description' => 'Loket Front Office Terdepan'],
             ['name' => 'DPMPTSPNaker', 'inisial' => 'DPTK', 'nomor_loket' => '01', 'description' => 'Dinas Penanaman Modal, Pelayanan Terpadu Satu Pintu dan Tenaga Kerja'],
             ['name' => 'BNNK', 'inisial' => 'BNNK', 'nomor_loket' => '02', 'description' => 'Badan Narkotika Nasional Kota'],
             ['name' => 'Sawahlunto Siap Kerja', 'inisial' => 'SSK', 'nomor_loket' => '03', 'description' => 'Layanan Ketenagakerjaan Sawahlunto'],

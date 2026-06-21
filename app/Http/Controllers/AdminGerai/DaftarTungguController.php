@@ -45,9 +45,8 @@ final class DaftarTungguController extends Controller
         return view('admin.daftar-tunggu', [
             'department' => $department,
             'schedules' => $schedules,
-            'pendingBookings' => $data['pendingBookings'],
-            'checkedInBookings' => $data['checkedInBookings'],
-            'cancelledBookings' => $data['cancelledBookings'],
+            'waitingBookings' => $data['waitingBookings'],
+            'servingBookings' => $data['servingBookings'],
         ]);
     }
 

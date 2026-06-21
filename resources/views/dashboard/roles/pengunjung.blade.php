@@ -337,9 +337,25 @@
                      class="w-48 h-48 mx-auto object-contain">
             </div>
 
-            <div class="space-y-1.5">
+            <div class="space-y-1.5" x-data="{ copied: false }">
                 <div class="text-[10px] text-muted font-bold uppercase tracking-wider font-display">KODE BOOKING</div>
-                <div class="text-2xl font-extrabold text-ink tracking-wider font-mono">{{ $activeBooking->booking_code }}</div>
+                <div class="text-2xl font-extrabold text-ink tracking-wider font-mono select-all">{{ $activeBooking->booking_code }}</div>
+                
+                <button type="button" 
+                        @click="copyToClipboard('{{ $activeBooking->booking_code }}', () => { copied = true; showSuccessToast('Berhasil disalin'); setTimeout(() => copied = false, 2000); })"
+                        class="inline-flex items-center gap-1 text-[11px] font-bold text-primary dark:text-accent-teal hover:underline focus:outline-none cursor-pointer mt-1 justify-center w-full">
+                    <svg x-show="!copied" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+                    </svg>
+                    <span x-show="!copied">Salin Kode Booking</span>
+                    <span x-show="copied" class="text-status-serving flex items-center justify-center gap-1 font-bold">
+                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                        </svg>
+                        Tersalin!
+                    </span>
+                </button>
+            </div>
                 @if($activeBooking->status === 'Checked-In')
                 <div class="inline-flex items-center gap-1.5 px-3 py-1 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 rounded-full text-xs font-bold border border-green-200/50">
                     <span class="w-1.5 h-1.5 rounded-full bg-green-500 animate-ping"></span>

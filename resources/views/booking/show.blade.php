@@ -101,7 +101,7 @@
                     <div class="text-base font-extrabold text-ink dark:text-white tracking-wider font-mono select-all">{{ $booking->booking_code }}</div>
                     
                     <button type="button" 
-                            @click="navigator.clipboard.writeText('{{ $booking->booking_code }}'); copied = true; setTimeout(() => copied = false, 2000)"
+                            @click="copyToClipboard('{{ $booking->booking_code }}', () => { copied = true; showSuccessToast('Berhasil disalin'); setTimeout(() => copied = false, 2000); })"
                             class="inline-flex items-center gap-1 text-caption font-bold text-primary dark:text-accent-teal hover:underline focus:outline-none cursor-pointer mt-1 print:hidden">
                         <svg x-show="!copied" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />

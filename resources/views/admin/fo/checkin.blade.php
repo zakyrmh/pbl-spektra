@@ -166,7 +166,18 @@
         </div>
 
         @php
-            $bk = $booking ?? session('booking') ?? null;
+            // Utamakan $booking dari view data (passed directly).
+            // Jika dari redirect, ambil via booking_code_pending agar relasi
+            // selalu berupa Eloquent object (bukan array hasil deserialisasi).
+            if (isset($booking)) {
+                $bk = $booking;
+            } elseif (session('booking_code_pending')) {
+                $bk = \App\Models\Queue::where('booking_code', session('booking_code_pending'))
+                    ->with(['user', 'department'])
+                    ->first();
+            } else {
+                $bk = null;
+            }
             $isNikRequired = $nik_required ?? session('nik_required') ?? false;
         @endphp
 

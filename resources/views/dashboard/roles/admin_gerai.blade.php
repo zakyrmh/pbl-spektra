@@ -691,16 +691,6 @@
                                 Lewati Antrean (Skip)
                             </button>
                         </div>
-                        {{-- Hold button --}}
-                        <button type="button" onclick="holdActiveQueue()" id="btnHold"
-                            class="w-full h-10 bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 font-semibold rounded-pill text-xs transition-all focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-amber-500/50 cursor-pointer flex items-center justify-center gap-1.5 border border-amber-500/20">
-                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                                stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round"
-                                    d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                            Tunda Antrean (Hold)
-                        </button>
                     </div>
                 </div>
 
@@ -759,9 +749,10 @@
                         </div>
                     </div>
                 </div>
+            </div>
 
-                <!-- Metrik Internal Gerai & Delay List -->
-                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <!-- Metrik Internal Gerai & Delay List -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 mt-6">
                     <!-- Internal Stats Widget (Spans 4 cols) -->
                     <div
                         class="lg:col-span-4 bg-canvas dark:bg-surface-dark-elevated p-6 rounded-lg border border-hairline dark:border-white/10 shadow-sm space-y-4">
@@ -769,7 +760,7 @@
                             class="font-bold text-ink dark:text-white font-display border-b border-hairline dark:border-white/10 pb-2">
                             Metrik Pelayanan Hari Ini</h3>
 
-                        <div class="grid grid-cols-2 gap-4">
+                        <div class="grid grid-cols-3 gap-4">
                             <div
                                 class="p-4 bg-surface-soft dark:bg-white/5 border border-hairline dark:border-white/5 rounded-lg text-center">
                                 <span
@@ -780,6 +771,16 @@
                                     {{ $remainingCount }}</p>
                                 <span class="text-[10px] text-muted dark:text-on-dark-soft font-body">orang
                                     menunggu</span>
+                            </div>
+                            <div
+                                class="p-4 bg-surface-soft dark:bg-white/5 border border-hairline dark:border-white/5 rounded-lg text-center">
+                                <span
+                                    class="text-[10px] font-bold text-muted dark:text-on-dark-soft uppercase tracking-wider font-display">Total
+                                    Selesai</span>
+                                <p id="geraiStatCompleted"
+                                    class="text-3xl font-extrabold text-green-600 dark:text-green-400 mt-1 font-mono">
+                                    {{ $completedCount }}</p>
+                                <span class="text-[10px] text-muted dark:text-on-dark-soft font-body">hari ini</span>
                             </div>
                             <div
                                 class="p-4 bg-surface-soft dark:bg-white/5 border border-hairline dark:border-white/5 rounded-lg text-center">
@@ -872,6 +873,7 @@
                 let geraiState = {
                     currentNumber: {{ $activeQueue ? (int) preg_replace('/[^0-9]/', '', $activeQueue->queue_number) : 0 }},
                     remainingQueues: {{ $remainingCount }},
+                    completedCount: {{ $completedCount }},
                     status: '{{ $status }}', // 'aktif', 'istirahat', 'nonaktif'
                     activeQueueId: {{ $activeQueue ? $activeQueue->id : 'null' }},
                     queueList: [
@@ -1068,23 +1070,6 @@
                                 document.getElementById('citizenService').innerText = q.purpose || '';
                                 document.getElementById('geraiStatRemaining').innerText = geraiState.remainingQueues;
 
-                                // Tentukan checklist dokumen dinamis
-                                let docs = ['KTP Asli / NIK Pengunjung', 'Berkas Persyaratan Layanan Utama'];
-                                const sName = (q.purpose || '').toLowerCase();
-                                if (sName.includes('kk') || sName.includes('keluarga')) {
-                                    docs = ['Fotokopi Kartu Keluarga (KK)', 'Surat Pengantar RT/RW Keterangan Rusak/Hilang',
-                                        'KTP Asli Pemohon'
-                                    ];
-                                } else if (sName.includes('ktp') || sName.includes('identitas')) {
-                                    docs = ['Fotokopi Kartu Keluarga (KK)', 'Surat Pengantar RT/RW Keterangan Rusak/Hilang',
-                                        'KTP Lama / Surat Kehilangan Kepolisian'
-                                    ];
-                                } else if (sName.includes('akta') || sName.includes('lahir')) {
-                                    docs = ['Surat Keterangan Lahir dari Bidan/Rumah Sakit', 'Fotokopi Buku Nikah Orang Tua',
-                                        'Fotokopi KK Orang Tua'
-                                    ];
-                                }
-                                resetChecklist(docs);
 
                                 createToast('Panggilan Sukses',
                                     `Memanggil nomor ${q.queue_number} (${q.user ? q.user.name : 'Warga'}) ke Loket.`,
@@ -1223,6 +1208,11 @@
                                 createToast('Pelayanan Selesai', `Tiket ${activeNum} (${name}) dinyatakan SUKSES dilayani.`,
                                     'success');
 
+                                // Increment completedCount and update DOM
+                                geraiState.completedCount++;
+                                document.getElementById('geraiStatCompleted').innerText = geraiState.completedCount;
+
+
                                 // Clear active display
                                 clearActiveDisplay();
 
@@ -1287,23 +1277,6 @@
                                     tbody.appendChild(tr);
                                 }
 
-                                // Tentukan checklist dokumen
-                                let docs = ['KTP Asli / NIK Pengunjung', 'Berkas Persyaratan Layanan Utama'];
-                                const sName = (q.purpose || '').toLowerCase();
-                                if (sName.includes('kk') || sName.includes('keluarga')) {
-                                    docs = ['Fotokopi Kartu Keluarga (KK)', 'Surat Pengantar RT/RW Keterangan Rusak/Hilang',
-                                        'KTP Asli Pemohon'
-                                    ];
-                                } else if (sName.includes('ktp') || sName.includes('identitas')) {
-                                    docs = ['Fotokopi Kartu Keluarga (KK)', 'Surat Pengantar RT/RW Keterangan Rusak/Hilang',
-                                        'KTP Lama / Surat Kehilangan Kepolisian'
-                                    ];
-                                } else if (sName.includes('akta') || sName.includes('lahir')) {
-                                    docs = ['Surat Keterangan Lahir dari Bidan/Rumah Sakit', 'Fotokopi Buku Nikah Orang Tua',
-                                        'Fotokopi KK Orang Tua'
-                                    ];
-                                }
-                                resetChecklist(docs);
 
                                 createToast('Panggil Balik',
                                     `Memanggil kembali warga terlewat: ${q.queue_number} (${q.user ? q.user.name : 'Warga'})`,
@@ -1326,28 +1299,6 @@
                     document.getElementById('citizenName').innerText = 'Tidak ada pengunjung';
                     document.getElementById('citizenNik').innerText = '-';
                     document.getElementById('citizenService').innerText = '-';
-
-                    const list = document.getElementById('documentChecklist');
-                    list.innerHTML =
-                        `<div class="text-center py-4 bg-surface-soft dark:bg-white/5 border border-hairline dark:border-white/5 rounded-lg text-xs text-muted dark:text-on-dark-soft italic">Belum ada antrean yang dipanggil.</div>`;
-                }
-
-                // Reset Checklist UI
-                function resetChecklist(docs = []) {
-                    const list = document.getElementById('documentChecklist');
-                    list.innerHTML = '';
-
-                    docs.forEach(doc => {
-                        const label = document.createElement('label');
-                        label.className =
-                            'flex items-center gap-3 p-3 bg-surface-soft dark:bg-white/5 hover:bg-surface-strong dark:hover:bg-white/10 rounded-md border border-hairline dark:border-white/5 transition-all cursor-pointer';
-
-                        label.innerHTML = `
-                <input type="checkbox" class="w-4.5 h-4.5 border border-hairline dark:border-white/10 rounded-md bg-canvas text-primary focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-accent-teal">
-                <span class="text-xs text-ink dark:text-white font-medium">${doc}</span>
-            `;
-                        list.appendChild(label);
-                    });
                 }
 
                 // Toast Alert
@@ -1401,41 +1352,6 @@
                     }, 4000);
                 }
 
-                // ─── HOLD QUEUE ───────────────────────────────────────────────────────────
-                async function holdActiveQueue() {
-                    const queueId = currentQueueId;
-                    if (!queueId) {
-                        createToast('Perhatian', 'Tidak ada antrean aktif yang dapat ditunda.', 'warning');
-                        return;
-                    }
-                    if (!confirm(
-                            'Yakin ingin menunda (Hold) antrean ini? Antrean akan dipindahkan ke status Hold dan perlu dipanggil ulang.'
-                            )) return;
-
-                    const btn = document.getElementById('btnHold');
-                    btn.disabled = true;
-
-                    try {
-                        const res = await fetch(`/api/queues/${queueId}/hold`, {
-                            method: 'POST',
-                            headers: {
-                                'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                                'Accept': 'application/json'
-                            },
-                        });
-                        const data = await res.json();
-                        if (data.success) {
-                            createToast('Antrean Ditunda', data.message, 'warning');
-                            setTimeout(() => window.location.reload(), 1200);
-                        } else {
-                            createToast('Gagal', data.message ?? 'Gagal menunda antrean.', 'error');
-                            btn.disabled = false;
-                        }
-                    } catch (e) {
-                        createToast('Error', 'Terjadi kesalahan jaringan.', 'error');
-                        btn.disabled = false;
-                    }
-                }
 
                 // ─── FORWARD QUEUE MODAL ──────────────────────────────────────────────────
                 function openForwardModal() {

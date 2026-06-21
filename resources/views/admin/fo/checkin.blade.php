@@ -356,10 +356,13 @@
         {{-- ═══════════════════════════════════════════════════════════════
          CHECK-IN RESULT CARD — Ditampilkan setelah check-in sukses
     ═══════════════════════════════════════════════════════════════ --}}
-        @if (session('checkin_result'))
+        @if (session('checkin_result_id'))
             @php 
-                $cr = session('checkin_result');
-                $queue = $cr->queue ?? $cr;
+                // Re-fetch fresh dari DB agar relasi (user, department) selalu
+                // berupa Eloquent object, bukan array hasil deserialisasi session.
+                $cr = \App\Models\Queue::with(['user', 'department'])
+                    ->find(session('checkin_result_id'));
+                $queue = $cr;
             @endphp
             <div class="bg-canvas dark:bg-surface-dark-elevated rounded-xl border-2 border-status-serving/40 shadow-sm overflow-hidden"
                 id="checkin-result-card">

@@ -120,10 +120,11 @@ final class CheckInController extends Controller
         try {
             $queue = $this->checkInService->approveCheckIn($booking);
 
-            // Simpan hanya ID queue ke session, lalu fetch fresh di view
+            // Simpan hanya ID queue ke session (bukan Eloquent object),
+            // agar relasi tidak ter-serialize menjadi array saat diambil dari session.
             return redirect()->route('admin.fo.checkin')
                 ->with('success', "Check-in berhasil! Warga <strong>{$booking->user->name}</strong> telah terverifikasi.")
-                ->with('checkin_result', $queue->fresh(['user', 'department']));
+                ->with('checkin_result_id', $queue->id);
         } catch (\Exception $e) {
             return redirect()->route('admin.fo.checkin')
                 ->withInput()

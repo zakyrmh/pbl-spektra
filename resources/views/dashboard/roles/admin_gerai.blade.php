@@ -760,98 +760,99 @@
                     </div>
                 </div>
 
-                <!-- Metrik Internal Gerai & Delay List -->
-                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-                    <!-- Internal Stats Widget (Spans 4 cols) -->
-                    <div
-                        class="lg:col-span-4 bg-canvas dark:bg-surface-dark-elevated p-6 rounded-lg border border-hairline dark:border-white/10 shadow-sm space-y-4">
-                        <h3
-                            class="font-bold text-ink dark:text-white font-display border-b border-hairline dark:border-white/10 pb-2">
-                            Metrik Pelayanan Hari Ini</h3>
+            </div>
 
-                        <div class="grid grid-cols-2 gap-4">
-                            <div
-                                class="p-4 bg-surface-soft dark:bg-white/5 border border-hairline dark:border-white/5 rounded-lg text-center">
-                                <span
-                                    class="text-[10px] font-bold text-muted dark:text-on-dark-soft uppercase tracking-wider font-display">Sisa
-                                    Antrean</span>
-                                <p id="geraiStatRemaining"
-                                    class="text-3xl font-extrabold text-primary dark:text-accent-teal mt-1 font-mono">
-                                    {{ $remainingCount }}</p>
-                                <span class="text-[10px] text-muted dark:text-on-dark-soft font-body">orang
-                                    menunggu</span>
-                            </div>
-                            <div
-                                class="p-4 bg-surface-soft dark:bg-white/5 border border-hairline dark:border-white/5 rounded-lg text-center">
-                                <span
-                                    class="text-[10px] font-bold text-muted dark:text-on-dark-soft uppercase tracking-wider font-display">Rerata
-                                    Layanan</span>
-                                <p class="text-3xl font-extrabold text-status-serving mt-1 font-mono">
-                                    {{ $avgServiceTime }}</p>
-                                <span class="text-[10px] text-muted dark:text-on-dark-soft font-body">menit /
-                                    warga</span>
-                            </div>
-                        </div>
+            <!-- Metrik Internal Gerai & Delay List -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <!-- Internal Stats Widget (Spans 4 cols) -->
+                <div
+                    class="lg:col-span-4 bg-canvas dark:bg-surface-dark-elevated p-6 rounded-lg border border-hairline dark:border-white/10 shadow-sm space-y-4">
+                    <h3
+                        class="font-bold text-ink dark:text-white font-display border-b border-hairline dark:border-white/10 pb-2">
+                        Metrik Pelayanan Hari Ini</h3>
 
+                    <div class="grid grid-cols-2 gap-4">
                         <div
-                            class="bg-surface-soft dark:bg-white/5 border border-hairline dark:border-white/5 rounded-lg p-3 text-xs text-muted dark:text-on-dark-soft leading-relaxed font-body">
-                            💡 <b>Tips Kecepatan:</b> Mintalah berkas fisik warga sebelum memencet tombol mulai untuk
-                            menghemat estimasi waktu pelayanan rata-rata.
+                            class="p-4 bg-surface-soft dark:bg-white/5 border border-hairline dark:border-white/5 rounded-lg text-center">
+                            <span
+                                class="text-[10px] font-bold text-muted dark:text-on-dark-soft uppercase tracking-wider font-display">Sisa
+                                Antrean</span>
+                            <p id="geraiStatRemaining"
+                                class="text-3xl font-extrabold text-primary dark:text-accent-teal mt-1 font-mono">
+                                {{ $remainingCount }}</p>
+                            <span class="text-[10px] text-muted dark:text-on-dark-soft font-body">orang
+                                menunggu</span>
+                        </div>
+                        <div
+                            class="p-4 bg-surface-soft dark:bg-white/5 border border-hairline dark:border-white/5 rounded-lg text-center">
+                            <span
+                                class="text-[10px] font-bold text-muted dark:text-on-dark-soft uppercase tracking-wider font-display">Rerata
+                                Layanan</span>
+                            <p class="text-3xl font-extrabold text-status-serving mt-1 font-mono">
+                                {{ $avgServiceTime }}</p>
+                            <span class="text-[10px] text-muted dark:text-on-dark-soft font-body">menit /
+                                warga</span>
                         </div>
                     </div>
 
-                    <!-- Delayed/Skipped List Table (Spans 8 cols) -->
                     <div
-                        class="lg:col-span-8 bg-canvas dark:bg-surface-dark-elevated p-6 rounded-lg border border-hairline dark:border-white/10 shadow-sm overflow-hidden flex flex-col justify-between">
-                        <div>
-                            <h3
-                                class="font-bold text-ink dark:text-white font-display border-b border-hairline dark:border-white/10 pb-2 mb-4">
-                                Daftar Antrean Tertunda / Terlewati (Skipped)</h3>
-                            <div class="overflow-x-auto">
-                                <table class="w-full text-left border-collapse">
-                                    <thead>
-                                        <tr
-                                            class="bg-surface-soft dark:bg-white/5 text-muted dark:text-on-dark-soft text-[11px] font-bold uppercase tracking-wider border-b border-hairline dark:border-white/10">
-                                            <th class="py-2.5 px-4">Kode Antrean</th>
-                                            <th class="py-2.5 px-4">Nama Warga</th>
-                                            <th class="py-2.5 px-4">Layanan</th>
-                                            <th class="py-2.5 px-4">Status</th>
-                                            <th class="py-2.5 px-4 text-center">Aksi Panggil Balik</th>
+                        class="bg-surface-soft dark:bg-white/5 border border-hairline dark:border-white/5 rounded-lg p-3 text-xs text-muted dark:text-on-dark-soft leading-relaxed font-body">
+                        💡 <b>Tips Kecepatan:</b> Mintalah berkas fisik warga sebelum memencet tombol mulai untuk
+                        menghemat estimasi waktu pelayanan rata-rata.
+                    </div>
+                </div>
+
+                <!-- Delayed/Skipped List Table (Spans 8 cols) -->
+                <div
+                    class="lg:col-span-8 bg-canvas dark:bg-surface-dark-elevated p-6 rounded-lg border border-hairline dark:border-white/10 shadow-sm overflow-hidden flex flex-col justify-between">
+                    <div>
+                        <h3
+                            class="font-bold text-ink dark:text-white font-display border-b border-hairline dark:border-white/10 pb-2 mb-4">
+                            Daftar Antrean Tertunda / Terlewati (Skipped)</h3>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr
+                                        class="bg-surface-soft dark:bg-white/5 text-muted dark:text-on-dark-soft text-[11px] font-bold uppercase tracking-wider border-b border-hairline dark:border-white/10">
+                                        <th class="py-2.5 px-4">Kode Antrean</th>
+                                        <th class="py-2.5 px-4">Nama Warga</th>
+                                        <th class="py-2.5 px-4">Layanan</th>
+                                        <th class="py-2.5 px-4">Status</th>
+                                        <th class="py-2.5 px-4 text-center">Aksi Panggil Balik</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="geraiSkipListBody"
+                                    class="text-xs divide-y divide-hairline dark:divide-white/5">
+                                    @foreach ($skippedQueues as $sq)
+                                        <tr class="hover:bg-surface-soft/50 dark:hover:bg-white/5 transition-colors"
+                                            data-skipped-ticket="{{ $sq->queue_number }}">
+                                            <td class="py-3 px-4 font-mono font-bold text-status-skipped">
+                                                {{ $sq->queue_number }}</td>
+                                            <td class="py-3 px-4 text-ink dark:text-white font-medium">
+                                                {{ $sq->user ? $sq->user->name : 'Warga' }}
+                                            </td>
+                                            <td class="py-3 px-4 text-muted dark:text-on-dark-soft">
+                                                {{ $sq->purpose }}
+                                            </td>
+                                            <td class="py-3 px-4 text-status-skipped font-bold">Terlewat</td>
+                                            <td class="py-3 px-4 text-center">
+                                                <button type="button"
+                                                    onclick="recallSkipped({{ $sq->id }}, '{{ $sq->queue_number }}', '{{ $sq->user ? $sq->user->name : 'Warga' }}', '{{ $sq->purpose }}')"
+                                                    class="px-3 py-1.5 bg-primary/10 hover:bg-primary text-primary hover:text-white dark:text-accent-teal dark:hover:text-white dark:bg-accent-teal/10 rounded-md font-bold transition-all focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-accent-teal cursor-pointer">
+                                                    Panggil Balik
+                                                </button>
+                                            </td>
                                         </tr>
-                                    </thead>
-                                    <tbody id="geraiSkipListBody"
-                                        class="text-xs divide-y divide-hairline dark:divide-white/5">
-                                        @foreach ($skippedQueues as $sq)
-                                            <tr class="hover:bg-surface-soft/50 dark:hover:bg-white/5 transition-colors"
-                                                data-skipped-ticket="{{ $sq->queue_number }}">
-                                                <td class="py-3 px-4 font-mono font-bold text-status-skipped">
-                                                    {{ $sq->queue_number }}</td>
-                                                <td class="py-3 px-4 text-ink dark:text-white font-medium">
-                                                    {{ $sq->user ? $sq->user->name : 'Warga' }}
-                                                </td>
-                                                <td class="py-3 px-4 text-muted dark:text-on-dark-soft">
-                                                    {{ $sq->purpose }}
-                                                </td>
-                                                <td class="py-3 px-4 text-status-skipped font-bold">Terlewat</td>
-                                                <td class="py-3 px-4 text-center">
-                                                    <button type="button"
-                                                        onclick="recallSkipped({{ $sq->id }}, '{{ $sq->queue_number }}', '{{ $sq->user ? $sq->user->name : 'Warga' }}', '{{ $sq->purpose }}')"
-                                                        class="px-3 py-1.5 bg-primary/10 hover:bg-primary text-primary hover:text-white dark:text-accent-teal dark:hover:text-white dark:bg-accent-teal/10 rounded-md font-bold transition-all focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-accent-teal cursor-pointer">
-                                                        Panggil Balik
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                        @endforeach
-                                        @if ($skippedQueues->isEmpty())
-                                            <tr id="noSkippedRow">
-                                                <td colspan="5"
-                                                    class="py-4 text-center text-muted dark:text-on-dark-soft italic">
-                                                    Belum ada antrean terlewat hari ini.</td>
-                                            </tr>
-                                        @endif
-                                    </tbody>
-                                </table>
-                            </div>
+                                    @endforeach
+                                    @if ($skippedQueues->isEmpty())
+                                        <tr id="noSkippedRow">
+                                            <td colspan="5"
+                                                class="py-4 text-center text-muted dark:text-on-dark-soft italic">
+                                                Belum ada antrean terlewat hari ini.</td>
+                                        </tr>
+                                    @endif
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>

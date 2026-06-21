@@ -63,7 +63,7 @@ final class CheckInController extends Controller
                 'Checked-In' => 'sudah di-check-in sebelumnya',
                 'Completed' => 'sudah selesai dilayani',
                 'Cancelled' => 'telah dibatalkan',
-                default => "berstatus {$booking->status}",
+                default => 'berstatus '.($booking->status->value ?? $booking->status),
             };
 
             return back()

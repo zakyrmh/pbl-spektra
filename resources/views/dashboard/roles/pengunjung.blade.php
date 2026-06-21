@@ -356,7 +356,7 @@
                     </span>
                 </button>
             </div>
-                @if(($activeBooking->status->value ?? $activeBooking->status) === 'Checked-In')
+                @if(!in_array($activeBooking->status->value ?? $activeBooking->status, ['Booked', 'Pending']))
                 <div class="inline-flex items-center gap-1.5 px-3 py-1 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 rounded-full text-xs font-bold border border-green-200/50">
                     <span class="w-1.5 h-1.5 rounded-full bg-green-500 animate-ping"></span>
                     Telah Terkonfirmasi FO

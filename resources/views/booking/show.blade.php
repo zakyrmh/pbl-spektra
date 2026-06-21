@@ -170,7 +170,7 @@
                             Tiket booking antrean ini telah dibatalkan atau telah melewati batas waktu check-in (kadaluarsa). Tiket ini tidak dapat digunakan lagi untuk melakukan check-in di loket.
                         </p>
                     </div>
-                @else
+                @elseif(in_array($booking->status->value ?? $booking->status, ['Booked', 'Pending']))
                     <div class="bg-amber-500/5 dark:bg-amber-400/5 border border-amber-500/15 p-4 rounded-lg space-y-1.5 print:hidden">
                         <h4 class="text-xs font-bold text-amber-800 dark:text-amber-400 font-display flex items-center gap-1">
                             <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">

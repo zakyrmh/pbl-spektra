@@ -78,20 +78,22 @@
             <!-- Date Range: Mulai -->
             <div>
                 <label for="start_date" class="block text-title-sm font-semibold text-ink dark:text-white mb-2">Tanggal Mulai</label>
-                <input type="date" 
+                <input type="text" 
                        id="start_date" 
                        name="start_date" 
                        value="{{ $filters['start_date'] ?? '' }}"
+                       placeholder="dd/mm/yyyy"
                        class="w-full text-body-md bg-canvas dark:bg-white/5 border border-hairline dark:border-white/15 text-ink dark:text-white rounded-md px-4 h-12 focus:outline-none focus:border-primary dark:focus:border-accent-teal focus:ring-3 focus:ring-primary/12 dark:focus:ring-accent-teal/20 transition-all">
             </div>
 
             <!-- Date Range: Akhir -->
             <div>
                 <label for="end_date" class="block text-title-sm font-semibold text-ink dark:text-white mb-2">Tanggal Akhir</label>
-                <input type="date" 
+                <input type="text" 
                        id="end_date" 
                        name="end_date" 
                        value="{{ $filters['end_date'] ?? '' }}"
+                       placeholder="dd/mm/yyyy"
                        class="w-full text-body-md bg-canvas dark:bg-white/5 border border-hairline dark:border-white/15 text-ink dark:text-white rounded-md px-4 h-12 focus:outline-none focus:border-primary dark:focus:border-accent-teal focus:ring-3 focus:ring-primary/12 dark:focus:ring-accent-teal/20 transition-all">
             </div>
 
@@ -217,3 +219,24 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        flatpickr("#start_date", {
+            dateFormat: "Y-m-d",
+            altInput: true,
+            altFormat: "d/m/Y",
+            placeholder: "dd/mm/yyyy"
+        });
+        flatpickr("#end_date", {
+            dateFormat: "Y-m-d",
+            altInput: true,
+            altFormat: "d/m/Y",
+            placeholder: "dd/mm/yyyy"
+        });
+    });
+</script>
+@endpush

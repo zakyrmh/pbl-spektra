@@ -390,6 +390,27 @@
         if (liveDate) {
             liveDate.innerText = formatIndonesianDate();
         }
+
+        @if($activeBooking && in_array($activeBooking->status, ['Pending', 'Booked']))
+        const bookingId = "{{ $activeBooking->id }}";
+        const checkInterval = setInterval(async () => {
+            try {
+                const response = await fetch(`/api/booking/${bookingId}/status`);
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.status !== 'Pending' && data.status !== 'Booked' && data.queue_number) {
+                        clearInterval(checkInterval);
+                        showSuccessToast('Pendaftaran Anda telah diverifikasi oleh Front Office!');
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 1000);
+                    }
+                }
+            } catch (error) {
+                console.error('Error polling booking status:', error);
+            }
+        }, 3000);
+        @endif
     });
 
     // QR Modal Controls

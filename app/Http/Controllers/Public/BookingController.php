@@ -9,6 +9,7 @@ use App\Http\Requests\Public\StoreBookingRequest;
 use App\Models\Department;
 use App\Models\Queue;
 use App\Services\Public\BookingService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
@@ -80,6 +81,19 @@ final class BookingController extends Controller
         return view('booking.show', [
             'booking' => $booking->load('department'),
             'estimatedPosition' => $estimatedPosition,
+        ]);
+    }
+
+    /**
+     * Dapatkan status terkini dari booking (untuk real-time update).
+     */
+    public function status(Queue $booking): JsonResponse
+    {
+        Gate::authorize('view', $booking);
+
+        return response()->json([
+            'status' => $booking->status,
+            'queue_number' => $booking->queue_number,
         ]);
     }
 }

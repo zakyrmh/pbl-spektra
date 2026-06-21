@@ -54,7 +54,7 @@ final class LogPelayananData
             called_at_formatted: $queue->called_at?->format('H:i:s'),
             completed_at_formatted: $queue->completed_at?->format('H:i:s'),
             duration_label: $durationLabel,
-            status: $queue->status,
+            status: $queue->status->value ?? $queue->status,
             cancel_reason: $queue->cancel_reason,
             booking_date_formatted: $queue->booking_date
                 ? Carbon::parse($queue->booking_date)->format('d M Y')

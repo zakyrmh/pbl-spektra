@@ -21,7 +21,6 @@ final class LogPelayananService
     private const FINISHED_STATUSES = [
         QueueStatus::Completed->value,
         QueueStatus::Skipped->value,
-        QueueStatus::Cancelled->value,
     ];
 
     /**

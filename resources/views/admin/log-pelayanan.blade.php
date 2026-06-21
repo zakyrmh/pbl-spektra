@@ -39,12 +39,12 @@
             </div>
         </div>
 
-        <!-- Card Antrean Batal/Terlewat -->
+        <!-- Card Antrean Terlewat -->
         <div class="bg-canvas dark:bg-surface-dark-elevated p-6 rounded-lg border border-hairline dark:border-white/10 shadow-xs flex justify-between items-center relative overflow-hidden font-body">
             <div class="space-y-1">
-                <span class="text-xs font-bold text-rose-600 dark:text-rose-400 uppercase tracking-wider font-display">Total Batal & Terlewat</span>
-                <span class="text-3xl font-black text-ink dark:text-white block font-mono">{{ $totalCancelled }}</span>
-                <span class="text-xs text-muted dark:text-on-dark-soft block">Cancelled + Skipped</span>
+                <span class="text-xs font-bold text-rose-600 dark:text-rose-400 uppercase tracking-wider font-display">Total Antrean Terlewat</span>
+                <span class="text-3xl font-black text-ink dark:text-white block font-mono">{{ $totalSkipped }}</span>
+                <span class="text-xs text-muted dark:text-on-dark-soft block">Skipped (Terlewat)</span>
             </div>
             <div class="p-3 bg-rose-50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-400 rounded-lg">
                 <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -104,7 +104,6 @@
                     <option value="">Semua Status Lampau</option>
                     <option value="Completed" {{ ($filters['status'] ?? '') === 'Completed' ? 'selected' : '' }}>Completed (Selesai)</option>
                     <option value="Skipped"   {{ ($filters['status'] ?? '') === 'Skipped'   ? 'selected' : '' }}>Skipped (Terlewat)</option>
-                    <option value="Cancelled" {{ ($filters['status'] ?? '') === 'Cancelled' ? 'selected' : '' }}>Cancelled (Dibatalkan)</option>
                 </select>
             </div>
         </div>

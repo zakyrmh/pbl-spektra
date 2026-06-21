@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Public;
 
+use App\Enums\QueueStatus;
 use App\Models\ActivityLog;
 use App\Models\Department;
 use App\Models\Notification;
@@ -48,15 +49,15 @@ class BookingService
                 throw new \Exception('Instansi terpilih saat ini sedang ditutup.');
             }
 
-            // BR-06: Satu NIK = maks 1 booking aktif (Pending) per instansi per hari
+            // BR-06: Satu NIK = maks 1 booking aktif per instansi per hari
             $existingBooking = Queue::where('user_id', $user->id)
                 ->where('department_id', $department->id)
                 ->whereDate('booking_date', $bookingDate->toDateString())
-                ->where('status', 'Pending')
+                ->where('status', QueueStatus::Booked->value)
                 ->exists();
 
             if ($existingBooking) {
-                throw new \Exception('Anda sudah memiliki booking aktif (Pending) untuk instansi ini pada tanggal tersebut.');
+                throw new \Exception('Anda sudah memiliki booking aktif untuk instansi ini pada tanggal tersebut.');
             }
 
             $prefix = $department->inisial ?: 'Q';
@@ -115,7 +116,7 @@ class BookingService
         return Queue::where('department_id', $booking->department_id)
             ->whereDate('booking_date', $booking->booking_date->toDateString())
             ->where('id', '<', $booking->id)
-            ->whereIn('status', ['Pending', 'Checked-In'])
+            ->whereIn('status', [QueueStatus::Booked->value, QueueStatus::CheckedIn->value])
             ->count() + 1;
     }
 }

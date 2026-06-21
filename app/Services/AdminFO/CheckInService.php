@@ -61,10 +61,13 @@ class CheckInService
 
             $queueNumber = $this->generateQueueNumber($department, $today);
 
+            // Update status + set booking_date ke hari ini (tanggal check-in sebenarnya)
+            // agar query gerai (whereDate('booking_date', today)) dapat menemukan antrean ini.
             $booking->update([
                 'status' => QueueStatus::CheckedIn->value,
                 'checked_in_at' => now(),
                 'queue_number' => $queueNumber,
+                'booking_date' => $today,  // ← pastikan booking_date = hari check-in
             ]);
 
             ActivityLog::record(

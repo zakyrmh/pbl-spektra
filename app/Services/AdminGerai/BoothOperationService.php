@@ -6,6 +6,7 @@ namespace App\Services\AdminGerai;
 
 use App\Data\AdminGerai\BoothDashboardData;
 use App\Enums\QueueStatus;
+use App\Enums\UserRole;
 use App\Events\QueueCalled;
 use App\Events\QueueFinished;
 use App\Models\ActivityLog;
@@ -226,33 +227,6 @@ final class BoothOperationService
     }
 
     /**
-     * Place the currently Serving queue on Hold.
-     * The queue is paused but not completed or skipped.
-     *
-     * @throws \RuntimeException if queue is not currently Serving.
-     */
-    public function holdQueue(Queue $queue): void
-    {
-        if ($queue->status !== QueueStatus::Serving->value && $queue->status !== QueueStatus::Serving) {
-            throw new \RuntimeException('Hanya antrean yang sedang dilayani yang dapat ditunda.');
-        }
-
-        DB::transaction(function () use ($queue) {
-            $queue->update([
-                'status' => QueueStatus::Hold->value,
-            ]);
-
-            ActivityLog::record(
-                action: 'HOLD_QUEUE',
-                modelType: 'Queue',
-                modelId: $queue->id,
-                description: "Operator menunda antrean {$queue->queue_number} ({$queue->booking_code}).",
-                actorUserId: Auth::id()
-            );
-        });
-    }
-
-    /**
      * Forward (re-assign) a queue to a different department.
      * The queue status is reset to Checked-In so the target booth can call it next.
      *
@@ -269,18 +243,34 @@ final class BoothOperationService
             $originalDeptName = $queue->department?->name ?? 'Tidak diketahui';
 
             $queue->update([
-                'department_id' => $targetDepartment->id,
-                'status' => QueueStatus::CheckedIn->value,
-                'called_at' => null,
+                'status' => QueueStatus::Completed->value,
+                'completed_at' => now(),
+                'cancel_reason' => "Dialihkan ke Gerai {$targetDepartment->name}.",
             ]);
 
             ActivityLog::record(
                 action: 'FORWARD_QUEUE',
                 modelType: 'Queue',
                 modelId: $queue->id,
-                description: "Operator mengoper antrean {$queue->queue_number} dari instansi '{$originalDeptName}' ke instansi '{$targetDepartment->name}'.",
+                description: "Operator menyelesaikan antrean {$queue->queue_number} dan dialihkan dari instansi '{$originalDeptName}' ke instansi '{$targetDepartment->name}'.",
                 actorUserId: Auth::id()
             );
+
+            // Notify FO users to re-register the walk-in
+            $foUsers = User::byRole(UserRole::AdminFo)->get();
+            foreach ($foUsers as $fo) {
+                $fo->notifications()->create([
+                    'id' => Str::uuid()->toString(),
+                    'type' => 'App\Notifications\QueueForwarded',
+                    'data' => [
+                        'title' => 'Pengunjung Oper Antrean',
+                        'message' => "Pengunjung dari antrean {$queue->queue_number} dialihkan ke {$targetDepartment->name}. Mohon daftarkan ulang sebagai Walk-In.",
+                    ],
+                ]);
+            }
+
+            // Fallback flash session as requested in instructions just in case FO relies on session somehow
+            session()->flash('transfer_notification', true);
 
             // Notify the citizen about the forwarding
             if ($queue->user) {
@@ -288,8 +278,8 @@ final class BoothOperationService
                     'id' => Str::uuid()->toString(),
                     'type' => 'App\Notifications\QueueForwarded',
                     'data' => [
-                        'title' => 'Antrean Dipindahkan',
-                        'message' => "Nomor antrean {$queue->queue_number} Anda telah dipindahkan ke instansi {$targetDepartment->name}. Silakan menunggu panggilan di loket baru.",
+                        'title' => 'Antrean Dialihkan',
+                        'message' => "Pelayanan Anda di {$originalDeptName} telah selesai. Anda diarahkan ke instansi {$targetDepartment->name}. Silakan menuju Front Office untuk mendaftar antrean baru.",
                     ],
                 ]);
             }

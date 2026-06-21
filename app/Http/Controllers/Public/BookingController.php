@@ -26,10 +26,13 @@ final class BookingController extends Controller
      */
     public function index(): View
     {
-        $bookings = $this->bookingService->getCustomerBookingHistory((int) Auth::id());
+        $userId = (int) Auth::id();
+        $bookings = $this->bookingService->getCustomerBookingHistory($userId);
+        $hasActiveBooking = $this->bookingService->hasActiveBooking($userId);
 
         return view('booking.index', [
             'bookings' => $bookings,
+            'hasActiveBooking' => $hasActiveBooking,
         ]);
     }
 
@@ -38,6 +41,9 @@ final class BookingController extends Controller
      */
     public function create(): View
     {
+        $userId = (int) Auth::id();
+        $hasActiveBooking = $this->bookingService->hasActiveBooking($userId);
+
         // Ambil hanya instansi yang aktif/buka
         $departments = Department::where('is_open', true)->get();
 
@@ -45,6 +51,7 @@ final class BookingController extends Controller
             'departments' => $departments,
             'schedules' => [],
             'sessions' => ['Sesi 1', 'Sesi 2'],
+            'hasActiveBooking' => $hasActiveBooking,
         ]);
     }
 

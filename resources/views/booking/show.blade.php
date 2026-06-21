@@ -46,7 +46,7 @@
                 
                 {{-- Queue Number Section (If Checked-In) or Status Badge --}}
                 <div class="text-center space-y-2 flex flex-col items-center justify-center">
-                    @if($booking->status === 'Cancelled')
+                    @if(($booking->status->value ?? $booking->status) === 'Cancelled')
                         <span class="text-[10px] font-bold text-muted dark:text-on-dark-soft uppercase tracking-wider block font-display">Status Booking</span>
                         <div class="inline-flex items-center gap-1.5 px-3 py-1 bg-status-skipped/12 text-[#991B1B] dark:text-red-400 rounded-pill text-[13px] font-medium border border-status-skipped/20">
                             <span class="w-2 h-2 rounded-full bg-status-skipped"></span>
@@ -57,7 +57,7 @@
                                 Alasan: {{ $booking->cancel_reason }}
                             </p>
                         @endif
-                    @elseif(in_array($booking->status, ['Checked-In', 'Serving', 'Completed', 'Skipped', 'Hold']))
+                    @elseif(in_array($booking->status->value ?? $booking->status, ['Checked-In', 'Serving', 'Completed', 'Skipped', 'Hold']))
                         <span class="text-[10px] font-bold text-muted dark:text-on-dark-soft uppercase tracking-wider block font-display">Nomor Antrean Anda</span>
                         <div class="text-queue-number font-bold text-primary dark:text-accent-teal font-mono tracking-tight leading-none my-1">
                             {{ $booking->queue_number }}
@@ -77,12 +77,12 @@
 
                 {{-- QR Code Area --}}
                 <div class="flex flex-col items-center space-y-3">
-                    <div class="bg-white p-4 rounded-lg border border-hairline inline-block shadow-inner mx-auto relative group {{ $booking->status === 'Cancelled' ? 'opacity-40 select-none pointer-events-none' : '' }}">
+                    <div class="bg-white p-4 rounded-lg border border-hairline inline-block shadow-inner mx-auto relative group {{ ($booking->status->value ?? $booking->status) === 'Cancelled' ? 'opacity-40 select-none pointer-events-none' : '' }}">
                         <img src="https://api.qrserver.com/v1/create-qr-code/?size=160x160&data={{ urlencode($booking->booking_code) }}" 
                              alt="QR Code Booking" 
                              class="w-40 h-40 mx-auto object-contain">
                     </div>
-                    @if($booking->status === 'Cancelled')
+                    @if(($booking->status->value ?? $booking->status) === 'Cancelled')
                         <span class="text-caption text-status-skipped dark:text-red-400 font-body font-bold tracking-normal text-center flex items-center gap-1 justify-center">
                             <svg class="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -143,7 +143,7 @@
                         <span class="font-bold text-ink dark:text-white text-right">{{ $booking->session_name ?? '-' }}</span>
                     </div>
                     
-                    @if($booking->status !== 'Cancelled' && !$booking->queue_number)
+                    @if(($booking->status->value ?? $booking->status) !== 'Cancelled' && !$booking->queue_number)
                     <div class="flex justify-between gap-4 pt-3 border-t border-hairline dark:border-white/10">
                         <span class="text-muted dark:text-on-dark-soft font-medium flex items-center gap-1">
                             Estimasi Urutan
@@ -158,7 +158,7 @@
                 </div>
 
                 {{-- Important notes (Hidden in print) --}}
-                @if($booking->status === 'Cancelled')
+                @if(($booking->status->value ?? $booking->status) === 'Cancelled')
                     <div class="bg-red-500/5 dark:bg-red-400/5 border border-red-500/15 p-4 rounded-lg space-y-1.5 print:hidden">
                         <h4 class="text-xs font-bold text-red-800 dark:text-red-400 font-display flex items-center gap-1">
                             <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
@@ -238,7 +238,7 @@
         }
     </style>
 
-    @if(in_array($booking->status, ['Pending', 'Booked']))
+    @if(in_array($booking->status->value ?? $booking->status, ['Pending', 'Booked']))
     @push('scripts')
     <script>
         document.addEventListener('DOMContentLoaded', () => {

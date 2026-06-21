@@ -11,6 +11,7 @@
                 <h1 class="text-2xl sm:text-3xl font-bold text-ink dark:text-white font-display tracking-tight">Riwayat & Status Antrean</h1>
                 <p class="text-sm text-muted dark:text-on-dark-soft font-body mt-1">Pantau antrean aktif Anda atau lihat kembali riwayat pelayanan sebelumnya.</p>
             </div>
+            @if(!$hasActiveBooking)
             <div>
                 <a href="{{ route('booking.create') }}" class="inline-flex h-11 items-center justify-center gap-2 px-6 bg-primary hover:bg-primary-hover text-white font-semibold rounded-pill shadow-md hover:shadow-lg transition-all focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-accent-teal cursor-pointer">
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
@@ -19,6 +20,12 @@
                     Ambil Antrean Baru
                 </a>
             </div>
+            @else
+            <div class="bg-primary/10 border border-primary/20 rounded-pill px-4 py-2.5 text-xs font-semibold text-primary dark:text-accent-teal flex items-center gap-2">
+                <span class="w-1.5 h-1.5 rounded-full bg-primary dark:bg-accent-teal animate-pulse"></span>
+                Anda memiliki tiket aktif
+            </div>
+            @endif
         </div>
 
         {{-- Session Flash Alerts --}}
@@ -58,8 +65,8 @@
 
         {{-- Bookings Section --}}
         @php
-            $activeBookings = $bookings->filter(fn($b) => in_array($b->status, ['Pending', 'Booked', 'Checked-In', 'Confirmed', 'Serving']));
-            $pastBookings = $bookings->filter(fn($b) => !in_array($b->status, ['Pending', 'Booked', 'Checked-In', 'Confirmed', 'Serving']));
+            $activeBookings = $bookings->filter(fn($b) => in_array($b->status->value ?? $b->status, ['Pending', 'Booked', 'Checked-In', 'Confirmed', 'Serving']));
+            $pastBookings = $bookings->filter(fn($b) => !in_array($b->status->value ?? $b->status, ['Pending', 'Booked', 'Checked-In', 'Confirmed', 'Serving']));
         @endphp
 
         <div class="space-y-12">
@@ -98,17 +105,17 @@
                                         
                                         {{-- Dynamic Status Badge --}}
                                         @php
-                                            $statusClass = match($booking->status) {
+                                            $statusClass = match($booking->status->value ?? $booking->status) {
                                                 'Pending', 'Booked' => 'bg-amber-500/12 text-amber-800 dark:text-amber-400 border border-amber-500/20',
                                                 'Checked-In', 'Confirmed' => 'bg-primary/12 text-primary dark:text-accent-teal border border-primary/20',
                                                 'Serving' => 'bg-green-500/12 text-green-800 dark:text-green-400 border border-green-500/20',
                                                 default => 'bg-gray-500/10 text-muted dark:text-on-dark-soft border border-gray-500/10',
                                             };
-                                            $statusText = match($booking->status) {
+                                            $statusText = match($booking->status->value ?? $booking->status) {
                                                 'Pending', 'Booked' => 'Menunggu Check-In',
                                                 'Checked-In', 'Confirmed' => 'Terkonfirmasi FO',
                                                 'Serving' => 'Sedang Dilayani',
-                                                default => $booking->status,
+                                                default => $booking->status->value ?? $booking->status,
                                             };
                                         @endphp
                                         <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold {{ $statusClass }}">
@@ -200,24 +207,24 @@
                                             </td>
                                             <td class="py-4 px-6 whitespace-nowrap">
                                                 @php
-                                                    $statusClass = match($booking->status) {
+                                                    $statusClass = match($booking->status->value ?? $booking->status) {
                                                         'Completed' => 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-400 border border-gray-300 dark:border-gray-700',
                                                         'Skipped' => 'bg-red-500/12 text-red-800 dark:text-red-400 border border-red-500/20',
                                                         'Cancelled' => 'bg-gray-500/10 text-muted dark:text-on-dark-soft border border-gray-500/10',
                                                         default => 'bg-gray-500/10 text-muted dark:text-on-dark-soft border border-gray-500/10',
                                                     };
-                                                    $statusText = match($booking->status) {
+                                                    $statusText = match($booking->status->value ?? $booking->status) {
                                                         'Completed' => 'Selesai',
                                                         'Skipped' => 'Terlewat',
                                                         'Cancelled' => 'Dibatalkan',
-                                                        default => $booking->status,
+                                                        default => $booking->status->value ?? $booking->status,
                                                     };
                                                 @endphp
                                                 <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold {{ $statusClass }}">
                                                     <span class="w-1.5 h-1.5 rounded-full bg-current"></span>
                                                     {{ $statusText }}
                                                 </span>
-                                                @if($booking->status === 'Cancelled' && $booking->cancel_reason)
+                                                @if(($booking->status->value ?? $booking->status) === 'Cancelled' && $booking->cancel_reason)
                                                     <div class="text-[11px] text-status-skipped dark:text-red-400 mt-1 font-medium italic max-w-[150px] truncate" title="{{ $booking->cancel_reason }}">
                                                         Alasan: {{ $booking->cancel_reason }}
                                                     </div>

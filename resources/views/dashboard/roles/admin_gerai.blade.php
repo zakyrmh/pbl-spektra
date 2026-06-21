@@ -740,6 +740,36 @@
                             </div>
                         </div>
 
+                        <!-- Checklist Dokumen Persyaratan -->
+                        <div class="space-y-3 mt-4">
+                            <h4 class="text-xs font-bold text-ink dark:text-white font-display">Checklist Berkas Persyaratan</h4>
+                            <div id="documentChecklist" class="space-y-2">
+                                @if($activeQueue)
+                                    @php
+                                        $purpose = strtolower($activeQueue->purpose ?? '');
+                                        if (str_contains($purpose, 'kk') || str_contains($purpose, 'keluarga')) {
+                                            $docs = ['Fotokopi Kartu Keluarga (KK)', 'Surat Pengantar RT/RW Keterangan Rusak/Hilang', 'KTP Asli Pemohon'];
+                                        } elseif (str_contains($purpose, 'ktp') || str_contains($purpose, 'identitas')) {
+                                            $docs = ['Fotokopi Kartu Keluarga (KK)', 'Surat Pengantar RT/RW Keterangan Rusak/Hilang', 'KTP Lama / Surat Kehilangan Kepolisian'];
+                                        } elseif (str_contains($purpose, 'akta') || str_contains($purpose, 'lahir')) {
+                                            $docs = ['Surat Keterangan Lahir dari Bidan/Rumah Sakit', 'Fotokopi Buku Nikah Orang Tua', 'Fotokopi KK Orang Tua'];
+                                        } else {
+                                            $docs = ['KTP Asli / NIK Pengunjung', 'Berkas Persyaratan Layanan Utama'];
+                                        }
+                                    @endphp
+                                    @foreach($docs as $doc)
+                                        <label class="flex items-center gap-3 p-3 bg-surface-soft dark:bg-white/5 hover:bg-surface-strong dark:hover:bg-white/10 rounded-md border border-hairline dark:border-white/5 transition-all cursor-pointer">
+                                            <input type="checkbox" class="w-4.5 h-4.5 border border-hairline dark:border-white/10 rounded-md bg-canvas text-primary focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-accent-teal">
+                                            <span class="text-xs text-ink dark:text-white font-medium">{{ $doc }}</span>
+                                        </label>
+                                    @endforeach
+                                @else
+                                    <div class="text-center py-4 bg-surface-soft dark:bg-white/5 border border-hairline dark:border-white/5 rounded-lg text-xs text-muted dark:text-on-dark-soft italic">
+                                        Belum ada antrean yang dipanggil.
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
 
                         <!-- Complete Service Trigger & Forward -->
                         <div class="flex flex-col gap-2 mt-6">
@@ -1329,13 +1359,16 @@
                     document.getElementById('citizenService').innerText = '-';
 
                     const list = document.getElementById('documentChecklist');
-                    list.innerHTML =
-                        `<div class="text-center py-4 bg-surface-soft dark:bg-white/5 border border-hairline dark:border-white/5 rounded-lg text-xs text-muted dark:text-on-dark-soft italic">Belum ada antrean yang dipanggil.</div>`;
+                    if (list) {
+                        list.innerHTML =
+                            `<div class="text-center py-4 bg-surface-soft dark:bg-white/5 border border-hairline dark:border-white/5 rounded-lg text-xs text-muted dark:text-on-dark-soft italic">Belum ada antrean yang dipanggil.</div>`;
+                    }
                 }
 
                 // Reset Checklist UI
                 function resetChecklist(docs = []) {
                     const list = document.getElementById('documentChecklist');
+                    if (!list) return;
                     list.innerHTML = '';
 
                     docs.forEach(doc => {

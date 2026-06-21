@@ -368,7 +368,12 @@ class DashboardAnalyticsService
         /** @var Builder $activeBookingQuery */
         $activeBookingQuery = Queue::query();
         $activeBooking = $activeBookingQuery->where('user_id', $user->id)
-            ->whereIn('status', [QueueStatus::Booked->value, QueueStatus::CheckedIn->value, QueueStatus::Serving->value])
+            ->whereIn('status', [
+                QueueStatus::Booked->value,
+                QueueStatus::CheckedIn->value,
+                QueueStatus::Serving->value,
+                QueueStatus::Hold->value,
+            ])
             ->with(['department'])
             ->latest()
             ->first();

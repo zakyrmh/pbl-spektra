@@ -65,6 +65,18 @@
             <p class="text-sm text-muted dark:text-on-dark-soft font-body mt-1">Buat reservasi pelayanan MPP Sawahlunto secara online sebelum kedatangan Anda.</p>
         </div>
 
+        @if($hasActiveBooking)
+            <div class="flex items-start gap-3 p-4 bg-amber-500/10 border border-amber-500/30 rounded-lg shadow-xs" role="alert">
+                <svg class="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+                <div class="flex-1 min-w-0">
+                    <p class="text-sm font-semibold text-amber-800 dark:text-amber-400 font-display">Antrean Aktif Terdeteksi</p>
+                    <p class="text-xs text-amber-700 dark:text-amber-400/80 font-body mt-0.5">Anda masih memiliki tiket/booking aktif. Anda tetap dapat mengakses halaman ini untuk melihat simulasi pilihan tiket, namun tombol <strong>Buat Reservasi Antrean</strong> telah dinonaktifkan.</p>
+                </div>
+            </div>
+        @endif
+
         {{-- Session Flash / Validation Alerts --}}
         @if ($errors->has('error'))
             <div class="flex items-start gap-3 p-4 bg-status-skipped/10 border border-status-skipped/30 rounded-lg animate-pulse" role="alert">
@@ -199,12 +211,21 @@
 
                         {{-- Submit Button --}}
                         <div class="pt-4 border-t border-hairline dark:border-white/10" x-cloak x-show="selectedDepartmentId && selectedDate && selectedSession">
-                            <button type="submit" class="w-full sm:w-auto h-11 inline-flex items-center justify-center gap-2 px-8 bg-primary hover:bg-primary-hover text-white font-semibold rounded-pill shadow-md hover:shadow-lg transition-all focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-accent-teal cursor-pointer">
-                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
-                                Buat Reservasi Antrean
-                            </button>
+                            @if($hasActiveBooking)
+                                <button type="button" disabled class="w-full sm:w-auto h-11 inline-flex items-center justify-center gap-2 px-8 bg-gray-300 dark:bg-zinc-800 text-gray-500 dark:text-zinc-500 font-semibold rounded-pill cursor-not-allowed border border-hairline dark:border-white/5">
+                                    <svg class="w-4 h-4 text-gray-400 dark:text-zinc-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                    </svg>
+                                    Tombol Dinonaktifkan (Ada Tiket Aktif)
+                                </button>
+                            @else
+                                <button type="submit" class="w-full sm:w-auto h-11 inline-flex items-center justify-center gap-2 px-8 bg-primary hover:bg-primary-hover text-white font-semibold rounded-pill shadow-md hover:shadow-lg transition-all focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-accent-teal cursor-pointer">
+                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                    Buat Reservasi Antrean
+                                </button>
+                            @endif
                         </div>
                     </form>
 

@@ -109,9 +109,9 @@
                             $step = 1;
                             if ($activeBooking->queue_number) {
                                 $step = 2; // Check-In FO
-                                if ($activeBooking->status === 'Serving') {
+                                if (($activeBooking->status->value ?? $activeBooking->status) === 'Serving') {
                                     $step = 3; // Menunggu Panggilan
-                                } elseif (in_array($activeBooking->status, ['Completed', 'Skipped'])) {
+                                } elseif (in_array($activeBooking->status->value ?? $activeBooking->status, ['Completed', 'Skipped'])) {
                                     $step = 4; // Dilayani / Selesai
                                 }
                             }
@@ -356,7 +356,7 @@
                     </span>
                 </button>
             </div>
-                @if($activeBooking->status === 'Checked-In')
+                @if(($activeBooking->status->value ?? $activeBooking->status) === 'Checked-In')
                 <div class="inline-flex items-center gap-1.5 px-3 py-1 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 rounded-full text-xs font-bold border border-green-200/50">
                     <span class="w-1.5 h-1.5 rounded-full bg-green-500 animate-ping"></span>
                     Telah Terkonfirmasi FO
@@ -391,7 +391,7 @@
             liveDate.innerText = formatIndonesianDate();
         }
 
-        @if($activeBooking && in_array($activeBooking->status, ['Pending', 'Booked']))
+        @if($activeBooking && in_array($activeBooking->status->value ?? $activeBooking->status, ['Pending', 'Booked']))
         const bookingId = "{{ $activeBooking->id }}";
         const checkInterval = setInterval(async () => {
             try {

@@ -11,6 +11,7 @@ use App\Models\ActivityLog;
 use App\Models\Department;
 use App\Models\Notification;
 use App\Models\Queue;
+use App\Models\Setting;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
@@ -81,6 +82,33 @@ class CheckInService
             $department = $booking->department;
             if (! $department) {
                 throw new \Exception('Instansi/Department tidak ditemukan untuk booking ini.');
+            }
+
+            // 1. Validasi kuota harian (REQ-2.3 & BR 5)
+            $maxQuota = (int) (Setting::getVal('daily_quota') ?? Setting::getVal('daily_quota_limit') ?? 100);
+            $todayActiveCount = Queue::where('department_id', $booking->department_id)
+                ->whereDate('booking_date', $today)
+                ->whereNotNull('queue_number')
+                ->count();
+
+            if ($todayActiveCount >= $maxQuota) {
+                throw new \Exception('Kuota layanan untuk hari ini telah penuh');
+            }
+
+            // 2. Validasi 1 NIK 1 Antrean Aktif (REQ-1.5 & BR 5)
+            if ($booking->user && $booking->user->nik) {
+                $existingActiveQueue = Queue::whereHas('user', function ($query) use ($booking) {
+                    $query->where('nik', $booking->user->nik);
+                })
+                    ->where('department_id', $booking->department_id)
+                    ->whereDate('booking_date', $today)
+                    ->whereIn('status', [QueueStatus::CheckedIn->value, QueueStatus::Serving->value])
+                    ->where('id', '!=', $booking->id)
+                    ->exists();
+
+                if ($existingActiveQueue) {
+                    throw new \Exception('Warga dengan NIK ini sudah memiliki antrean aktif hari ini untuk instansi yang sama.');
+                }
             }
 
             $queueNumber = $this->generateQueueNumber($department, $today);

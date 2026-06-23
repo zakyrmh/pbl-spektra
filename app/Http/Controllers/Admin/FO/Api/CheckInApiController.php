@@ -16,6 +16,7 @@ use App\Services\AdminFO\VisitorLookupService;
 use App\Services\AdminFO\WalkInTicketService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 
 /**
  * CheckInApiController — REST API endpoints untuk Front Office.
@@ -110,6 +111,8 @@ final class CheckInApiController extends Controller
                 'status' => $queue->status->value ?? $queue->status,
                 'visitor_name' => $queue->user->name,
             ]);
+        } catch (ValidationException $e) {
+            return response()->json(['message' => $e->validator->errors()->first()], 422);
         } catch (\Exception $e) {
             return response()->json(['message' => $e->getMessage()], 422);
         }

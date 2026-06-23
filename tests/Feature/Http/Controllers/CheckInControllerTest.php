@@ -8,6 +8,7 @@ use App\Enums\QueueStatus;
 use App\Enums\UserRole;
 use App\Models\Department;
 use App\Models\Queue;
+use App\Models\Setting;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -180,5 +181,106 @@ class CheckInControllerTest extends TestCase
         // API
         $apiResponse = $this->actingAs($this->adminFo)->getJson(route('api.fo.bookings.verify', ['code' => 'non-existent']));
         $apiResponse->assertStatus(404);
+    }
+
+    public function test_checkin_fails_if_nik_already_has_active_queue_today(): void
+    {
+        // 1. Create an active (Checked-In) queue today for the citizen
+        Queue::create([
+            'user_id' => $this->citizen->id,
+            'department_id' => $this->department->id,
+            'booking_code' => 'a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d',
+            'booking_date' => now()->toDateString(),
+            'status' => QueueStatus::CheckedIn->value,
+            'purpose' => 'Layanan Lama',
+            'session_name' => 'Sesi 1',
+            'queue_number' => 'DDK-001',
+        ]);
+
+        // 2. Create another booked booking today
+        $uuid = '550e8400-e29b-41d4-a716-446655440000';
+        $booking = Queue::create([
+            'user_id' => $this->citizen->id,
+            'department_id' => $this->department->id,
+            'booking_code' => $uuid,
+            'booking_date' => now()->toDateString(),
+            'status' => QueueStatus::Booked->value,
+            'purpose' => 'Layanan Aktif Baru',
+            'session_name' => 'Sesi 1',
+        ]);
+
+        // 3. Try to approve check-in
+        $response = $this->actingAs($this->adminFo)->post(route('admin.fo.checkin.approve', $booking));
+        $response->assertRedirect(route('admin.fo.checkin'));
+        $response->assertSessionHas('error');
+        $this->assertStringContainsString('Warga dengan NIK ini sudah memiliki antrean aktif hari ini untuk instansi yang sama.', session('error'));
+    }
+
+    public function test_checkin_fails_if_daily_quota_is_full(): void
+    {
+        // 1. Set daily quota limit to 1
+        Setting::setVal('daily_quota_limit', '1');
+
+        // 2. Create one active queue today
+        Queue::create([
+            'user_id' => User::factory()->create()->id,
+            'department_id' => $this->department->id,
+            'booking_code' => 'a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d',
+            'booking_date' => now()->toDateString(),
+            'status' => QueueStatus::CheckedIn->value,
+            'purpose' => 'Layanan Lama',
+            'session_name' => 'Sesi 1',
+            'queue_number' => 'DDK-001',
+        ]);
+
+        // 3. Create another booked booking today
+        $uuid = '550e8400-e29b-41d4-a716-446655440000';
+        $booking = Queue::create([
+            'user_id' => $this->citizen->id,
+            'department_id' => $this->department->id,
+            'booking_code' => $uuid,
+            'booking_date' => now()->toDateString(),
+            'status' => QueueStatus::Booked->value,
+            'purpose' => 'Layanan Aktif Baru',
+            'session_name' => 'Sesi 1',
+        ]);
+
+        // 4. Try to approve check-in
+        $response = $this->actingAs($this->adminFo)->post(route('admin.fo.checkin.approve', $booking));
+        $response->assertRedirect(route('admin.fo.checkin'));
+        $response->assertSessionHas('error');
+        $this->assertStringContainsString('Kuota layanan untuk hari ini telah penuh', session('error'));
+    }
+
+    public function test_walkin_fails_if_daily_quota_is_full(): void
+    {
+        // 1. Set daily quota limit to 1
+        Setting::setVal('daily_quota_limit', '1');
+
+        // 2. Create one active queue today
+        Queue::create([
+            'user_id' => User::factory()->create()->id,
+            'department_id' => $this->department->id,
+            'booking_code' => 'a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d',
+            'booking_date' => now()->toDateString(),
+            'status' => QueueStatus::CheckedIn->value,
+            'purpose' => 'Layanan Lama',
+            'session_name' => 'Sesi 1',
+            'queue_number' => 'DDK-001',
+        ]);
+
+        // 3. Try to issue walk-in ticket
+        $response = $this->actingAs($this->adminFo)->postJson(route('api.fo.queues.walkin'), [
+            'nik' => '9999888877776666',
+            'name' => 'John Doe',
+            'phone' => '081234567890',
+            'department_id' => $this->department->id,
+            'purpose' => 'Permohonan Layanan Baru',
+        ]);
+
+        $response->assertStatus(422);
+        $response->assertJsonFragment([
+            'message' => 'Kuota layanan untuk hari ini telah penuh',
+        ]);
     }
 }

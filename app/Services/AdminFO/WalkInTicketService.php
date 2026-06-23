@@ -11,6 +11,7 @@ use App\Events\QueueCreated;
 use App\Models\ActivityLog;
 use App\Models\Department;
 use App\Models\Queue;
+use App\Models\Setting;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Collection;
@@ -42,6 +43,19 @@ class WalkInTicketService
     public function issueTicket(WalkInTicketData $data): Queue
     {
         $today = Carbon::today();
+
+        // 1. Validasi kuota harian (REQ-2.3 & BR 5)
+        $maxQuota = (int) (Setting::getVal('daily_quota') ?? Setting::getVal('daily_quota_limit') ?? 100);
+        $todayActiveCount = Queue::where('department_id', $data->departmentId)
+            ->whereDate('booking_date', $today)
+            ->whereNotNull('queue_number')
+            ->count();
+
+        if ($todayActiveCount >= $maxQuota) {
+            throw ValidationException::withMessages([
+                'department_id' => 'Kuota layanan untuk hari ini telah penuh',
+            ]);
+        }
 
         // 1. Validasi duplikasi antrean aktif hari ini untuk instansi tujuan (jika NIK diisi)
         if ($data->nik) {

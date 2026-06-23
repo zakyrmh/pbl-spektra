@@ -67,9 +67,8 @@ test('admin_gerai with department can view the daftar tunggu page', function () 
     $response->assertStatus(200);
     $response->assertViewIs('admin.daftar-tunggu');
     $response->assertViewHas('department');
-    $response->assertViewHas('pendingBookings');
-    $response->assertViewHas('checkedInBookings');
-    $response->assertViewHas('cancelledBookings');
+    $response->assertViewHas('waitingBookings');
+    $response->assertViewHas('servingBookings');
 });
 
 test('operator can check-in a pending queue', function () {

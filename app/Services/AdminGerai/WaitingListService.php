@@ -24,19 +24,15 @@ class WaitingListService
     {
         $today = Carbon::today();
 
-        $pendingModels = $this->getQueues($department, $today, [QueueStatus::Booked->value], $search);
-        $pendingBookings = $pendingModels->map(fn ($q) => WaitingListDashboardData::fromModel($q));
+        $waitingModels = $this->getQueues($department, $today, [QueueStatus::CheckedIn->value], $search);
+        $waitingBookings = $waitingModels->map(fn ($q) => WaitingListDashboardData::fromModel($q));
 
-        $checkedInModels = $this->getQueues($department, $today, [QueueStatus::CheckedIn->value], $search);
-        $checkedInBookings = $checkedInModels->map(fn ($q) => WaitingListDashboardData::fromModel($q));
-
-        $cancelledModels = $this->getQueues($department, $today, [QueueStatus::Cancelled->value, QueueStatus::Skipped->value], $search);
-        $cancelledBookings = $cancelledModels->map(fn ($q) => WaitingListDashboardData::fromModel($q));
+        $servingModels = $this->getQueues($department, $today, [QueueStatus::Serving->value], $search);
+        $servingBookings = $servingModels->map(fn ($q) => WaitingListDashboardData::fromModel($q));
 
         return [
-            'pendingBookings' => $pendingBookings,
-            'checkedInBookings' => $checkedInBookings,
-            'cancelledBookings' => $cancelledBookings,
+            'waitingBookings' => $waitingBookings,
+            'servingBookings' => $servingBookings,
         ];
     }
 

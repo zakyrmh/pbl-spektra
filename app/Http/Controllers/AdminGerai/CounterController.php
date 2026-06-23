@@ -205,28 +205,6 @@ final class CounterController extends Controller
     }
 
     /**
-     * Menunda antrean aktif (Hold).
-     * POST /api/queues/{queue}/hold
-     */
-    public function holdQueue(Queue $queue): JsonResponse
-    {
-        if ($queue->department_id !== Auth::user()->departments_id) {
-            abort(403);
-        }
-
-        try {
-            $this->boothService->holdQueue($queue);
-        } catch (\RuntimeException $e) {
-            return response()->json(['success' => false, 'message' => $e->getMessage()], 422);
-        }
-
-        return response()->json([
-            'success' => true,
-            'message' => "Antrean {$queue->queue_number} berhasil ditunda (Hold).",
-        ]);
-    }
-
-    /**
      * Mengoper antrean ke instansi lain (Forward).
      * POST /api/queues/{queue}/forward
      */

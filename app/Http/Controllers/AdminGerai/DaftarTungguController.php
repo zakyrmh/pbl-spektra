@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\AdminGerai;
 
+use App\Data\AdminGerai\WaitingListDashboardData;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\AdminGerai\WaitingListActionRequest;
 use App\Models\Department;
@@ -39,15 +40,31 @@ final class DaftarTungguController extends Controller
 
         $search = $request->filled('search') ? trim($request->input('search')) : null;
 
-        // Fetch aggregated waitlist data from service
-        $data = $this->waitingListService->getWaitingListDashboardData($department, $search);
+        // Query utama sesuai dengan instruksi teknis, menggunakan status 'Checked-In'
+        // (database enum status untuk Waiting sesuai Aturan #1) dan 'Serving'.
+        $queues = Queue::excludeCancelled()
+            ->where('department_id', auth()->user()->department_id)
+            ->whereIn('status', ['Checked-In', 'Serving'])
+            ->when($search, function ($query, $search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('booking_code', 'like', "%{$search}%")
+                        ->orWhereHas('user', fn ($uq) => $uq->where('name', 'like', "%{$search}%"));
+                });
+            })
+            ->with('user')
+            ->get();
+
+        $waitingBookings = $queues->where('status', 'Checked-In')
+            ->map(fn ($q) => WaitingListDashboardData::fromModel($q));
+
+        $servingBookings = $queues->where('status', 'Serving')
+            ->map(fn ($q) => WaitingListDashboardData::fromModel($q));
 
         return view('admin.daftar-tunggu', [
             'department' => $department,
             'schedules' => $schedules,
-            'pendingBookings' => $data['pendingBookings'],
-            'checkedInBookings' => $data['checkedInBookings'],
-            'cancelledBookings' => $data['cancelledBookings'],
+            'waitingBookings' => $waitingBookings,
+            'servingBookings' => $servingBookings,
         ]);
     }
 

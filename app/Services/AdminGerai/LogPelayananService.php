@@ -35,7 +35,8 @@ final class LogPelayananService
         array $filters = [],
         int $perPage = 15,
     ): LengthAwarePaginator {
-        $query = Queue::where('department_id', $department->id)
+        $query = Queue::excludeCancelled()
+            ->where('department_id', $department->id)
             ->with(['user'])
             ->whereIn('status', $this->resolveStatuses($filters['status'] ?? null))
             ->orderBy('booking_date', 'desc')
@@ -67,7 +68,8 @@ final class LogPelayananService
      */
     public function getAllForExport(Department $department, array $filters = []): Collection
     {
-        $query = Queue::where('department_id', $department->id)
+        $query = Queue::excludeCancelled()
+            ->where('department_id', $department->id)
             ->with(['user'])
             ->whereIn('status', $this->resolveStatuses($filters['status'] ?? null))
             ->orderBy('booking_date', 'desc')
@@ -96,7 +98,8 @@ final class LogPelayananService
      */
     public function countByStatus(Department $department, string $status): int
     {
-        return Queue::where('department_id', $department->id)
+        return Queue::excludeCancelled()
+            ->where('department_id', $department->id)
             ->where('status', $status)
             ->count();
     }

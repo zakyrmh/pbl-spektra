@@ -42,9 +42,16 @@
         <!-- Card Antrean Batal/Terlewat -->
         <div class="bg-canvas dark:bg-surface-dark-elevated p-6 rounded-lg border border-hairline dark:border-white/10 shadow-xs flex justify-between items-center relative overflow-hidden font-body">
             <div class="space-y-1">
-                <span class="text-xs font-bold text-rose-600 dark:text-rose-400 uppercase tracking-wider font-display">Total Batal & Terlewat</span>
-                <span class="text-3xl font-black text-ink dark:text-white block font-mono">{{ $totalCancelled }}</span>
-                <span class="text-xs text-muted dark:text-on-dark-soft block">Cancelled + Skipped</span>
+                <span class="text-xs font-bold text-rose-600 dark:text-rose-400 uppercase tracking-wider font-display flex items-center gap-1">
+                    TOTAL DILEWATI (Skipped)
+                    <span class="cursor-help text-muted-soft dark:text-on-dark-soft/50" title="Antrean yang dibatalkan oleh FO tidak masuk hitungan ini.">
+                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </span>
+                </span>
+                <span class="text-3xl font-black text-ink dark:text-white block font-mono">{{ $totalSkipped }}</span>
+                <span class="text-xs text-muted dark:text-on-dark-soft block">Hanya antrean yang dilewati gerai</span>
             </div>
             <div class="p-3 bg-rose-50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-400 rounded-lg">
                 <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -78,20 +85,22 @@
             <!-- Date Range: Mulai -->
             <div>
                 <label for="start_date" class="block text-title-sm font-semibold text-ink dark:text-white mb-2">Tanggal Mulai</label>
-                <input type="date" 
+                <input type="text" 
                        id="start_date" 
                        name="start_date" 
                        value="{{ $filters['start_date'] ?? '' }}"
+                       placeholder="dd/mm/yyyy"
                        class="w-full text-body-md bg-canvas dark:bg-white/5 border border-hairline dark:border-white/15 text-ink dark:text-white rounded-md px-4 h-12 focus:outline-none focus:border-primary dark:focus:border-accent-teal focus:ring-3 focus:ring-primary/12 dark:focus:ring-accent-teal/20 transition-all">
             </div>
 
             <!-- Date Range: Akhir -->
             <div>
                 <label for="end_date" class="block text-title-sm font-semibold text-ink dark:text-white mb-2">Tanggal Akhir</label>
-                <input type="date" 
+                <input type="text" 
                        id="end_date" 
                        name="end_date" 
                        value="{{ $filters['end_date'] ?? '' }}"
+                       placeholder="dd/mm/yyyy"
                        class="w-full text-body-md bg-canvas dark:bg-white/5 border border-hairline dark:border-white/15 text-ink dark:text-white rounded-md px-4 h-12 focus:outline-none focus:border-primary dark:focus:border-accent-teal focus:ring-3 focus:ring-primary/12 dark:focus:ring-accent-teal/20 transition-all">
             </div>
 
@@ -217,3 +226,24 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        flatpickr("#start_date", {
+            dateFormat: "Y-m-d",
+            altInput: true,
+            altFormat: "d/m/Y",
+            placeholder: "dd/mm/yyyy"
+        });
+        flatpickr("#end_date", {
+            dateFormat: "Y-m-d",
+            altInput: true,
+            altFormat: "d/m/Y",
+            placeholder: "dd/mm/yyyy"
+        });
+    });
+</script>
+@endpush

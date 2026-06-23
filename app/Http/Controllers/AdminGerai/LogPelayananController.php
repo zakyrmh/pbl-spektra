@@ -37,14 +37,13 @@ final class LogPelayananController extends Controller
 
         // Summary counts (always based on all-time for this department, not filtered)
         $totalSuccess = $this->logService->countByStatus($department, QueueStatus::Completed->value);
-        $totalCancelled = $this->logService->countByStatus($department, QueueStatus::Cancelled->value)
-                        + $this->logService->countByStatus($department, QueueStatus::Skipped->value);
+        $totalSkipped = $this->logService->countByStatus($department, QueueStatus::Skipped->value);
 
         return view('admin.log-pelayanan', compact(
             'department',
             'logs',
             'totalSuccess',
-            'totalCancelled',
+            'totalSkipped',
             'filters',
         ));
     }

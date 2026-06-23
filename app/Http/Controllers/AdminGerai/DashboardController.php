@@ -33,21 +33,25 @@ class DashboardController extends Controller
         $today = Carbon::today()->toDateString();
 
         // Cards statistics — derived from queues table
-        $totalAntrean = Queue::where('department_id', $departmentId)
+        $totalAntrean = Queue::excludeCancelled()
+            ->where('department_id', $departmentId)
             ->whereDate('booking_date', $today)
             ->count();
 
-        $sisaAntrean = Queue::where('department_id', $departmentId)
+        $sisaAntrean = Queue::excludeCancelled()
+            ->where('department_id', $departmentId)
             ->whereDate('booking_date', $today)
             ->where('status', 'Checked-In')
             ->count();
 
-        $suksesDilayani = Queue::where('department_id', $departmentId)
+        $suksesDilayani = Queue::excludeCancelled()
+            ->where('department_id', $departmentId)
             ->whereDate('booking_date', $today)
             ->where('status', 'Completed')
             ->count();
 
-        $terlewat = Queue::where('department_id', $departmentId)
+        $terlewat = Queue::excludeCancelled()
+            ->where('department_id', $departmentId)
             ->whereDate('booking_date', $today)
             ->whereIn('status', ['Cancelled', 'Skipped'])
             ->count();
@@ -58,7 +62,8 @@ class DashboardController extends Controller
         // Schedule model is deleted — pass empty collection for the
         // @forelse fallback in the stats view (renders "Tidak ada jadwal...")
         $schedules = collect();
-        $isGeraiOpen = (bool) Queue::where('department_id', $departmentId)
+        $isGeraiOpen = (bool) Queue::excludeCancelled()
+            ->where('department_id', $departmentId)
             ->whereDate('booking_date', $today)
             ->whereIn('status', ['Checked-In', 'Serving'])
             ->exists();
@@ -84,7 +89,8 @@ class DashboardController extends Controller
     {
         $hours = ['08', '09', '10', '11', '12', '13', '14', '15', '16'];
 
-        $queuesFinishedToday = Queue::where('department_id', $departmentId)
+        $queuesFinishedToday = Queue::excludeCancelled()
+            ->where('department_id', $departmentId)
             ->whereDate('booking_date', $today)
             ->whereIn('status', ['Completed', 'Cancelled', 'Skipped'])
             ->get();

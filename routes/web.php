@@ -199,7 +199,6 @@ Route::middleware('auth')->group(function () {
         Route::post('/api/queues/{queue}/call', [CounterController::class, 'callQueue'])->name('gerai.call');
         Route::post('/api/queues/{queue}/finish', [CounterController::class, 'finishService'])->name('gerai.finish');
         Route::post('/api/queues/{queue}/skip', [CounterController::class, 'skipQueue'])->name('gerai.skip');
-        Route::post('/api/queues/{queue}/hold', [CounterController::class, 'holdQueue'])->name('gerai.hold');
         Route::post('/api/queues/{queue}/forward', [CounterController::class, 'forwardQueue'])->name('gerai.forward');
     });
 

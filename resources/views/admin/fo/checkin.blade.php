@@ -423,7 +423,7 @@
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div class="flex gap-3">
                     <div
-                        class="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 dark:bg-primary/20 text-primary dark:text-accent-teal flex items-center justify-center text-sm font-bold font-mono">
+                        class="shrink-0 w-8 h-8 rounded-full bg-primary/10 dark:bg-primary/20 text-primary dark:text-accent-teal flex items-center justify-center text-sm font-bold font-mono">
                         1</div>
                     <div>
                         <p class="text-sm font-semibold text-ink dark:text-white font-display">Terima Kode / NIK</p>
@@ -433,7 +433,7 @@
                 </div>
                 <div class="flex gap-3">
                     <div
-                        class="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 dark:bg-primary/20 text-primary dark:text-accent-teal flex items-center justify-center text-sm font-bold font-mono">
+                        class="shrink-0 w-8 h-8 rounded-full bg-primary/10 dark:bg-primary/20 text-primary dark:text-accent-teal flex items-center justify-center text-sm font-bold font-mono">
                         2</div>
                     <div>
                         <p class="text-sm font-semibold text-ink dark:text-white font-display">Scan / Ketik</p>
@@ -443,7 +443,7 @@
                 </div>
                 <div class="flex gap-3">
                     <div
-                        class="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 dark:bg-primary/20 text-primary dark:text-accent-teal flex items-center justify-center text-sm font-bold font-mono">
+                        class="shrink-0 w-8 h-8 rounded-full bg-primary/10 dark:bg-primary/20 text-primary dark:text-accent-teal flex items-center justify-center text-sm font-bold font-mono">
                         3</div>
                     <div>
                         <p class="text-sm font-semibold text-ink dark:text-white font-display">Verifikasi & Cetak</p>

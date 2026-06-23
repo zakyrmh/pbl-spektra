@@ -70,7 +70,7 @@
                         d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
                 <div class="flex-1 min-w-0">
-                    <p class="text-sm font-semibold text-status-skipped font-display">Booking Tidak Ditemukan</p>
+                    <p class="text-sm font-semibold text-status-skipped font-display">Data Tidak Ditemukan</p>
                     <p class="text-sm text-red-800 dark:text-red-300 font-body mt-0.5">{!! session('error') !!}</p>
                 </div>
                 <button onclick="this.closest('[role=alert]').remove()"
@@ -307,6 +307,12 @@
                                     <span class="font-bold text-primary dark:text-accent-teal">{{ $bk->purpose }}</span>
                                 </div>
                                 <div class="flex justify-between">
+                                    <span class="text-muted">Status Booking</span>
+                                    <span class="inline-flex items-center gap-1 px-2 py-0.5 bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 rounded-full text-[11px] font-bold border border-amber-200/50">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-amber-500 mr-1"></span>{{ $bk->status === 'Booked' ? 'Pending' : $bk->status }}
+                                    </span>
+                                </div>
+                                <div class="flex justify-between">
                                     <span class="text-muted">Jadwal & Sesi</span>
                                     <span class="font-bold text-ink dark:text-white">{{ $bk->booking_date->translatedFormat('d M Y') }} ({{ $bk->session_name ?? 'Umum' }})</span>
                                 </div>
@@ -323,7 +329,7 @@
                             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
-                            Tolak Booking
+                            Tolak / Batalkan
                         </button>
 
                         {{-- Button Setujui --}}
@@ -334,7 +340,7 @@
                                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                                 </svg>
-                                Setujui & Terbitkan Antrean
+                                Setuju (Aktifkan & Cetak)
                             </button>
                         </form>
                     </div>
@@ -471,7 +477,7 @@
                     </svg>
                 </button>
 
-                <h3 class="font-extrabold text-xl text-ink dark:text-white leading-tight font-display mb-2">Tolak Verifikasi Booking</h3>
+                <h3 class="font-extrabold text-xl text-ink dark:text-white leading-tight font-display mb-2">Tolak / Batalkan Booking</h3>
                 <p class="text-xs text-muted dark:text-on-dark-soft mb-6 font-body">Harap berikan alasan mengapa berkas dokumen warga tidak valid atau tidak lengkap. Alasan akan dikirim ke email warga.</p>
 
                 @if ($bk)
@@ -505,7 +511,7 @@
                             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
-                            Tolak Booking
+                            Tolak / Batalkan Booking
                         </button>
                     </div>
                 </form>

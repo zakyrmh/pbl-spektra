@@ -7,6 +7,7 @@ namespace Tests\Feature\Http\Controllers;
 use App\Enums\QueueStatus;
 use App\Enums\UserRole;
 use App\Models\Department;
+use App\Models\Notification;
 use App\Models\Queue;
 use App\Models\Setting;
 use App\Models\User;
@@ -282,5 +283,52 @@ class CheckInControllerTest extends TestCase
         $response->assertJsonFragment([
             'message' => 'Kuota layanan untuk hari ini telah penuh',
         ]);
+    }
+
+    public function test_fo_admin_can_retrieve_unread_booking_notifications(): void
+    {
+        // 1. Create a notification for the FO admin
+        $notification = Notification::create([
+            'user_id' => $this->adminFo->id,
+            'title' => 'Booking Baru Masuk',
+            'message' => 'Pengunjung Jane Doe membuat booking online baru.',
+        ]);
+
+        // 2. Fetch notifications
+        $response = $this->actingAs($this->adminFo)->getJson(route('api.fo.notifications.index'));
+        $response->assertStatus(200);
+        $response->assertJsonStructure([
+            'notifications',
+            'unread_count',
+        ]);
+        $response->assertJsonFragment([
+            'id' => $notification->id,
+            'title' => 'Booking Baru Masuk',
+            'message' => 'Pengunjung Jane Doe membuat booking online baru.',
+        ]);
+    }
+
+    public function test_fo_admin_can_mark_notification_as_read(): void
+    {
+        // 1. Create a notification
+        $notification = Notification::create([
+            'user_id' => $this->adminFo->id,
+            'title' => 'Booking Baru Masuk',
+            'message' => 'Pengunjung Jane Doe membuat booking online baru.',
+        ]);
+
+        // 2. Mark it as read
+        $response = $this->actingAs($this->adminFo)->postJson(route('api.fo.notifications.read', ['id' => $notification->id]));
+        $response->assertStatus(200);
+        $response->assertJsonFragment(['success' => true]);
+
+        // 3. Assert notification is marked read in database
+        $this->assertNotNull($notification->fresh()->read_at);
+    }
+
+    public function test_unauthenticated_user_cannot_access_fo_notifications(): void
+    {
+        $response = $this->getJson(route('api.fo.notifications.index'));
+        $response->assertStatus(401);
     }
 }

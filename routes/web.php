@@ -175,6 +175,8 @@ Route::middleware('auth')->group(function () {
         Route::post('/api/fo/bookings/{booking}/checkin', [CheckInApiController::class, 'checkIn'])->name('api.fo.bookings.checkin');
         Route::post('/api/fo/queues/walkin', [CheckInApiController::class, 'walkIn'])->name('api.fo.queues.walkin');
         Route::get('/api/fo/visitors/check-nik', [CheckInApiController::class, 'checkNik'])->name('api.fo.visitors.check-nik');
+        Route::get('/api/fo/notifications', [CheckInApiController::class, 'notifications'])->name('api.fo.notifications.index');
+        Route::post('/api/fo/notifications/{id}/read', [CheckInApiController::class, 'markNotificationRead'])->name('api.fo.notifications.read');
     });
 
     // ─────────────────────────────────────────────────────────────────────────

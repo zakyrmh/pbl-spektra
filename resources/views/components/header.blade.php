@@ -35,9 +35,7 @@
             @php
                 $unreadCount = Auth::user()->unreadNotifications()->count();
             @endphp
-            @if ($unreadCount > 0)
-                <span class="absolute top-2 right-2 block w-2.5 h-2.5 rounded-full bg-status-skipped ring-2 ring-canvas dark:ring-surface-dark-elevated shadow-sm animate-pulse"></span>
-            @endif
+            <span id="header-notification-dot" class="absolute top-2 right-2 {{ $unreadCount > 0 ? '' : 'hidden' }} block w-2.5 h-2.5 rounded-full bg-status-skipped ring-2 ring-canvas dark:ring-surface-dark-elevated shadow-sm animate-pulse"></span>
         </a>
 
         {{-- Divider --}}

@@ -858,4 +858,57 @@
             }
         }, 4000);
     }
+
+    // Keep track of shown notification IDs to prevent duplicates in async race conditions
+    const shownNotifications = new Set();
+
+    async function pollNotifications() {
+        try {
+            const response = await fetch('/api/fo/notifications');
+            if (!response.ok) return;
+            const data = await response.json();
+            
+            if (data.notifications && data.notifications.length > 0) {
+                for (const notification of data.notifications) {
+                    if (shownNotifications.has(notification.id)) continue;
+                    shownNotifications.add(notification.id);
+                    
+                    // Show dynamic toast pop-up
+                    createToast(notification.title, notification.message, 'info');
+                    
+                    // Increment stats counter
+                    foStats.antreanFO++;
+                    const foStatElem = document.getElementById('foStatAntrean');
+                    if (foStatElem) {
+                        foStatElem.innerText = foStats.antreanFO;
+                    }
+                    
+                    // Mark as read in background
+                    fetch(`/api/fo/notifications/${notification.id}/read`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        }
+                    }).catch(err => console.error('Failed to mark notification as read:', err));
+                }
+            }
+            
+            // Update the header dot
+            const dot = document.getElementById('header-notification-dot');
+            if (dot) {
+                if (data.unread_count > 0) {
+                    dot.classList.remove('hidden');
+                } else {
+                    dot.classList.add('hidden');
+                }
+            }
+        } catch (error) {
+            console.error('Error polling notifications:', error);
+        }
+    }
+
+    // Start polling immediately and then every 5 seconds
+    pollNotifications();
+    setInterval(pollNotifications, 5000);
 </script>

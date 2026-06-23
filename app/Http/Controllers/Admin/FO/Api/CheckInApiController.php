@@ -135,4 +135,44 @@ final class CheckInApiController extends Controller
 
         return new VisitorLookupResource($visitor);
     }
+
+    /**
+     * Get unread notifications for Front Office.
+     */
+    public function notifications(Request $request): JsonResponse
+    {
+        $notifications = $request->user()->unreadNotifications()
+            ->where('title', 'Booking Baru Masuk')
+            ->latest()
+            ->get()
+            ->map(function ($notification) {
+                return [
+                    'id' => $notification->id,
+                    'title' => $notification->title ?? $notification->data['title'] ?? 'Booking Baru Masuk',
+                    'message' => $notification->message ?? $notification->data['message'] ?? '',
+                    'created_at' => $notification->created_at->toIso8601String(),
+                ];
+            });
+
+        return response()->json([
+            'notifications' => $notifications,
+            'unread_count' => $request->user()->unreadNotifications()->count(),
+        ]);
+    }
+
+    /**
+     * Mark a specific notification as read.
+     */
+    public function markNotificationRead(Request $request, string $id): JsonResponse
+    {
+        $notification = $request->user()->unreadNotifications()->where('id', $id)->first();
+        if ($notification) {
+            $notification->update(['read_at' => now()]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'unread_count' => $request->user()->unreadNotifications()->count(),
+        ]);
+    }
 }

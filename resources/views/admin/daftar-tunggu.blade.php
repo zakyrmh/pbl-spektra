@@ -85,7 +85,7 @@
         {{-- Filters and Search Form --}}
         <form method="GET" action="{{ route('admin.daftar-tunggu') }}"
             class="bg-canvas dark:bg-surface-dark-elevated p-4 rounded-lg border border-hairline dark:border-white/10 flex flex-wrap items-end gap-4 font-body">
-            <div class="flex-1 min-w-[260px]">
+            <div class="flex-1 min-w-sidebar">
                 <label for="search" class="block text-title-sm font-semibold text-ink dark:text-white mb-2">Cari
                     Antrean</label>
                 <div class="relative">
@@ -100,14 +100,6 @@
                         </svg>
                     </div>
                 </div>
-            </div>
-            <div class="w-full md:w-64">
-                <label for="service_id" class="block text-title-sm font-semibold text-ink dark:text-white mb-2">Jenis
-                    Layanan</label>
-                <select id="service_id" name="service_id" disabled
-                    class="w-full text-body-md bg-canvas dark:bg-white/5 border border-hairline dark:border-white/15 text-muted dark:text-on-dark-soft rounded-md px-4 h-12 focus:outline-none cursor-not-allowed opacity-50">
-                    <option value="">Semua Layanan</option>
-                </select>
             </div>
             <div class="flex gap-2">
                 <a href="{{ route('admin.daftar-tunggu') }}"

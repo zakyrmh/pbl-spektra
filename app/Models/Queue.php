@@ -76,4 +76,13 @@ class Queue extends Model
     {
         return $this->belongsTo(Department::class);
     }
+
+    /**
+     * Scope query untuk mengecualikan antrean yang dibatalkan oleh FO.
+     * Hanya berlaku untuk role Gerai.
+     */
+    public function scopeExcludeCancelled($query)
+    {
+        return $query->where('status', '!=', 'Cancelled');
+    }
 }

@@ -42,9 +42,16 @@
         <!-- Card Antrean Batal/Terlewat -->
         <div class="bg-canvas dark:bg-surface-dark-elevated p-6 rounded-lg border border-hairline dark:border-white/10 shadow-xs flex justify-between items-center relative overflow-hidden font-body">
             <div class="space-y-1">
-                <span class="text-xs font-bold text-rose-600 dark:text-rose-400 uppercase tracking-wider font-display">Total Batal & Terlewat</span>
-                <span class="text-3xl font-black text-ink dark:text-white block font-mono">{{ $totalCancelled }}</span>
-                <span class="text-xs text-muted dark:text-on-dark-soft block">Cancelled + Skipped</span>
+                <span class="text-xs font-bold text-rose-600 dark:text-rose-400 uppercase tracking-wider font-display flex items-center gap-1">
+                    TOTAL DILEWATI (Skipped)
+                    <span class="cursor-help text-muted-soft dark:text-on-dark-soft/50" title="Antrean yang dibatalkan oleh FO tidak masuk hitungan ini.">
+                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </span>
+                </span>
+                <span class="text-3xl font-black text-ink dark:text-white block font-mono">{{ $totalSkipped }}</span>
+                <span class="text-xs text-muted dark:text-on-dark-soft block">Hanya antrean yang dilewati gerai</span>
             </div>
             <div class="p-3 bg-rose-50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-400 rounded-lg">
                 <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">

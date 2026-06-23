@@ -79,8 +79,11 @@ final class CheckInApiController extends Controller
 
             return response()->json([
                 'success' => true,
+                'id' => $queue->id,
                 'queue_number' => $queue->queue_number,
                 'status' => $queue->status->value ?? $queue->status,
+                'booking_code' => $queue->booking_code,
+                'purpose' => $queue->purpose,
             ]);
         } catch (\Exception $e) {
             return response()->json(['message' => $e->getMessage()], 422);
@@ -107,9 +110,12 @@ final class CheckInApiController extends Controller
 
             return response()->json([
                 'success' => true,
+                'id' => $queue->id,
                 'queue_number' => $queue->queue_number,
                 'status' => $queue->status->value ?? $queue->status,
                 'visitor_name' => $queue->user->name,
+                'booking_code' => $queue->booking_code,
+                'purpose' => $queue->purpose,
             ]);
         } catch (ValidationException $e) {
             return response()->json(['message' => $e->validator->errors()->first()], 422);

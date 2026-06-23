@@ -603,7 +603,7 @@
 
             // Add to live feed with state parameter 'Waiting' (instead of 'Check-In FO')
             const finalCode = data.queue_number || data.ticket_code || code;
-            addLiveFeedRow(name, finalCode, tenant, 'Online Booking', 'Waiting');
+            addLiveFeedRow(name, finalCode, tenant, 'Online Booking', 'Waiting', data.id, data.booking_code, data.purpose);
 
             createToast('Check-In Sukses', `Warga ${name} (${finalCode}) telah check-in untuk loket ${tenant}.`,
                 'success');
@@ -751,7 +751,7 @@
             document.getElementById('foStatTiket').innerText = foStats.tiketDicetak;
 
             // Add to live feed with state parameter 'Waiting'
-            addLiveFeedRow(citizenName, ticketNum, deptName, 'Walk-In (Tiket Mandiri)', 'Waiting');
+            addLiveFeedRow(citizenName, ticketNum, deptName, 'Walk-In (Tiket Mandiri)', 'Waiting', data.id, data.booking_code, data.purpose);
 
             createToast('Tiket Dicetak',
                 `Tiket ${ticketNum} berhasil dicetak untuk ${citizenName} tujuan ${deptName}.`, 'success');
@@ -763,7 +763,7 @@
     }
 
     // Helper functions
-    function addLiveFeedRow(name, code, tenant, type, status) {
+    function addLiveFeedRow(name, code, tenant, type, status, id = null, bookingCode = null, serviceName = '-') {
         const tbody = document.getElementById('foLiveFeedBody');
         const tr = document.createElement('tr');
         tr.className = 'hover:bg-surface-soft/50 dark:hover:bg-white/5 transition-colors';
@@ -774,6 +774,40 @@
             minute: '2-digit'
         });
 
+        // Determine badge style dynamically
+        let badgeClass = 'bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 border-amber-200/50';
+        let dotClass = 'bg-amber-500';
+        if (status === 'Serving') {
+            badgeClass = 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 border-green-200/50';
+            dotClass = 'bg-green-500';
+        } else if (status === 'Completed') {
+            badgeClass = 'bg-gray-100 dark:bg-gray-800/50 text-gray-700 dark:text-gray-400 border-gray-200/50';
+            dotClass = 'bg-gray-500';
+        } else if (status === 'Skipped') {
+            badgeClass = 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 border-red-200/50';
+            dotClass = 'bg-red-500';
+        }
+
+        // Action cell content
+        let actionHtml = '<span class="text-muted text-[10px] font-medium">-</span>';
+        if (id && (status === 'Waiting' || status === 'Checked-In' || status === 'Booked')) {
+            const cancelRoute = `/fo/bookings/${id}/cancel`;
+            const displayCode = bookingCode || code;
+            const displayName = name.replace(/'/g, "\\'");
+            const displayService = serviceName.replace(/'/g, "\\'");
+            
+            actionHtml = `
+                <button type="button"
+                    onclick="Alpine.$data(this).openCancelModal('${cancelRoute}', '${displayCode}', '${displayName}', '${displayService}')"
+                    class="h-8 px-3.5 bg-red-50 hover:bg-red-100 text-red-600 dark:bg-red-950/20 dark:hover:bg-red-950/40 dark:text-red-400 border border-red-200/60 dark:border-red-900/40 text-[10px] font-bold rounded-pill inline-flex items-center gap-1 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-red-500/20 transition-all cursor-pointer">
+                    <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                    Batal
+                </button>
+            `;
+        }
+
         tr.innerHTML = `
             <td class="py-3 px-6 font-bold text-ink dark:text-white">${name}</td>
             <td class="py-3 px-4 font-mono font-bold text-primary dark:text-accent-teal">${code}</td>
@@ -781,10 +815,11 @@
             <td class="py-3 px-4 text-muted dark:text-on-dark-soft">${type}</td>
             <td class="py-3 px-4 font-mono text-muted dark:text-on-dark-soft">${timeStr}</td>
             <td class="py-3 px-6">
-                <span class="inline-flex items-center gap-1 px-2.5 py-1 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 rounded-full text-[10px] font-bold border border-green-200/50">
-                    <span class="w-1 h-1 rounded-full bg-green-500"></span>${status}
+                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold border ${badgeClass}">
+                    <span class="w-1 h-1 rounded-full ${dotClass}"></span>${status}
                 </span>
             </td>
+            <td class="py-3 px-6 text-right">${actionHtml}</td>
         `;
 
         // Insert at top of table

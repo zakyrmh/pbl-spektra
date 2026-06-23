@@ -135,18 +135,18 @@
                     <path stroke-linecap="round" stroke-linejoin="round"
                         d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
                 </svg>
-                <h2 class="text-lg font-bold text-ink dark:text-white font-display">Scan atau Ketik Kode Booking</h2>
+                <h2 class="text-lg font-bold text-ink dark:text-white font-display">Scan atau Ketik Kode Booking / NIK</h2>
             </div>
             <p class="text-sm text-muted dark:text-on-dark-soft font-body mb-5">Arahkan scanner ke QR/barcode tiket warga,
-                atau ketik manual kode booking (UUID) di kolom berikut.</p>
+                atau ketik manual kode booking (UUID) / NIK warga di kolom berikut.</p>
 
             <form action="{{ route('admin.fo.checkin.verify') }}" method="POST" id="formCheckin" autocomplete="off">
                 @csrf
                 <div class="flex flex-col sm:flex-row gap-3">
                     <div class="flex-1">
-                        <label for="booking_code" class="sr-only">Kode Booking</label>
+                        <label for="booking_code" class="sr-only">Kode Booking / NIK Warga</label>
                         <input type="text" id="booking_code" name="booking_code" autofocus
-                            value="{{ old('booking_code') }}" placeholder="Contoh: 550e8400-e29b-41d4-a716-446655440000"
+                            value="{{ old('booking_code') }}" placeholder="Contoh: 550e8400-e29b-41d4-a716-446655440000 atau NIK 16 digit"
                             class="w-full h-16 text-xl font-mono font-semibold tracking-wide bg-surface-soft dark:bg-white/5 border-2 border-hairline dark:border-white/15 text-ink dark:text-white rounded-lg px-5 placeholder:text-muted-soft placeholder:text-base placeholder:font-normal focus:border-primary dark:focus:border-accent-teal focus:outline-none focus:ring-4 focus:ring-primary/12 dark:focus:ring-accent-teal/20 transition-all">
                     </div>
                     <button type="submit" id="btnVerify"
@@ -426,9 +426,9 @@
                         class="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 dark:bg-primary/20 text-primary dark:text-accent-teal flex items-center justify-center text-sm font-bold font-mono">
                         1</div>
                     <div>
-                        <p class="text-sm font-semibold text-ink dark:text-white font-display">Terima Kode</p>
+                        <p class="text-sm font-semibold text-ink dark:text-white font-display">Terima Kode / NIK</p>
                         <p class="text-xs text-muted dark:text-on-dark-soft font-body mt-0.5">Minta warga menunjukkan QR
-                            code atau kode booking dari email/WA.</p>
+                            code, kode booking (email/WA), atau menyebutkan NIK.</p>
                     </div>
                 </div>
                 <div class="flex gap-3">
@@ -438,7 +438,7 @@
                     <div>
                         <p class="text-sm font-semibold text-ink dark:text-white font-display">Scan / Ketik</p>
                         <p class="text-xs text-muted dark:text-on-dark-soft font-body mt-0.5">Arahkan scanner ke QR code,
-                            atau ketik kode manual di kolom input.</p>
+                            atau ketik kode booking / NIK di kolom input.</p>
                     </div>
                 </div>
                 <div class="flex gap-3">

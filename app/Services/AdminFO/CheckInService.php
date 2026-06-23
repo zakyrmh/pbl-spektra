@@ -21,10 +21,34 @@ use Illuminate\Support\Facades\Mail;
 class CheckInService
 {
     /**
-     * Cari booking berdasarkan kode booking.
+     * Cari booking berdasarkan kode booking atau NIK warga.
      */
     public function findBookingByCode(string $code): ?Queue
     {
+        $code = trim($code);
+
+        if (preg_match('/^\d{16}$/', $code)) {
+            // 1. Prioritaskan booking yang masih berstatus 'Booked' (belum check-in/batal/selesai)
+            $booking = Queue::whereHas('user', function ($query) use ($code) {
+                $query->where('nik', $code);
+            })
+                ->where('status', QueueStatus::Booked->value)
+                ->with(['user', 'department'])
+                ->first();
+
+            if ($booking) {
+                return $booking;
+            }
+
+            // 2. Jika tidak ada yang 'Booked', cari booking terbaru dari NIK tersebut (untuk status warning)
+            return Queue::whereHas('user', function ($query) use ($code) {
+                $query->where('nik', $code);
+            })
+                ->latest('booking_date')
+                ->with(['user', 'department'])
+                ->first();
+        }
+
         return Queue::where('booking_code', $code)
             ->with(['user', 'department'])
             ->first();

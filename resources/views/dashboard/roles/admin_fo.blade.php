@@ -103,17 +103,16 @@
                 </div>
 
                 <p class="text-xs text-muted dark:text-on-dark-soft leading-relaxed font-body">
-                    Masukkan kode booking online warga (tertera di tiket PDF atau WA) untuk check-in kedatangan mereka
+                    Masukkan kode booking online warga (tertera di tiket PDF/WA) atau NIK warga untuk check-in kedatangan mereka
                     secara langsung.
                 </p>
 
                 <div class="space-y-3 pt-2">
                     <div>
                         <label for="txtBookingCode"
-                            class="block text-xs font-semibold text-ink dark:text-white uppercase tracking-wider mb-2 font-display">Kode
-                            Booking</label>
+                            class="block text-xs font-semibold text-ink dark:text-white uppercase tracking-wider mb-2 font-display">Kode Booking / NIK Warga</label>
                         <div class="flex gap-2">
-                            <input type="text" id="txtBookingCode" placeholder="Contoh: 550e8400-e29b-41d4-a716-446655440000"
+                            <input type="text" id="txtBookingCode" placeholder="Contoh: 550e8400-e29b-41d4-a716-446655440000 atau NIK 16 digit"
                                 class="flex-1 h-11 bg-surface-soft dark:bg-white/5 border border-hairline dark:border-white/10 text-ink dark:text-white rounded-md px-3 font-semibold font-mono placeholder:text-muted focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-accent-teal">
                             <button type="button" onclick="verifyBookingCode()"
                                 class="h-11 px-4 bg-primary hover:bg-primary-hover text-white font-semibold rounded-md text-xs transition-all focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-accent-teal cursor-pointer">
@@ -121,7 +120,7 @@
                             </button>
                         </div>
                         <p class="text-[10px] text-muted dark:text-on-dark-soft mt-1.5 font-body">
-                            * Kode booking berupa kode unik 36 karakter (UUID) yang tertera pada tiket PDF atau WA.
+                            * Masukkan 36 karakter kode unik (UUID) booking atau 16 digit NIK warga untuk pencarian.
                         </p>
                     </div>
 

@@ -63,13 +63,12 @@ final class CheckInController extends Controller
                 'Checked-In' => 'sudah di-check-in sebelumnya',
                 'Completed' => 'sudah selesai dilayani',
                 'Cancelled' => 'telah dibatalkan',
-                default => "berstatus {$booking->status}",
+                default => 'berstatus '.($booking->status->value ?? $booking->status),
             };
 
             return back()
                 ->withInput()
-                ->with('warning', "Booking ini tidak dapat diproses karena {$statusLabel}.")
-                ->with('booking', $booking);
+                ->with('warning', "Booking ini tidak dapat diproses karena {$statusLabel}.");
         }
 
         // 3. Cek NIK warga
@@ -101,14 +100,19 @@ final class CheckInController extends Controller
      */
     public function approve(Request $request, Queue $booking): RedirectResponse
     {
+        // Pastikan relasi user & department ter-load dengan benar
+        $booking->loadMissing(['user', 'department']);
+
         if ($booking->status !== QueueStatus::Booked->value && $booking->status !== QueueStatus::Booked) {
             return redirect()->route('admin.fo.checkin')
                 ->with('warning', 'Booking ini tidak dapat diproses.');
         }
 
         if (empty($booking->user->nik)) {
+            // Simpan hanya booking_code ke session, bukan seluruh object Eloquent,
+            // agar relasi tidak ter-serialize menjadi array saat diambil dari session.
             return redirect()->route('admin.fo.checkin')
-                ->with('booking', $booking)
+                ->with('booking_code_pending', $booking->booking_code)
                 ->with('nik_required', true)
                 ->with('error', 'NIK wajib diisi sebelum menyetujui check-in.');
         }
@@ -116,9 +120,11 @@ final class CheckInController extends Controller
         try {
             $queue = $this->checkInService->approveCheckIn($booking);
 
+            // Simpan hanya ID queue ke session (bukan Eloquent object),
+            // agar relasi tidak ter-serialize menjadi array saat diambil dari session.
             return redirect()->route('admin.fo.checkin')
                 ->with('success', "Check-in berhasil! Warga <strong>{$booking->user->name}</strong> telah terverifikasi.")
-                ->with('checkin_result', $queue->fresh(['user', 'department']));
+                ->with('checkin_result_id', $queue->id);
         } catch (\Exception $e) {
             return redirect()->route('admin.fo.checkin')
                 ->withInput()

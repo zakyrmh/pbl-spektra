@@ -9,6 +9,7 @@ use App\Http\Requests\Public\StoreBookingRequest;
 use App\Models\Department;
 use App\Models\Queue;
 use App\Services\Public\BookingService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
@@ -25,10 +26,13 @@ final class BookingController extends Controller
      */
     public function index(): View
     {
-        $bookings = $this->bookingService->getCustomerBookingHistory((int) Auth::id());
+        $userId = (int) Auth::id();
+        $bookings = $this->bookingService->getCustomerBookingHistory($userId);
+        $hasActiveBooking = $this->bookingService->hasActiveBooking($userId);
 
         return view('booking.index', [
             'bookings' => $bookings,
+            'hasActiveBooking' => $hasActiveBooking,
         ]);
     }
 
@@ -37,6 +41,9 @@ final class BookingController extends Controller
      */
     public function create(): View
     {
+        $userId = (int) Auth::id();
+        $hasActiveBooking = $this->bookingService->hasActiveBooking($userId);
+
         // Ambil hanya instansi yang aktif/buka
         $departments = Department::where('is_open', true)->get();
 
@@ -44,6 +51,7 @@ final class BookingController extends Controller
             'departments' => $departments,
             'schedules' => [],
             'sessions' => ['Sesi 1', 'Sesi 2'],
+            'hasActiveBooking' => $hasActiveBooking,
         ]);
     }
 
@@ -80,6 +88,19 @@ final class BookingController extends Controller
         return view('booking.show', [
             'booking' => $booking->load('department'),
             'estimatedPosition' => $estimatedPosition,
+        ]);
+    }
+
+    /**
+     * Dapatkan status terkini dari booking (untuk real-time update).
+     */
+    public function status(Queue $booking): JsonResponse
+    {
+        Gate::authorize('view', $booking);
+
+        return response()->json([
+            'status' => $booking->status,
+            'queue_number' => $booking->queue_number,
         ]);
     }
 }

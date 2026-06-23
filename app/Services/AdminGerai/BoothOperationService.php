@@ -11,12 +11,12 @@ use App\Events\QueueCalled;
 use App\Events\QueueFinished;
 use App\Models\ActivityLog;
 use App\Models\Department;
+use App\Models\Notification;
 use App\Models\Queue;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 
 /**
  * BoothOperationService
@@ -176,14 +176,12 @@ final class BoothOperationService
                 'completed_at' => now(),
             ]);
 
-            if ($queue->user) {
-                $queue->user->notifications()->create([
-                    'id' => Str::uuid()->toString(),
-                    'type' => 'App\Notifications\QueueFinished',
-                    'data' => [
-                        'title' => 'Pelayanan Selesai',
-                        'message' => "Pelayanan untuk nomor antrean {$queue->queue_number} telah selesai. Silakan isi ulasan dan berikan feedback Anda di menu Dashboard.",
-                    ],
+            // Kirim notifikasi ke warga menggunakan model Notification custom proyek ini
+            if ($queue->user_id) {
+                Notification::create([
+                    'user_id' => $queue->user_id,
+                    'title' => 'Pelayanan Selesai',
+                    'message' => "Pelayanan untuk nomor antrean {$queue->queue_number} telah selesai. Silakan isi ulasan dan berikan feedback Anda di menu Dashboard.",
                 ]);
             }
 
@@ -273,14 +271,11 @@ final class BoothOperationService
             session()->flash('transfer_notification', true);
 
             // Notify the citizen about the forwarding
-            if ($queue->user) {
-                $queue->user->notifications()->create([
-                    'id' => Str::uuid()->toString(),
-                    'type' => 'App\Notifications\QueueForwarded',
-                    'data' => [
-                        'title' => 'Antrean Dialihkan',
-                        'message' => "Pelayanan Anda di {$originalDeptName} telah selesai. Anda diarahkan ke instansi {$targetDepartment->name}. Silakan menuju Front Office untuk mendaftar antrean baru.",
-                    ],
+            if ($queue->user_id) {
+                Notification::create([
+                    'user_id' => $queue->user_id,
+                    'title' => 'Antrean Dipindahkan',
+                    'message' => "Nomor antrean {$queue->queue_number} Anda telah dipindahkan ke instansi {$targetDepartment->name}. Silakan menunggu panggilan di loket baru.",
                 ]);
             }
         });

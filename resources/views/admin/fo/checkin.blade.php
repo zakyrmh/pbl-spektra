@@ -166,7 +166,18 @@
         </div>
 
         @php
-            $bk = $booking ?? session('booking') ?? null;
+            // Utamakan $booking dari view data (passed directly).
+            // Jika dari redirect, ambil via booking_code_pending agar relasi
+            // selalu berupa Eloquent object (bukan array hasil deserialisasi).
+            if (isset($booking)) {
+                $bk = $booking;
+            } elseif (session('booking_code_pending')) {
+                $bk = \App\Models\Queue::where('booking_code', session('booking_code_pending'))
+                    ->with(['user', 'department'])
+                    ->first();
+            } else {
+                $bk = null;
+            }
             $isNikRequired = $nik_required ?? session('nik_required') ?? false;
         @endphp
 
@@ -351,10 +362,13 @@
         {{-- ═══════════════════════════════════════════════════════════════
          CHECK-IN RESULT CARD — Ditampilkan setelah check-in sukses
     ═══════════════════════════════════════════════════════════════ --}}
-        @if (session('checkin_result'))
+        @if (session('checkin_result_id'))
             @php 
-                $cr = session('checkin_result');
-                $queue = $cr->queue ?? $cr;
+                // Re-fetch fresh dari DB agar relasi (user, department) selalu
+                // berupa Eloquent object, bukan array hasil deserialisasi session.
+                $cr = \App\Models\Queue::with(['user', 'department'])
+                    ->find(session('checkin_result_id'));
+                $queue = $cr;
             @endphp
             <div class="bg-canvas dark:bg-surface-dark-elevated rounded-xl border-2 border-status-serving/40 shadow-sm overflow-hidden"
                 id="checkin-result-card">

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Enums\QueueStatus;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -30,6 +31,7 @@ class Queue extends Model
     {
         return [
             'booking_date' => 'date',
+            'status' => QueueStatus::class,
             'checked_in_at' => 'datetime',
             'called_at' => 'datetime',
             'cancelled_at' => 'datetime',

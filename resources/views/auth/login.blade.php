@@ -55,7 +55,7 @@
                         ? 'border-2 border-status-skipped bg-status-skipped/[0.02] focus:ring-status-skipped/12 focus:border-status-skipped' 
                         : 'border border-hairline bg-canvas focus:ring-primary/12 focus:border-primary focus:border-2'; 
                 @endphp
-                <input type="email" name="email" id="email" value="{{ old('email') }}"
+                <input type="text" name="email" id="email" value="{{ old('email') }}"
                     placeholder="Masukkan NIK atau email Anda" autofocus required
                     class="w-full pl-10 pr-4 py-3 text-body-md {{ $emailClass }} rounded-md text-ink placeholder-muted-soft focus:outline-none focus:ring-3 transition font-body">
             </div>

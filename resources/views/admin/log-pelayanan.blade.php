@@ -14,7 +14,7 @@
         </div>
         <div class="flex items-center gap-3 shrink-0">
             <a href="{{ route('admin.log-pelayanan.export', request()->all()) }}" 
-               class="h-11 px-5 bg-canvas border border-hairline text-ink dark:text-white dark:border-white/15 hover:bg-surface-soft dark:hover:bg-white/10 font-semibold rounded-pill flex items-center gap-2 text-sm focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-accent-teal transition-all cursor-pointer">
+               class="h-11 px-5 bg-canvas dark:bg-white/5 border border-hairline text-ink dark:text-white dark:border-white/15 hover:bg-surface-soft dark:hover:bg-white/10 font-semibold rounded-pill flex items-center gap-2 text-sm focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-accent-teal transition-all cursor-pointer">
                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                 </svg>
@@ -39,19 +39,12 @@
             </div>
         </div>
 
-        <!-- Card Antrean Batal/Terlewat -->
+        <!-- Card Antrean Terlewat -->
         <div class="bg-canvas dark:bg-surface-dark-elevated p-6 rounded-lg border border-hairline dark:border-white/10 shadow-xs flex justify-between items-center relative overflow-hidden font-body">
             <div class="space-y-1">
-                <span class="text-xs font-bold text-rose-600 dark:text-rose-400 uppercase tracking-wider font-display flex items-center gap-1">
-                    TOTAL DILEWATI (Skipped)
-                    <span class="cursor-help text-muted-soft dark:text-on-dark-soft/50" title="Antrean yang dibatalkan oleh FO tidak masuk hitungan ini.">
-                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                    </span>
-                </span>
+                <span class="text-xs font-bold text-rose-600 dark:text-rose-400 uppercase tracking-wider font-display">Total Antrean Terlewat</span>
                 <span class="text-3xl font-black text-ink dark:text-white block font-mono">{{ $totalSkipped }}</span>
-                <span class="text-xs text-muted dark:text-on-dark-soft block">Hanya antrean yang dilewati gerai</span>
+                <span class="text-xs text-muted dark:text-on-dark-soft block">Skipped (Terlewat)</span>
             </div>
             <div class="p-3 bg-rose-50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-400 rounded-lg">
                 <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -113,7 +106,6 @@
                     <option value="">Semua Status Lampau</option>
                     <option value="Completed" {{ ($filters['status'] ?? '') === 'Completed' ? 'selected' : '' }}>Completed (Selesai)</option>
                     <option value="Skipped"   {{ ($filters['status'] ?? '') === 'Skipped'   ? 'selected' : '' }}>Skipped (Terlewat)</option>
-                    <option value="Cancelled" {{ ($filters['status'] ?? '') === 'Cancelled' ? 'selected' : '' }}>Cancelled (Dibatalkan)</option>
                 </select>
             </div>
         </div>

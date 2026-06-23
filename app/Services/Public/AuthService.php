@@ -26,8 +26,10 @@ final class AuthService
      */
     public function login(string $email, string $password, bool $remember): User
     {
+        $field = filter_var($email, FILTER_VALIDATE_EMAIL) ? 'email' : 'nik';
+
         if (Auth::attempt([
-            'email' => $email,
+            $field => $email,
             'password' => $password,
         ], $remember)) {
             /** @var User $user */
@@ -50,7 +52,7 @@ final class AuthService
         }
 
         throw ValidationException::withMessages([
-            'email' => 'Email atau password salah.',
+            'email' => 'NIK/Email atau password salah.',
         ]);
     }
 

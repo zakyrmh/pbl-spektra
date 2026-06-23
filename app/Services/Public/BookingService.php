@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Public;
 
+use App\Enums\QueueStatus;
 use App\Models\ActivityLog;
 use App\Models\Department;
 use App\Models\Notification;
@@ -48,15 +49,18 @@ class BookingService
                 throw new \Exception('Instansi terpilih saat ini sedang ditutup.');
             }
 
-            // BR-06: Satu NIK = maks 1 booking aktif (Pending) per instansi per hari
-            $existingBooking = Queue::where('user_id', $user->id)
-                ->where('department_id', $department->id)
-                ->whereDate('booking_date', $bookingDate->toDateString())
-                ->where('status', 'Pending')
-                ->exists();
+            // Hanya boleh ada maksimal 1 tiket aktif di seluruh tanggal
+            $activeBooking = Queue::where('user_id', $user->id)
+                ->whereIn('status', [
+                    QueueStatus::Booked->value,
+                    QueueStatus::CheckedIn->value,
+                    QueueStatus::Serving->value,
+                    QueueStatus::Hold->value,
+                ])
+                ->first();
 
-            if ($existingBooking) {
-                throw new \Exception('Anda sudah memiliki booking aktif (Pending) untuk instansi ini pada tanggal tersebut.');
+            if ($activeBooking) {
+                throw new \Exception("Anda masih memiliki tiket/booking aktif ({$activeBooking->booking_code}). Harap selesaikan pelayanan atau batalkan tiket aktif tersebut terlebih dahulu sebelum membuat booking baru.");
             }
 
             $prefix = $department->inisial ?: 'Q';
@@ -115,7 +119,22 @@ class BookingService
         return Queue::where('department_id', $booking->department_id)
             ->whereDate('booking_date', $booking->booking_date->toDateString())
             ->where('id', '<', $booking->id)
-            ->whereIn('status', ['Pending', 'Checked-In'])
+            ->whereIn('status', [QueueStatus::Booked->value, QueueStatus::CheckedIn->value])
             ->count() + 1;
+    }
+
+    /**
+     * Periksa apakah pengguna memiliki booking/antrean aktif.
+     */
+    public function hasActiveBooking(int $userId): bool
+    {
+        return Queue::where('user_id', $userId)
+            ->whereIn('status', [
+                QueueStatus::Booked->value,
+                QueueStatus::CheckedIn->value,
+                QueueStatus::Serving->value,
+                QueueStatus::Hold->value,
+            ])
+            ->exists();
     }
 }

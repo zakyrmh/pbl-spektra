@@ -100,6 +100,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/booking/baru', [BookingController::class, 'create'])->name('booking.create');
     Route::post('/booking', [BookingController::class, 'store'])->name('booking.store');
     Route::get('/booking/{booking}', [BookingController::class, 'show'])->name('booking.show');
+    Route::get('/api/booking/{booking}/status', [BookingController::class, 'status'])->name('booking.status');
 
     // ─────────────────────────────────────────────────────────────────────────
     // Super Admin Routes

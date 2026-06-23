@@ -19,8 +19,27 @@ final class LoginRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'email' => ['required', 'email'],
+            'email' => [
+                'required',
+                'string',
+                function ($attribute, $value, $fail) {
+                    $isEmail = filter_var($value, FILTER_VALIDATE_EMAIL) !== false;
+                    $isNik = preg_match('/^\d{16}$/', $value) === 1;
+
+                    if (! $isEmail && ! $isNik) {
+                        $fail('Format NIK atau Email tidak valid.');
+                    }
+                },
+            ],
             'password' => ['required'],
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'email.required' => 'NIK atau Email wajib diisi.',
+            'password.required' => 'Kata sandi wajib diisi.',
         ];
     }
 

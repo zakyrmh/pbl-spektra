@@ -55,6 +55,34 @@ test('user can log in with valid credentials', function () {
     ]);
 });
 
+test('user can log in with valid NIK', function () {
+    $password = 'SecurePassword123!';
+    $user = User::factory()->create([
+        'nik' => '1234567890123456',
+        'email' => 'staff@sawahlunto.go.id',
+        'password' => Hash::make($password),
+        'role' => 'admin_fo',
+        'last_login_at' => null,
+    ]);
+
+    expect($user->last_login_at)->toBeNull();
+
+    $response = $this->post(route('login.process'), [
+        'email' => $user->nik,
+        'password' => $password,
+    ]);
+
+    $response->assertRedirect('/dashboard');
+
+    // Assert authentication
+    expect(Auth::check())->toBeTrue();
+    expect(Auth::id())->toBe($user->id);
+
+    // Assert last_login_at updated
+    $user->refresh();
+    expect($user->last_login_at)->not->toBeNull();
+});
+
 test('user cannot log in with invalid credentials', function () {
     $user = User::factory()->create([
         'email' => 'staff@sawahlunto.go.id',
@@ -68,7 +96,7 @@ test('user cannot log in with invalid credentials', function () {
 
     $response->assertRedirect(route('login'));
     $response->assertSessionHasErrors(['email']);
-    expect(session('errors')->first('email'))->toBe('Email atau password salah.');
+    expect(session('errors')->first('email'))->toBe('NIK/Email atau password salah.');
     expect(Auth::check())->toBeFalse();
 });
 

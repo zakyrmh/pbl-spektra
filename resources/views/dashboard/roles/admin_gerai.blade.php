@@ -364,7 +364,7 @@
 
     <!-- Custom Modal Konfirmasi Buka/Tutup Gerai -->
     <div id="confirmGeraiModal"
-        class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs hidden"
+        class="fixed inset-0 z-50 items-center justify-center p-4 bg-black/50 backdrop-blur-xs hidden"
         role="dialog" aria-modal="true">
         <div class="bg-canvas dark:bg-surface-dark-elevated rounded-xl p-8 border border-hairline dark:border-white/10 shadow-xl max-w-md w-full space-y-6 transform scale-95 opacity-0 transition-all duration-300"
             id="confirmGeraiModalContent">
@@ -429,6 +429,7 @@
 
             // Show modal
             modal.classList.remove('hidden');
+            modal.classList.add('flex');
             setTimeout(() => {
                 content.classList.remove('scale-95', 'opacity-0');
             }, 10);
@@ -441,6 +442,7 @@
             content.classList.add('scale-95', 'opacity-0');
             setTimeout(() => {
                 modal.classList.add('hidden');
+                modal.classList.remove('flex');
                 pendingToggleCheckbox = null;
             }, 300);
         }
@@ -587,8 +589,7 @@
                     </div>
                     <h2 class="text-2xl font-bold text-ink dark:text-white mt-2 font-display">Papan Panggil & Layanan
                         Gerai</h2>
-                    <p class="text-sm text-muted dark:text-on-dark-soft font-body">Panggil nomor antrean, verifikasi
-                        berkas fisik, dan selesaikan pelayanan warga.</p>
+                    <p class="text-sm text-muted dark:text-on-dark-soft font-body">Panggil nomor antrean dan selesaikan pelayanan warga.</p>
                 </div>
                 <div class="flex flex-wrap items-center gap-4">
                     {{-- Status Instansi --}}

@@ -113,13 +113,16 @@
                             class="block text-xs font-semibold text-ink dark:text-white uppercase tracking-wider mb-2 font-display">Kode
                             Booking</label>
                         <div class="flex gap-2">
-                            <input type="text" id="txtBookingCode" placeholder="Contoh: A-015"
+                            <input type="text" id="txtBookingCode" placeholder="Contoh: 550e8400-e29b-41d4-a716-446655440000"
                                 class="flex-1 h-11 bg-surface-soft dark:bg-white/5 border border-hairline dark:border-white/10 text-ink dark:text-white rounded-md px-3 font-semibold font-mono placeholder:text-muted focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-accent-teal">
                             <button type="button" onclick="verifyBookingCode()"
                                 class="h-11 px-4 bg-primary hover:bg-primary-hover text-white font-semibold rounded-md text-xs transition-all focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-accent-teal cursor-pointer">
                                 Verifikasi
                             </button>
                         </div>
+                        <p class="text-[10px] text-muted dark:text-on-dark-soft mt-1.5 font-body">
+                            * Kode booking berupa kode unik 36 karakter (UUID) yang tertera pada tiket PDF atau WA.
+                        </p>
                     </div>
 
                     <div class="relative flex items-center py-2">
@@ -149,7 +152,7 @@
                         Deteksi Tiket</span>
                     <span
                         class="text-xs bg-status-waiting/20 text-status-waiting px-2 py-0.5 rounded-full font-bold uppercase tracking-wider font-display"
-                        id="verifyTicketCode">A-015</span>
+                        id="verifyTicketCode">550e8400-e29b-41d4-a716-446655440000</span>
                 </div>
                 <div class="space-y-2 text-xs">
                     <div class="flex justify-between">
@@ -550,7 +553,11 @@
     }
 
     function simulateQrScanner() {
-        const codes = ['A-015', 'B-490', 'C-210'];
+        const codes = [
+            '550e8400-e29b-41d4-a716-446655440000',
+            'a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d',
+            'f81d4fae-7dec-11d0-a765-00a0c91e6bf6'
+        ];
         const randomCode = codes[Math.floor(Math.random() * codes.length)];
         document.getElementById('txtBookingCode').value = randomCode;
         verifyBookingCode();

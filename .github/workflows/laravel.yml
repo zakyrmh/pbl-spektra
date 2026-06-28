@@ -32,8 +32,16 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-composer-
 
+      # Guard: install dari lock jika ada, update jika tidak ada
       - name: Install Composer Dependencies
-        run: composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
+        run: |
+          if [ -f "composer.lock" ]; then
+            echo "✅ composer.lock found — running composer install"
+            composer install --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
+          else
+            echo "⚠️ composer.lock NOT found — running composer update"
+            composer update --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
+          fi
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -44,7 +52,7 @@ jobs:
       - name: Install NPM Dependencies
         run: npm ci
         env:
-          HUSKY: 0  # Nonaktifkan git hooks di CI
+          HUSKY: 0
 
       - name: Generate Key
         run: php artisan key:generate

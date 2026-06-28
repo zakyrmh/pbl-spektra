@@ -11,23 +11,19 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Checkout harus SELALU pertama
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      # 2. Setup PHP — satu kali saja, dengan semua ekstensi yang dibutuhkan
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.3'
-          extensions: mbstring, xml, ctype, iconv, intl, pdo_sqlite, bcmath
+          extensions: mbstring, xml, ctype, iconv, intl, pdo_sqlite, bcmath, curl, dom, fileinfo, openssl, tokenizer, zip
           coverage: none
 
-      # 3. Copy .env — satu kali saja
       - name: Copy .env
         run: php -r "file_exists('.env') || copy('.env.example', '.env');"
 
-      # 4. Cache Composer untuk mempercepat pipeline
       - name: Cache Composer Dependencies
         uses: actions/cache@v4
         with:
@@ -36,11 +32,9 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-composer-
 
-      # 5. Install PHP dependencies
       - name: Install Composer Dependencies
         run: composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
 
-      # 6. Setup Node.js + install npm dependencies (untuk Vite / Laravel 13)
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -49,30 +43,27 @@ jobs:
 
       - name: Install NPM Dependencies
         run: npm ci
+        env:
+          HUSKY: 0  # Nonaktifkan git hooks di CI
 
-      # 7. Generate app key
       - name: Generate Key
         run: php artisan key:generate
 
-      # 8. Set directory permissions
       - name: Directory Permissions
         run: chmod -R 775 storage bootstrap/cache
 
-      # 9. Buat SQLite database
       - name: Create Database
         run: |
           mkdir -p database
           touch database/database.sqlite
 
-      # 10. Jalankan migrasi — WAJIB sebelum test!
       - name: Run Migrations
         env:
           DB_CONNECTION: sqlite
           DB_DATABASE: database/database.sqlite
         run: php artisan migrate --force
 
-      # 11. Jalankan test
-      - name: Execute Tests (Unit and Feature) via PHPUnit/Pest
+      - name: Execute Tests via Pest
         env:
           DB_CONNECTION: sqlite
           DB_DATABASE: database/database.sqlite

@@ -17,7 +17,7 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.3'
+          php-version: '8.4'    # ← fix utama
           extensions: mbstring, xml, ctype, iconv, intl, pdo_sqlite, bcmath, curl, dom, fileinfo, openssl, tokenizer, zip
           coverage: none
 
@@ -32,16 +32,8 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-composer-
 
-      # Guard: install dari lock jika ada, update jika tidak ada
       - name: Install Composer Dependencies
-        run: |
-          if [ -f "composer.lock" ]; then
-            echo "✅ composer.lock found — running composer install"
-            composer install --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
-          else
-            echo "⚠️ composer.lock NOT found — running composer update"
-            composer update --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
-          fi
+        run: composer install --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
 
       - name: Setup Node.js
         uses: actions/setup-node@v4

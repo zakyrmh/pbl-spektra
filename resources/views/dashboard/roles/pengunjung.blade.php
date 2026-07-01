@@ -244,7 +244,7 @@
                         <p class="text-[10px] text-muted dark:text-on-dark-soft mt-0.5 font-body">Syarat & info layanan</p>
                     </a>
                     <!-- Pengaduan -->
-                    <a href="#" class="bg-canvas dark:bg-surface-dark-elevated p-5 rounded-lg border border-hairline dark:border-white/10 shadow-xs hover:shadow-md hover:-translate-y-1 transition-all duration-300 group flex flex-col items-center text-center focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-accent-teal">
+                    <a href="{{ route('customer.help') }}" class="bg-canvas dark:bg-surface-dark-elevated p-5 rounded-lg border border-hairline dark:border-white/10 shadow-xs hover:shadow-md hover:-translate-y-1 transition-all duration-300 group flex flex-col items-center text-center focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-accent-teal">
                         <div class="w-12 h-12 bg-surface-soft dark:bg-white/5 text-status-skipped rounded-lg flex items-center justify-center mb-3 group-hover:scale-110 group-hover:bg-status-skipped group-hover:text-white transition-all border border-hairline dark:border-white/5">
                             <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z" />

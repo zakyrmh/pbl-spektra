@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Public;
 
+use App\Enums\QueueStatus;
 use App\Events\Public\FeedbackSubmitted;
 use App\Exceptions\Public\FeedbackValidationException;
 use App\Models\Feedback;
@@ -27,7 +28,8 @@ final class FeedbackService
         }
 
         // 1. Cek apakah status antrean benar-benar 'Completed' (Selesai)
-        if ($queue->status !== 'Completed') {
+        $statusValue = $queue->status instanceof QueueStatus ? $queue->status->value : $queue->status;
+        if ($statusValue !== 'Completed') {
             throw new FeedbackValidationException('Ulasan hanya dapat diberikan untuk pelayanan yang telah selesai.', 'error', 400);
         }
 

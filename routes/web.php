@@ -16,6 +16,7 @@ use App\Http\Controllers\Public\AuthController;
 use App\Http\Controllers\Public\BookingController;
 use App\Http\Controllers\Public\FeedbackController;
 use App\Http\Controllers\Public\GuideController;
+use App\Http\Controllers\Public\HelpCenterController;
 use App\Http\Controllers\Public\NotificationController;
 use App\Http\Controllers\Public\ProfileController;
 use App\Http\Controllers\Public\PublicController;
@@ -106,6 +107,10 @@ Route::middleware('auth')->group(function () {
 
     // Panduan MPP
     Route::get('/panduan', [GuideController::class, 'index'])->name('customer.guide');
+
+    // Pusat Bantuan & Pengaduan
+    Route::get('/bantuan', [HelpCenterController::class, 'index'])->name('customer.help');
+    Route::post('/bantuan', [HelpCenterController::class, 'store'])->name('customer.help.store');
 
     // ─────────────────────────────────────────────────────────────────────────
     // Super Admin Routes

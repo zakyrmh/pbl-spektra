@@ -1,7 +1,7 @@
 <div class="overflow-x-auto md:overflow-visible">
     <table class="w-full text-sm">
         <thead>
-            <tr class="border-b border-hairline">
+            <tr class="border-b border-hairline dark:border-white/10">
                 <th class="px-5 py-3.5 text-left text-xs font-bold text-muted dark:text-on-dark-soft uppercase tracking-wider font-display">Pengguna</th>
                 <th class="px-5 py-3.5 text-left text-xs font-bold text-muted dark:text-on-dark-soft uppercase tracking-wider font-display">Peran</th>
                 <th class="px-5 py-3.5 text-left text-xs font-bold text-muted dark:text-on-dark-soft uppercase tracking-wider hidden lg:table-cell font-display">Instansi / Gerai</th>
@@ -10,7 +10,7 @@
                 <th class="px-5 py-3.5 text-right text-xs font-bold text-muted dark:text-on-dark-soft uppercase tracking-wider font-display">Aksi</th>
             </tr>
         </thead>
-        <tbody class="divide-y divide-hairline-soft">
+        <tbody class="divide-y divide-hairline-soft dark:divide-white/5">
 
             @forelse($users as $user)
                 @php
@@ -89,7 +89,7 @@
                         <div class="relative inline-block" x-data="{ open: false }">
                             <button
                                 @click="open = !open"
-                                class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-ink dark:text-white bg-surface-soft dark:bg-white/5 border border-hairline hover:bg-surface-strong dark:hover:bg-white/10 rounded-md transition-all duration-150 cursor-pointer"
+                                class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-ink dark:text-white bg-surface-soft dark:bg-white/5 border border-hairline dark:border-white/10 hover:bg-surface-strong dark:hover:bg-white/10 rounded-md transition-all duration-150 cursor-pointer"
                                 id="action-btn-{{ $user->id }}"
                                 aria-haspopup="true"
                                 :aria-expanded="open"
@@ -108,7 +108,7 @@
                                 x-transition:leave="transition ease-in duration-100"
                                 x-transition:leave-start="opacity-100"
                                 x-transition:leave-end="opacity-0 scale-95"
-                                class="absolute right-0 mt-2 w-52 bg-canvas dark:bg-surface-dark-elevated rounded-lg border border-hairline shadow-xl z-30 overflow-hidden"
+                                class="absolute right-0 mt-2 w-52 bg-canvas dark:bg-surface-dark-elevated rounded-lg border border-hairline dark:border-white/15 shadow-xl z-30 overflow-hidden"
                                 style="display:none;"
                                 id="dropdown-{{ $user->id }}"
                             >
@@ -162,7 +162,7 @@
                                 </a>
                                 @endif
 
-                                <div class="border-t border-hairline my-1"></div>
+                                <div class="border-t border-hairline dark:border-white/10 my-1"></div>
 
                                 {{-- Hapus --}}
                                 @if($user->id !== auth()->id())
@@ -184,7 +184,7 @@
                 <tr>
                     <td colspan="6" class="px-5 py-16 text-center">
                         <div class="flex flex-col items-center gap-3">
-                            <div class="w-16 h-16 bg-surface-soft dark:bg-white/5 rounded-lg border border-hairline flex items-center justify-center text-muted">
+                            <div class="w-16 h-16 bg-surface-soft dark:bg-white/5 rounded-lg border border-hairline dark:border-white/10 flex items-center justify-center text-muted">
                                 <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
                             </div>
                             <p class="text-sm font-semibold text-ink dark:text-white font-display">Tidak ada pengguna ditemukan</p>
@@ -201,7 +201,7 @@
 
 {{-- Pagination --}}
 @if($users->hasPages())
-    <div class="px-5 py-4 border-t border-hairline">
+    <div class="px-5 py-4 border-t border-hairline dark:border-white/10">
         {{ $users->links('pagination::tailwind') }}
     </div>
 @endif

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\Public;
 
 use App\Enums\QueueStatus;
+use App\Mail\BookingSuccessMail;
 use App\Models\ActivityLog;
 use App\Models\Department;
 use App\Models\Notification;
@@ -13,6 +14,7 @@ use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 
 class BookingService
@@ -41,7 +43,7 @@ class BookingService
     {
         $user = User::findOrFail($userId);
 
-        return DB::transaction(function () use ($user, $data): Queue {
+        $booking = DB::transaction(function () use ($user, $data): Queue {
             $department = Department::findOrFail((int) $data['department_id']);
             $bookingDate = Carbon::parse($data['booking_date']);
 
@@ -109,6 +111,20 @@ class BookingService
 
             return $booking;
         });
+
+        // Send email notification to citizen
+        try {
+            Mail::to($user->email)->send(new BookingSuccessMail($booking));
+        } catch (\Exception $e) {
+            // Log warning, but do not fail the booking flow
+            logger()->warning('Gagal mengirim email konfirmasi booking: '.$e->getMessage(), [
+                'booking_id' => $booking->id,
+                'user_id' => $user->id,
+                'email' => $user->email,
+            ]);
+        }
+
+        return $booking;
     }
 
     /**

@@ -5,10 +5,12 @@ declare(strict_types=1);
 namespace Tests\Feature\Http\Controllers;
 
 use App\Enums\UserRole;
+use App\Mail\BookingSuccessMail;
 use App\Models\Department;
 use App\Models\Queue;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Mail;
 use Tests\TestCase;
 
 class BookingControllerTest extends TestCase
@@ -82,6 +84,8 @@ class BookingControllerTest extends TestCase
 
     public function test_user_can_successfully_store_booking(): void
     {
+        Mail::fake();
+
         $user = User::factory()->create(['role' => UserRole::Pengunjung]);
         $department = Department::create([
             'name' => 'Dinas Kesehatan',
@@ -103,9 +107,13 @@ class BookingControllerTest extends TestCase
         $response->assertRedirect(route('booking.show', $booking));
         $this->assertEquals($user->id, $booking->user_id);
         $this->assertEquals($department->id, $booking->department_id);
-        $this->assertEquals('Booked', $booking->status);
+        $this->assertEquals('Booked', $booking->status->value ?? $booking->status);
         $this->assertEquals('Sesi 1', $booking->session_name);
         $this->assertStringStartsWith('BK-DK-', $booking->booking_code);
+
+        Mail::assertSent(BookingSuccessMail::class, function ($mail) use ($user, $booking) {
+            return $mail->hasTo($user->email) && $mail->booking->id === $booking->id;
+        });
     }
 
     public function test_policy_restricts_unauthorized_booking_view(): void

@@ -55,32 +55,6 @@
             padding: 20px;
             margin: 24px 0;
         }
-        .ticket-row {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 12px;
-            font-size: 14px;
-        }
-        .ticket-row:last-child {
-            margin-bottom: 0;
-            border-top: 1px dashed #D1D9E6;
-            padding-top: 12px;
-            margin-top: 12px;
-        }
-        .label {
-            color: #6B7280;
-            font-weight: 600;
-        }
-        .value {
-            color: #111827;
-            font-weight: 700;
-            text-align: right;
-        }
-        .booking-code {
-            font-size: 20px;
-            color: #1B4FA8;
-            font-family: monospace;
-        }
         .instructions {
             background-color: #FFFBEB;
             border: 1px solid #FDE68A;
@@ -116,26 +90,54 @@
             <p>Terima kasih telah menggunakan layanan antrean digital mandiri. Reservasi antrean Anda telah berhasil kami catat dengan rincian sebagai berikut:</p>
 
             <div class="ticket-box">
-                <div class="ticket-row">
-                    <span class="label">Layanan</span>
-                    <span class="value">{{ $booking->purpose }}</span>
+                <table style="width: 100%; border-collapse: collapse;">
+                    <tr>
+                        <td style="padding: 6px 0; color: #6B7280; font-weight: 600; font-size: 14px; border-bottom: 1px solid #E5E7EB;">Nama Warga</td>
+                        <td style="padding: 6px 0; color: #111827; font-weight: 700; font-size: 14px; text-align: right; border-bottom: 1px solid #E5E7EB;">{{ $booking->user->name }}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 6px 0; color: #6B7280; font-weight: 600; font-size: 14px; border-bottom: 1px solid #E5E7EB;">Nomor Antrean</td>
+                        <td style="padding: 6px 0; color: #111827; font-weight: 700; font-size: 14px; text-align: right; border-bottom: 1px solid #E5E7EB;">
+                            @if($booking->queue_number)
+                                <strong style="color: #1B4FA8; font-size: 16px;">{{ $booking->queue_number }}</strong>
+                            @else
+                                <span style="color: #92400E; font-style: italic;">Belum Check-In</span>
+                            @endif
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 6px 0; color: #6B7280; font-weight: 600; font-size: 14px; border-bottom: 1px solid #E5E7EB;">Instansi Tujuan</td>
+                        <td style="padding: 6px 0; color: #111827; font-weight: 700; font-size: 14px; text-align: right; border-bottom: 1px solid #E5E7EB;">{{ $booking->department->name }}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 6px 0; color: #6B7280; font-weight: 600; font-size: 14px; border-bottom: 1px solid #E5E7EB;">Layanan / Keperluan</td>
+                        <td style="padding: 6px 0; color: #111827; font-weight: 700; font-size: 14px; text-align: right; border-bottom: 1px solid #E5E7EB;">{{ $booking->purpose }}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 6px 0; color: #6B7280; font-weight: 600; font-size: 14px; border-bottom: 1px solid #E5E7EB;">Tanggal Kunjungan</td>
+                        <td style="padding: 6px 0; color: #111827; font-weight: 700; font-size: 14px; text-align: right; border-bottom: 1px solid #E5E7EB;">{{ $booking->booking_date->translatedFormat('d F Y') }}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 6px 0; color: #6B7280; font-weight: 600; font-size: 14px; border-bottom: 1px solid #E5E7EB;">Sesi Kunjungan</td>
+                        <td style="padding: 6px 0; color: #111827; font-weight: 700; font-size: 14px; text-align: right; border-bottom: 1px solid #E5E7EB;">{{ $booking->session_name ?? '-' }}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 12px 0 6px 0; color: #6B7280; font-weight: 600; font-size: 14px;">Kode Booking</td>
+                        <td style="padding: 12px 0 6px 0; color: #1B4FA8; font-weight: 700; font-size: 18px; text-align: right; font-family: monospace; letter-spacing: 1px;">{{ $booking->booking_code }}</td>
+                    </tr>
+                </table>
+            </div>
+
+            {{-- QR Code Area --}}
+            <div style="text-align: center; margin: 25px 0;">
+                <div style="display: inline-block; background-color: #FFFFFF; border: 1px solid #D1D9E6; padding: 15px; border-radius: 8px; box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);">
+                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=160x160&data={{ urlencode($booking->booking_code) }}" 
+                         alt="QR Code Booking" 
+                         width="160" 
+                         height="160" 
+                         style="display: block; margin: 0 auto; border: none;">
                 </div>
-                <div class="ticket-row">
-                    <span class="label">Instansi</span>
-                    <span class="value">{{ $booking->department->name }}</span>
-                </div>
-                <div class="ticket-row">
-                    <span class="label">Tanggal Kunjungan</span>
-                    <span class="value">{{ $booking->booking_date->translatedFormat('d F Y') }}</span>
-                </div>
-                <div class="ticket-row">
-                    <span class="label">Sesi Waktu</span>
-                    <span class="value">{{ $booking->session_name ?? 'Harian' }}</span>
-                </div>
-                <div class="ticket-row">
-                    <span class="label">Kode Booking</span>
-                    <span class="value booking-code">{{ $booking->booking_code }}</span>
-                </div>
+                <p style="font-size: 12px; color: #6B7280; margin-top: 10px; margin-bottom: 0;">Scan QR Code ini pada mesin kiosk/stasiun check-in di MPP</p>
             </div>
 
             <div class="instructions">

@@ -109,9 +109,8 @@
                             $step = 1;
                             if ($activeBooking->queue_number) {
                                 $step = 2; // Check-In FO
-                                if (($activeBooking->status->value ?? $activeBooking->status) === 'Serving') {
-                                    $step = 3; // Menunggu Panggilan
-                                } elseif (in_array($activeBooking->status->value ?? $activeBooking->status, ['Completed', 'Skipped'])) {
+                                $status = $activeBooking->status->value ?? $activeBooking->status;
+                                if ($status === 'Serving' || in_array($status, ['Completed', 'Skipped'])) {
                                     $step = 4; // Dilayani / Selesai
                                 }
                             }
@@ -172,7 +171,11 @@
                             <!-- Step 4: Sedang Dilayani -->
                             <div class="flex items-center md:flex-col md:text-center gap-3 md:gap-2 z-10 flex-1 w-full">
                                 <div id="step-4-badge" class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm transition-all duration-300 {{ $step >= 4 ? 'bg-green-100 dark:bg-green-900/40 text-green-600 dark:text-green-400 border-2 border-green-500' : ($step == 3 ? 'bg-primary/10 dark:bg-primary/20 text-primary dark:text-accent-teal border-2 border-primary animate-pulse' : 'bg-surface-strong dark:bg-gray-700 text-muted border-2 border-hairline dark:border-gray-600') }}">
-                                    4
+                                    @if($step >= 4)
+                                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg>
+                                    @else
+                                        4
+                                    @endif
                                 </div>
                                 <div>
                                     <p class="text-xs font-bold text-ink dark:text-white leading-tight font-display">Dilayani</p>

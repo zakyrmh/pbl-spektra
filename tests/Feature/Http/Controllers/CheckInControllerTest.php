@@ -331,4 +331,82 @@ class CheckInControllerTest extends TestCase
         $response = $this->getJson(route('api.fo.notifications.index'));
         $response->assertStatus(401);
     }
+
+    public function test_scan_qr_code_successfully_checks_in(): void
+    {
+        $uuid = 'a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d';
+        $queue = Queue::create([
+            'user_id' => $this->citizen->id,
+            'department_id' => $this->department->id,
+            'booking_code' => $uuid,
+            'booking_date' => now()->toDateString(),
+            'status' => QueueStatus::Booked->value,
+            'purpose' => 'Cetak KTP-el',
+            'session_name' => 'Sesi 1',
+        ]);
+
+        $response = $this->actingAs($this->adminFo)->postJson(route('api.fo.scan-qr'), [
+            'code' => $uuid,
+            'status' => 'Checked-In',
+        ]);
+
+        $response->assertStatus(200);
+        $response->assertJsonFragment([
+            'success' => true,
+            'booking_code' => $uuid,
+            'status' => 'Checked-In',
+            'user_name' => 'Budi Santoso',
+        ]);
+
+        $this->assertEquals(QueueStatus::CheckedIn->value, $queue->fresh()->status->value ?? $queue->fresh()->status);
+    }
+
+    public function test_scan_qr_code_fails_validation_if_code_missing(): void
+    {
+        $response = $this->actingAs($this->adminFo)->postJson(route('api.fo.scan-qr'), [
+            'status' => 'Checked-In',
+        ]);
+
+        $response->assertStatus(422);
+        $response->assertJsonValidationErrors(['code']);
+    }
+
+    public function test_scan_qr_code_fails_if_booking_not_found(): void
+    {
+        $response = $this->actingAs($this->adminFo)->postJson(route('api.fo.scan-qr'), [
+            'code' => 'non-existent-uuid',
+            'status' => 'Checked-In',
+        ]);
+
+        $response->assertStatus(422);
+        $response->assertJsonFragment([
+            'success' => false,
+            'message' => 'Tiket/booking tidak ditemukan.',
+        ]);
+    }
+
+    public function test_scan_qr_code_fails_if_already_checked_in(): void
+    {
+        $uuid = 'already-checked-in-uuid';
+        Queue::create([
+            'user_id' => $this->citizen->id,
+            'department_id' => $this->department->id,
+            'booking_code' => $uuid,
+            'booking_date' => now()->toDateString(),
+            'status' => QueueStatus::CheckedIn->value,
+            'purpose' => 'Cetak KTP-el',
+            'session_name' => 'Sesi 1',
+        ]);
+
+        $response = $this->actingAs($this->adminFo)->postJson(route('api.fo.scan-qr'), [
+            'code' => $uuid,
+            'status' => 'Checked-In',
+        ]);
+
+        $response->assertStatus(422);
+        $response->assertJsonFragment([
+            'success' => false,
+            'message' => 'Tiket ini sudah melakukan check-in.',
+        ]);
+    }
 }

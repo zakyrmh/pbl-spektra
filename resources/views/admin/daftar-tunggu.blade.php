@@ -141,7 +141,7 @@
             {{-- Tab Contents --}}
             <div>
                 {{-- TAB: Waiting --}}
-                <div x-show="activeTab === 'waiting'" x-cloak class="space-y-4">
+                <div x-show="activeTab === 'waiting'" class="space-y-4">
                     <div class="overflow-x-auto w-full">
                         <table
                             class="w-full text-left text-xs border-collapse rounded-lg overflow-hidden border border-hairline dark:border-white/10">
@@ -201,7 +201,7 @@
                 </div>
 
                 {{-- TAB: Serving --}}
-                <div x-show="activeTab === 'serving'" x-cloak class="space-y-4">
+                <div x-show="activeTab === 'serving'" class="space-y-4">
                     <div class="overflow-x-auto w-full">
                         <table
                             class="w-full text-left text-xs border-collapse rounded-lg overflow-hidden border border-hairline dark:border-white/10">

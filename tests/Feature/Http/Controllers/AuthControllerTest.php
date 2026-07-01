@@ -263,5 +263,8 @@ test('password reset fails with invalid token or mismatched passwords', function
 })->with([
     ['invalid-token', 'NewPassword123!', 'NewPassword123!', 'email'],
     [null, 'NewPassword123!', 'DifferentPassword123!', 'password'],
-    [null, 'short', 'short', 'password'], // fails validation
+    [null, 'short', 'short', 'password'], // fails validation (min length)
+    [null, 'NoSymbol123', 'NoSymbol123', 'password'], // fails validation (missing symbol)
+    [null, 'NoNumber!!!', 'NoNumber!!!', 'password'], // fails validation (missing number)
+    [null, '12345678!!!', '12345678!!!', 'password'], // fails validation (missing letters)
 ]);

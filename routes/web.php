@@ -15,6 +15,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Public\AuthController;
 use App\Http\Controllers\Public\BookingController;
 use App\Http\Controllers\Public\FeedbackController;
+use App\Http\Controllers\Public\GuideController;
 use App\Http\Controllers\Public\NotificationController;
 use App\Http\Controllers\Public\ProfileController;
 use App\Http\Controllers\Public\PublicController;
@@ -102,6 +103,9 @@ Route::middleware('auth')->group(function () {
     Route::post('/booking', [BookingController::class, 'store'])->name('booking.store');
     Route::get('/booking/{booking}', [BookingController::class, 'show'])->name('booking.show');
     Route::get('/api/booking/{booking}/status', [BookingController::class, 'status'])->name('booking.status');
+
+    // Panduan MPP
+    Route::get('/panduan', [GuideController::class, 'index'])->name('customer.guide');
 
     // ─────────────────────────────────────────────────────────────────────────
     // Super Admin Routes

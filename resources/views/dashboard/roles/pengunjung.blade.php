@@ -234,7 +234,7 @@
                         <p class="text-[10px] text-muted dark:text-on-dark-soft mt-0.5 font-body">Semua data antrean</p>
                     </a>
                     <!-- Panduan -->
-                    <a href="#" class="bg-canvas dark:bg-surface-dark-elevated p-5 rounded-lg border border-hairline dark:border-white/10 shadow-xs hover:shadow-md hover:-translate-y-1 transition-all duration-300 group flex flex-col items-center text-center focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-accent-teal">
+                    <a href="{{ route('customer.guide') }}" class="bg-canvas dark:bg-surface-dark-elevated p-5 rounded-lg border border-hairline dark:border-white/10 shadow-xs hover:shadow-md hover:-translate-y-1 transition-all duration-300 group flex flex-col items-center text-center focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-accent-teal">
                         <div class="w-12 h-12 bg-surface-soft dark:bg-white/5 text-accent-gold rounded-lg flex items-center justify-center mb-3 group-hover:scale-110 group-hover:bg-accent-gold group-hover:text-ink transition-all border border-hairline dark:border-white/5">
                             <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />

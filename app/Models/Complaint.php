@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-#[Fillable(['user_id', 'subject', 'category', 'content'])]
+#[Fillable(['user_id', 'subject', 'category', 'content', 'status'])]
 class Complaint extends Model
 {
     /**

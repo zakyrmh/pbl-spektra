@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\ComplaintController;
 use App\Http\Controllers\Admin\FO\Api\CheckInApiController;
 use App\Http\Controllers\Admin\FO\Api\ScanQrCodeAction;
 use App\Http\Controllers\Admin\FO\BookingCancellationController;
@@ -150,6 +151,10 @@ Route::middleware('auth')->group(function () {
         Route::get('/laporan-analitik/{report}', [ReportController::class, 'adminShow'])->name('admin.reports.show');
         Route::get('/laporan-analitik/{report}/export/excel', [ReportController::class, 'exportExcel'])->name('admin.reports.export.excel');
         Route::get('/laporan-analitik/{report}/export/pdf', [ReportController::class, 'exportPdf'])->name('admin.reports.export.pdf');
+
+        // ── Manajemen Pengaduan Warga (Super Admin) ──────────────────────
+        Route::get('/manajemen-pengaduan', [ComplaintController::class, 'index'])->name('admin.complaints.index');
+        Route::put('/manajemen-pengaduan/{complaint}', [ComplaintController::class, 'update'])->name('admin.complaints.update');
     });
 
     // ─────────────────────────────────────────────────────────────────────────

@@ -95,6 +95,18 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
+     * Cek apakah user memiliki role tertentu secara aman.
+     * Mendukung perbandingan string maupun BackedEnum secara dinamis.
+     */
+    public function hasRole(UserRole|string $role): bool
+    {
+        $roleValue = $this->role instanceof \BackedEnum ? $this->role->value : $this->role;
+        $targetValue = $role instanceof \BackedEnum ? $role->value : $role;
+
+        return $roleValue === $targetValue;
+    }
+
+    /**
      * Badge CSS class dari UserRole Enum.
      */
     public function getRoleBadgeClassAttribute(): string

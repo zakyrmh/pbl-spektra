@@ -494,7 +494,7 @@
                 strokeDashArray: 4,
                 xaxis: { lines: { show: true } },
                 padding: {
-                    right: 25,
+                    right: 45,
                     left: 10
                 }
             },

@@ -16,12 +16,12 @@ class QueuePolicy
     public function manage(User $user, Queue $queue): bool
     {
         // Super Admin has full access
-        if ($user->role === UserRole::SuperAdmin || $user->role === 'super_admin') {
+        if ($user->hasRole(UserRole::SuperAdmin)) {
             return true;
         }
 
         // Must be admin_gerai
-        if ($user->role !== UserRole::AdminGerai && $user->role !== 'admin_gerai') {
+        if (! $user->hasRole(UserRole::AdminGerai)) {
             return false;
         }
 

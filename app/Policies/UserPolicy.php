@@ -25,7 +25,7 @@ class UserPolicy
      */
     public function viewAny(User $actor): bool
     {
-        return $actor->role === UserRole::SuperAdmin;
+        return $actor->hasRole(UserRole::SuperAdmin);
     }
 
     /**
@@ -33,7 +33,7 @@ class UserPolicy
      */
     public function view(User $actor, User $target): bool
     {
-        return $actor->role === UserRole::SuperAdmin;
+        return $actor->hasRole(UserRole::SuperAdmin);
     }
 
     /**
@@ -41,7 +41,7 @@ class UserPolicy
      */
     public function create(User $actor): bool
     {
-        return $actor->role === UserRole::SuperAdmin;
+        return $actor->hasRole(UserRole::SuperAdmin);
     }
 
     /**
@@ -52,12 +52,12 @@ class UserPolicy
      */
     public function update(User $actor, User $target): bool
     {
-        if ($actor->role !== UserRole::SuperAdmin) {
+        if (! $actor->hasRole(UserRole::SuperAdmin)) {
             return false;
         }
 
         // Tidak boleh ubah data SuperAdmin lain (kecuali dirinya sendiri)
-        if ($target->role === UserRole::SuperAdmin && $actor->id !== $target->id) {
+        if ($target->hasRole(UserRole::SuperAdmin) && $actor->id !== $target->id) {
             return false;
         }
 
@@ -71,7 +71,7 @@ class UserPolicy
      */
     public function toggleStatus(User $actor, User $target): bool
     {
-        if ($actor->role !== UserRole::SuperAdmin) {
+        if (! $actor->hasRole(UserRole::SuperAdmin)) {
             return false;
         }
 
@@ -87,7 +87,7 @@ class UserPolicy
      */
     public function resetPassword(User $actor, User $target): bool
     {
-        if ($actor->role !== UserRole::SuperAdmin) {
+        if (! $actor->hasRole(UserRole::SuperAdmin)) {
             return false;
         }
 
@@ -96,7 +96,7 @@ class UserPolicy
         }
 
         // Tidak bisa reset password sesama SuperAdmin
-        if ($target->role === UserRole::SuperAdmin) {
+        if ($target->hasRole(UserRole::SuperAdmin)) {
             return false;
         }
 
@@ -110,7 +110,7 @@ class UserPolicy
      */
     public function delete(User $actor, User $target): bool
     {
-        if ($actor->role !== UserRole::SuperAdmin) {
+        if (! $actor->hasRole(UserRole::SuperAdmin)) {
             return false;
         }
 
@@ -119,7 +119,7 @@ class UserPolicy
         }
 
         // Tidak bisa hapus sesama SuperAdmin
-        if ($target->role === UserRole::SuperAdmin) {
+        if ($target->hasRole(UserRole::SuperAdmin)) {
             return false;
         }
 
@@ -131,7 +131,7 @@ class UserPolicy
      */
     public function viewActivityLog(User $actor, User $target): bool
     {
-        return $actor->role === UserRole::SuperAdmin;
+        return $actor->hasRole(UserRole::SuperAdmin);
     }
 
     /**
@@ -139,7 +139,7 @@ class UserPolicy
      */
     public function manageSessions(User $actor, User $target): bool
     {
-        if ($actor->role !== UserRole::SuperAdmin) {
+        if (! $actor->hasRole(UserRole::SuperAdmin)) {
             return false;
         }
 

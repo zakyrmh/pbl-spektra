@@ -125,3 +125,14 @@
 [x-cloak] {
     display: none !important;
 }
+
+/* Fix dropdown option visibility in both light and dark modes */
+select option {
+    background-color: #ffffff !important;
+    color: #111827 !important;
+}
+
+.dark select option {
+    background-color: #1c2a3e !important;
+    color: #ffffff !important;
+}

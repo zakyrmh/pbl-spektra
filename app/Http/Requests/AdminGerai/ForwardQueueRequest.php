@@ -15,13 +15,9 @@ class ForwardQueueRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        $role = $this->user()?->role;
-        $roleValue = $role instanceof \BackedEnum ? $role->value : (string) $role;
+        $user = $this->user();
 
-        return in_array($roleValue, [
-            UserRole::AdminGerai->value,
-            UserRole::SuperAdmin->value,
-        ], true);
+        return $user && ($user->hasRole(UserRole::AdminGerai) || $user->hasRole(UserRole::SuperAdmin));
     }
 
     /**

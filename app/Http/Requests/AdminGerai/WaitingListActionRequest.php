@@ -16,7 +16,7 @@ class WaitingListActionRequest extends FormRequest
     public function authorize(): bool
     {
         $user = auth()->user();
-        if (! $user || ! in_array($user->role->value ?? $user->role, ['admin_gerai', 'super_admin'])) {
+        if (! $user || (! $user->hasRole('admin_gerai') && ! $user->hasRole('super_admin'))) {
             return false;
         }
 

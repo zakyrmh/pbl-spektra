@@ -27,7 +27,8 @@ final class FeedbackService
         }
 
         // 1. Cek apakah status antrean benar-benar 'Completed' (Selesai)
-        if ($queue->status !== 'Completed') {
+        $statusValue = $queue->status instanceof \BackedEnum ? $queue->status->value : $queue->status;
+        if ($statusValue !== 'Completed') {
             throw new FeedbackValidationException('Ulasan hanya dapat diberikan untuk pelayanan yang telah selesai.', 'error', 400);
         }
 

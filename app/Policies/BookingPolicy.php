@@ -17,7 +17,7 @@ final class BookingPolicy
     {
         // Only the ticket owner (user_id match), an admin_fo, or a super_admin can view the digital ticket data context.
         return $booking->user_id === $user->id
-            || $user->role === UserRole::AdminFo
-            || $user->role === UserRole::SuperAdmin;
+            || $user->hasRole(UserRole::AdminFo)
+            || $user->hasRole(UserRole::SuperAdmin);
     }
 }

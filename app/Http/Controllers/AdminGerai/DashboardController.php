@@ -100,13 +100,13 @@ class DashboardController extends Controller
 
         foreach ($hours as $hour) {
             $chartSukses[] = $queuesFinishedToday
-                ->filter(fn ($q) => $q->status === 'Completed'
+                ->filter(fn ($q) => ($q->status instanceof \BackedEnum ? $q->status->value : $q->status) === 'Completed'
                     && $q->completed_at
                     && $q->completed_at->format('H') === $hour)
                 ->count();
 
             $chartBatal[] = $queuesFinishedToday
-                ->filter(fn ($q) => in_array($q->status, ['Cancelled', 'Skipped'], true)
+                ->filter(fn ($q) => in_array($q->status instanceof \BackedEnum ? $q->status->value : $q->status, ['Cancelled', 'Skipped'], true)
                     && $q->completed_at
                     && $q->completed_at->format('H') === $hour)
                 ->count();

@@ -10,7 +10,7 @@ use App\Http\Resources\AdminFO\ScanQrCodeResource;
 use App\Services\AdminFO\ScanQrCodeService;
 use Illuminate\Http\JsonResponse;
 
-class ScanQrCodeAction extends Controller
+class ScanQrCodeController extends Controller
 {
     public function __construct(
         protected ScanQrCodeService $service

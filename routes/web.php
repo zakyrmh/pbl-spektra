@@ -2,7 +2,7 @@
 
 use App\Http\Controllers\Admin\ComplaintController;
 use App\Http\Controllers\Admin\FO\Api\CheckInApiController;
-use App\Http\Controllers\Admin\FO\Api\ScanQrCodeAction;
+use App\Http\Controllers\Admin\FO\Api\ScanQrCodeController;
 use App\Http\Controllers\Admin\FO\BookingCancellationController;
 use App\Http\Controllers\Admin\FO\CheckInController;
 use App\Http\Controllers\Admin\FO\ReportController;
@@ -195,7 +195,7 @@ Route::middleware('auth')->group(function () {
         // ── API Endpoints FO (AJAX/Fetch) ─────────────────────────────────
         Route::get('/api/fo/bookings/verify', [CheckInApiController::class, 'verify'])->name('api.fo.bookings.verify');
         Route::post('/api/fo/bookings/{booking}/checkin', [CheckInApiController::class, 'checkIn'])->name('api.fo.bookings.checkin');
-        Route::post('/api/fo/scan-qr', ScanQrCodeAction::class)->name('api.fo.scan-qr');
+        Route::post('/api/fo/scan-qr', ScanQrCodeController::class)->name('api.fo.scan-qr');
         Route::post('/api/fo/queues/walkin', [CheckInApiController::class, 'walkIn'])->name('api.fo.queues.walkin');
         Route::get('/api/fo/visitors/check-nik', [CheckInApiController::class, 'checkNik'])->name('api.fo.visitors.check-nik');
         Route::get('/api/fo/notifications', [CheckInApiController::class, 'notifications'])->name('api.fo.notifications.index');

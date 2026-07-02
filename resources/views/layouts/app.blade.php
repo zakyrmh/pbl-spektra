@@ -226,6 +226,63 @@
             });
         });
     </script>
+    <!-- Global 4s Auto-Dismiss Toast -->
+    <div
+        x-data="{
+            show: false,
+            message: '',
+            type: 'success',
+            init() {
+                @if(session('success'))
+                    this.showToast({!! json_encode(session('success')) !!}, 'success');
+                @endif
+                @if(session('error'))
+                    this.showToast({!! json_encode(session('error')) !!}, 'error');
+                @endif
+            },
+            showToast(message, type) {
+                this.message = message;
+                this.type = type;
+                this.show = true;
+                setTimeout(() => {
+                    this.show = false;
+                }, 4000);
+            }
+        }"
+        x-show="show"
+        x-transition:enter="transition ease-out duration-300"
+        x-transition:enter-start="opacity-0 translate-y-2 sm:translate-y-0 sm:translate-x-2"
+        x-transition:enter-end="opacity-100 translate-y-0 sm:translate-x-0"
+        x-transition:leave="transition ease-in duration-200"
+        x-transition:leave-start="opacity-100"
+        x-transition:leave-end="opacity-0"
+        class="fixed bottom-5 right-5 z-[9999] max-w-sm w-full bg-canvas dark:bg-surface-dark-elevated border border-hairline dark:border-white/10 text-ink dark:text-white rounded-lg shadow-lg p-4 flex items-start gap-3"
+        style="display: none;"
+    >
+        <!-- Success Icon -->
+        <template x-if="type === 'success'">
+            <svg class="w-6 h-6 text-accent-teal shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+        </template>
+        <!-- Error Icon -->
+        <template x-if="type === 'error'">
+            <svg class="w-6 h-6 text-red-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+        </template>
+
+        <div class="flex-1">
+            <p class="text-sm font-semibold" x-text="message"></p>
+        </div>
+
+        <button @click="show = false" class="text-muted hover:text-ink dark:text-on-dark-soft dark:hover:text-white transition-colors cursor-pointer">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+        </button>
+    </div>
+
     @stack('scripts')
 </body>
 

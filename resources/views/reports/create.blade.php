@@ -26,27 +26,7 @@
             </div>
         </div>
 
-        {{-- Alerts --}}
-        @if (session('error'))
-            <div class="flex items-start gap-3 p-4 bg-status-skipped/10 border border-status-skipped/30 rounded-lg animate-fade-in"
-                role="alert" id="alert-error">
-                <svg class="w-5 h-5 text-status-skipped shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24"
-                    stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round"
-                        d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <div class="flex-1 min-w-0">
-                    <p class="text-sm font-semibold text-status-skipped font-display">Gagal Membuat Laporan</p>
-                    <p class="text-sm text-red-800 dark:text-red-300 font-body mt-0.5">{!! session('error') !!}</p>
-                </div>
-                <button onclick="this.closest('[role=alert]').remove()"
-                    class="shrink-0 text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-200 transition-colors cursor-pointer">
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                </button>
-            </div>
-        @endif
+
 
         {{-- Form Card --}}
         <div class="bg-canvas dark:bg-surface-dark-elevated rounded-xl border border-hairline dark:border-white/10 shadow-sm p-6 sm:p-8">

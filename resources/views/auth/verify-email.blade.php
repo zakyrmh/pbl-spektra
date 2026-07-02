@@ -26,12 +26,7 @@
         </div>
     @endif
 
-    {{-- Alert sukses umum --}}
-    @if (session('success'))
-        <div class="mb-5 text-body-md text-status-serving bg-status-serving/10 border border-status-serving/20 rounded-lg px-4 py-3 font-body">
-            {{ session('success') }}
-        </div>
-    @endif
+
 
     {{-- Alert error --}}
     @if ($errors->any())

@@ -26,28 +26,7 @@
         </button>
     </div>
 
-    {{-- ══════════════════════════════════════════
-         FLASH MESSAGES
-    ══════════════════════════════════════════ --}}
-    @if(session('success'))
-        <div id="flash-success" class="flex items-start gap-3 bg-status-serving/10 border border-status-serving/20 text-green-800 dark:text-green-300 rounded-lg px-5 py-4 text-sm font-medium shadow-sm">
-            <svg class="w-5 h-5 shrink-0 text-status-serving mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-            <span>{{ session('success') }}</span>
-            <button onclick="document.getElementById('flash-success').remove()" class="ml-auto text-green-500 hover:text-green-700 dark:text-green-400 dark:hover:text-green-200 transition-colors cursor-pointer">
-                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
-            </button>
-        </div>
-    @endif
 
-    @if(session('error'))
-        <div id="flash-error" class="flex items-start gap-3 bg-status-skipped/10 border border-status-skipped/20 text-status-skipped dark:text-red-300 rounded-lg px-5 py-4 text-sm font-medium shadow-sm">
-            <svg class="w-5 h-5 shrink-0 text-status-skipped mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-            <span>{{ session('error') }}</span>
-            <button onclick="document.getElementById('flash-error').remove()" class="ml-auto text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-200 transition-colors cursor-pointer">
-                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
-            </button>
-        </div>
-    @endif
 
     {{-- Reset Password Flash (tampilkan password sementara) --}}
     @if(session('temp_password'))

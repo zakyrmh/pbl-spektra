@@ -2,9 +2,9 @@ name: Laravel
 
 on:
   push:
-    branches: [ "main", "develop" ]
+    branches: ["main", "develop"]
   pull_request:
-    branches: [ "main", "develop" ]
+    branches: ["main", "develop"]
 
 jobs:
   laravel-tests:
@@ -17,7 +17,7 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.4'    # ← fix utama
+          php-version: "8.4" # ← fix utama
           extensions: mbstring, xml, ctype, iconv, intl, pdo_sqlite, bcmath, curl, dom, fileinfo, openssl, tokenizer, zip
           coverage: none
 
@@ -38,13 +38,16 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          cache: 'npm'
+          node-version: "20"
+          cache: "npm"
 
       - name: Install NPM Dependencies
         run: npm ci
         env:
           HUSKY: 0
+
+      - name: Build Frontend Assets (Vite)
+        run: npm run build
 
       - name: Generate Key
         run: php artisan key:generate

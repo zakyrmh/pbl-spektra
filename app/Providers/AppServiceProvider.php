@@ -3,6 +3,12 @@
 namespace App\Providers;
 
 use App\Events\Public\FeedbackSubmitted;
+use App\Events\QueueCalled;
+use App\Events\QueueCreated;
+use App\Events\QueueFinished;
+use App\Listeners\LogQueueCalled;
+use App\Listeners\LogQueueCreated;
+use App\Listeners\LogQueueFinished;
 use App\Listeners\Public\LogFeedbackActivity;
 use App\Models\Notification;
 use App\Models\Queue;
@@ -38,5 +44,8 @@ class AppServiceProvider extends ServiceProvider
 
         // ── Events & Listeners ───────────────────────────────────
         Event::listen(FeedbackSubmitted::class, LogFeedbackActivity::class);
+        Event::listen(QueueCreated::class, LogQueueCreated::class);
+        Event::listen(QueueCalled::class, LogQueueCalled::class);
+        Event::listen(QueueFinished::class, LogQueueFinished::class);
     }
 }

@@ -112,7 +112,7 @@ class BookingControllerTest extends TestCase
         $this->assertEquals('Sesi 1', $booking->session_name);
         $this->assertStringStartsWith('BK-DK-', $booking->booking_code);
 
-        Mail::assertSent(BookingSuccessMail::class, function ($mail) use ($user, $booking) {
+        Mail::assertQueued(BookingSuccessMail::class, function ($mail) use ($user, $booking) {
             return $mail->hasTo($user->email) && $mail->booking->id === $booking->id;
         });
     }

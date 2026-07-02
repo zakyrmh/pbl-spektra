@@ -42,6 +42,16 @@ final class NotificationController extends Controller
         Gate::authorize('view', $notification);
 
         $userId = (int) Auth::id();
+
+        // Jika notifikasi memiliki download_url, tandai sebagai dibaca lalu redirect langsung ke file.
+        if (isset($notification->data['download_url'])) {
+            if (is_null($notification->read_at)) {
+                $notification->update(['read_at' => now()]);
+            }
+
+            return redirect($notification->data['download_url']);
+        }
+
         $unreviewedQueue = $this->notificationService->markAsReadAndFindUnreviewedQueue($notification, $userId);
 
         if ($unreviewedQueue) {

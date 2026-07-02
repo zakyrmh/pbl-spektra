@@ -11,10 +11,9 @@ use App\Http\Controllers\AdminGerai\CounterController;
 use App\Http\Controllers\AdminGerai\DaftarTungguController;
 use App\Http\Controllers\AdminGerai\LogPelayananController;
 // PapanPanggilController deprecated — functionality merged into CounterController/admin_gerai dashboard
-// ScheduleController deprecated — Schedule model deleted
-use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Public\AuthController;
 use App\Http\Controllers\Public\BookingController;
+use App\Http\Controllers\Public\DashboardController;
 use App\Http\Controllers\Public\FeedbackController;
 use App\Http\Controllers\Public\GuideController;
 use App\Http\Controllers\Public\HelpCenterController;
@@ -79,9 +78,14 @@ Route::post('/email/verification-notification', [AuthController::class, 'resend'
 Route::middleware('auth')->group(function () {
 
     // Dashboard Utama (dispatcher ke controller per-role)
-    Route::get('/dashboard', [DashboardController::class, 'index'])
-        ->middleware('verified')
-        ->name('dashboard');
+    Route::get('/dashboard', function () {
+        return redirect()->to(get_dashboard_url());
+    })->middleware('verified')->name('dashboard');
+
+    // Dashboard Pengunjung
+    Route::middleware('role:pengunjung')->group(function () {
+        Route::get('/visitor/dashboard', [DashboardController::class, 'index'])->name('visitor.dashboard');
+    });
 
     // Pusat Notifikasi
     Route::get('/notifikasi', [NotificationController::class, 'index'])
@@ -117,6 +121,7 @@ Route::middleware('auth')->group(function () {
     // Super Admin Routes
     // ─────────────────────────────────────────────────────────────────────────
     Route::middleware('role:super_admin')->group(function () {
+        Route::get('/superadmin/dashboard', [App\Http\Controllers\SuperAdmin\DashboardController::class, 'index'])->name('superadmin.dashboard');
 
         // ── Manajemen Pengguna ────────────────────────────────────────────
         Route::get('/manajemen-pengguna', [UserController::class, 'index'])->name('users.index');
@@ -161,6 +166,7 @@ Route::middleware('auth')->group(function () {
     // Admin FO Routes
     // ─────────────────────────────────────────────────────────────────────────
     Route::middleware('role:admin_fo')->group(function () {
+        Route::get('/fo/dashboard', [App\Http\Controllers\Admin\FO\DashboardController::class, 'index'])->name('admin_fo.dashboard');
 
         // Monitor FO
         Route::get('/fo/monitor', [QueueMonitorController::class, 'index'])->name('admin.fo.monitor');
@@ -200,6 +206,7 @@ Route::middleware('auth')->group(function () {
     // Admin Gerai Routes
     // ─────────────────────────────────────────────────────────────────────────
     Route::middleware('role:admin_gerai')->group(function () {
+        Route::get('/admin/dashboard', [App\Http\Controllers\AdminGerai\DashboardController::class, 'index'])->name('admin_gerai.dashboard');
 
         // ── Daftar Tunggu ─────────────────────────────────────────────────
         Route::get('/admin/daftar-tunggu', [DaftarTungguController::class, 'index'])->name('admin.daftar-tunggu');

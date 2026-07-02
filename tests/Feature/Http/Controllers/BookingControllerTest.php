@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Http\Controllers;
 
+use App\Enums\QueueStatus;
 use App\Enums\UserRole;
 use App\Mail\BookingSuccessMail;
 use App\Models\Department;
@@ -107,7 +108,7 @@ class BookingControllerTest extends TestCase
         $response->assertRedirect(route('booking.show', $booking));
         $this->assertEquals($user->id, $booking->user_id);
         $this->assertEquals($department->id, $booking->department_id);
-        $this->assertEquals('Booked', $booking->status->value ?? $booking->status);
+        $this->assertEquals(QueueStatus::Booked, $booking->status);
         $this->assertEquals('Sesi 1', $booking->session_name);
         $this->assertStringStartsWith('BK-DK-', $booking->booking_code);
 

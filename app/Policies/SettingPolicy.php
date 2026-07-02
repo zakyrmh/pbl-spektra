@@ -14,6 +14,6 @@ class SettingPolicy
      */
     public function manage(User $actor): bool
     {
-        return $actor->role === UserRole::SuperAdmin;
+        return $actor->hasRole(UserRole::SuperAdmin);
     }
 }

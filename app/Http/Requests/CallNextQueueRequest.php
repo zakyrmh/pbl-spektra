@@ -22,9 +22,8 @@ class CallNextQueueRequest extends FormRequest
         }
 
         $role = $user->role;
-        $roleValue = $role instanceof \BackedEnum ? $role : UserRole::tryFrom($role);
 
-        return in_array($roleValue, [UserRole::AdminFo, UserRole::AdminGerai], true);
+        return $user->hasRole(UserRole::AdminFo) || $user->hasRole(UserRole::AdminGerai);
     }
 
     /**

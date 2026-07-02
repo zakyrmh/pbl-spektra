@@ -1,5 +1,5 @@
 {{-- Modal: Gerai (Department) --}}
-<div id="gerai-modal" class="fixed inset-0 z-50 overflow-y-auto hidden" role="dialog" aria-modal="true">
+<div id="gerai-modal" class="fixed inset-0 z-50 overflow-y-auto {{ $errors->any() ? '' : 'hidden' }}" role="dialog" aria-modal="true">
     <div class="flex min-h-screen items-end sm:items-center justify-center p-0 sm:p-4 text-center">
         {{-- Backdrop --}}
         <div class="fixed inset-0 bg-black/60 backdrop-blur-xs transition-opacity duration-200" onclick="closeGeraiModal()"></div>
@@ -15,24 +15,24 @@
                 </button>
             </div>
 
-            <form id="gerai-form" method="POST" enctype="multipart/form-data" class="space-y-4 mt-6">
+            <form id="gerai-form" action="{{ route('config.departments.store') }}" method="POST" enctype="multipart/form-data" class="space-y-4 mt-6">
                 @csrf
                 <input type="hidden" name="_method" id="gerai-form-method" value="POST">
 
                 <div>
                     <label for="g-name" class="block text-title-sm font-semibold text-ink dark:text-white font-display mb-2">Nama Instansi <span class="text-status-skipped">*</span></label>
-                    <input type="text" id="g-name" name="name" required class="w-full text-body-md rounded-md border border-hairline px-4 py-3 h-12 bg-canvas dark:bg-surface-dark-elevated text-ink dark:text-white focus:border-primary focus:ring-3 focus:ring-primary/12 focus:outline-none transition-all font-body" placeholder="e.g. Dinas Kependudukan dan Catatan Sipil">
+                    <input type="text" id="g-name" name="name" required class="w-full text-body-md rounded-md border border-hairline dark:border-white/15 px-4 py-3 h-12 bg-canvas dark:bg-surface-dark-elevated text-ink dark:text-white focus:border-primary focus:ring-3 focus:ring-primary/12 focus:outline-none transition-all font-body" placeholder="e.g. Dinas Kependudukan dan Catatan Sipil" value="{{ old('name') }}">
                 </div>
 
                 <div>
                     <label for="g-inisial" class="block text-title-sm font-semibold text-ink dark:text-white font-display mb-2">Kode Prefix Antrean <span class="text-status-skipped">*</span></label>
-                    <input type="text" id="g-inisial" name="inisial" required maxlength="6" class="w-full text-body-md rounded-md border border-hairline px-4 py-3 h-12 bg-canvas dark:bg-surface-dark-elevated text-ink dark:text-white focus:border-primary focus:ring-3 focus:ring-primary/12 focus:outline-none transition-all font-mono uppercase" placeholder="e.g. DDK">
+                    <input type="text" id="g-inisial" name="inisial" required maxlength="6" class="w-full text-body-md rounded-md border border-hairline dark:border-white/15 px-4 py-3 h-12 bg-canvas dark:bg-surface-dark-elevated text-ink dark:text-white focus:border-primary focus:ring-3 focus:ring-primary/12 focus:outline-none transition-all font-mono uppercase" placeholder="e.g. DDK" value="{{ old('inisial') }}">
                     <p class="text-caption text-muted dark:text-on-dark-soft mt-1.5 block font-body">Kode unik max 6 karakter huruf untuk penomoran antrean (e.g. DDK-001).</p>
                 </div>
 
                 <div>
                     <label for="g-nomor-loket" class="block text-title-sm font-semibold text-ink dark:text-white font-display mb-2">Nomor Loket / Booth <span class="text-status-skipped">*</span></label>
-                    <input type="text" id="g-nomor-loket" name="nomor_loket" required class="w-full text-body-md rounded-md border border-hairline px-4 py-3 h-12 bg-canvas dark:bg-surface-dark-elevated text-ink dark:text-white focus:border-primary focus:ring-3 focus:ring-primary/12 focus:outline-none transition-all font-body" placeholder="e.g. 01">
+                    <input type="text" id="g-nomor-loket" name="nomor_loket" required class="w-full text-body-md rounded-md border border-hairline dark:border-white/15 px-4 py-3 h-12 bg-canvas dark:bg-surface-dark-elevated text-ink dark:text-white focus:border-primary focus:ring-3 focus:ring-primary/12 focus:outline-none transition-all font-body" placeholder="e.g. 01" value="{{ old('nomor_loket') }}">
                     <p class="text-caption text-muted dark:text-on-dark-soft mt-1.5 block font-body">Nomor loket fisik tempat pelayanan berlangsung (e.g. 01, 02).</p>
                 </div>
 
@@ -54,11 +54,11 @@
 
                 <div>
                     <label for="g-desc" class="block text-title-sm font-semibold text-ink dark:text-white font-display mb-2">Deskripsi Singkat</label>
-                    <textarea id="g-desc" name="description" rows="3" class="w-full text-body-md rounded-md border border-hairline px-4 py-3 bg-canvas dark:bg-surface-dark-elevated text-ink dark:text-white focus:border-primary focus:ring-3 focus:ring-primary/12 focus:outline-none transition-all font-body" placeholder="Keterangan mengenai pelayanan gerai..."></textarea>
+                    <textarea id="g-desc" name="description" rows="3" class="w-full text-body-md rounded-md border border-hairline dark:border-white/15 px-4 py-3 bg-canvas dark:bg-surface-dark-elevated text-ink dark:text-white focus:border-primary focus:ring-3 focus:ring-primary/12 focus:outline-none transition-all font-body" placeholder="Keterangan mengenai pelayanan gerai...">{{ old('description') }}</textarea>
                 </div>
 
                 <div class="flex flex-col sm:flex-row items-center justify-end gap-3 pt-4 border-t border-hairline-soft dark:border-white/5">
-                    <button type="button" onclick="closeGeraiModal()" class="w-full sm:w-auto inline-flex items-center justify-center h-11 px-6 text-button font-semibold text-ink dark:text-white bg-canvas hover:bg-surface-soft dark:hover:bg-white/5 border border-hairline dark:border-white/10 rounded-pill transition-all duration-150 cursor-pointer">Batal</button>
+                    <button type="button" onclick="closeGeraiModal()" class="w-full sm:w-auto inline-flex items-center justify-center h-11 px-6 text-button font-semibold text-ink dark:text-white bg-canvas dark:bg-white/5 hover:bg-surface-soft dark:hover:bg-white/10 border border-hairline dark:border-white/10 rounded-pill transition-all duration-150 cursor-pointer">Batal</button>
                     <button type="submit" class="w-full sm:w-auto inline-flex items-center justify-center h-11 px-6 text-button font-semibold text-white bg-primary hover:bg-primary-hover active:scale-[0.98] rounded-pill shadow-md hover:shadow-lg transition-all duration-150 cursor-pointer">Simpan</button>
                 </div>
             </form>

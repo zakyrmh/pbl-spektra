@@ -213,21 +213,31 @@ class DashboardAnalyticsService
         $onlineData = [];
         $onsiteData = [];
 
+        $currentHour = (int) now()->format('H');
+        $isToday = $today === Carbon::today()->toDateString();
+
         foreach ($hours as $h) {
-            // Online: Waktu dibuat (created_at) berbeda hari/jam dengan waktu check-in di FO
-            $onlineCount = $queuesToday->filter(function ($q) use ($h) {
-                return Carbon::parse($q->created_at)->format('H') === $h &&
-                       $q->created_at->toDateTimeString() !== $q->checked_in_at;
-            })->count();
+            $hourInt = (int) $h;
 
-            // Onsite/Walk-In: Tiket dibuat langsung di tempat (created_at sama dengan checked_in_at)
-            $onsiteCount = $queuesToday->filter(function ($q) use ($h) {
-                return Carbon::parse($q->created_at)->format('H') === $h &&
-                       ($q->checked_in_at === null || $q->created_at->toDateTimeString() === $q->checked_in_at);
-            })->count();
+            if ($isToday && $hourInt > $currentHour) {
+                $onlineData[] = null;
+                $onsiteData[] = null;
+            } else {
+                // Online: Waktu dibuat (created_at) berbeda hari/jam dengan waktu check-in di FO
+                $onlineCount = $queuesToday->filter(function ($q) use ($h) {
+                    return Carbon::parse($q->created_at)->format('H') === $h &&
+                           $q->created_at->toDateTimeString() !== $q->checked_in_at;
+                })->count();
 
-            $onlineData[] = $onlineCount;
-            $onsiteData[] = $onsiteCount;
+                // Onsite/Walk-In: Tiket dibuat langsung di tempat (created_at sama dengan checked_in_at)
+                $onsiteCount = $queuesToday->filter(function ($q) use ($h) {
+                    return Carbon::parse($q->created_at)->format('H') === $h &&
+                           ($q->checked_in_at === null || $q->created_at->toDateTimeString() === $q->checked_in_at);
+                })->count();
+
+                $onlineData[] = $onlineCount;
+                $onsiteData[] = $onsiteCount;
+            }
         }
 
         return [

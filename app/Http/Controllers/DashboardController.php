@@ -6,6 +6,7 @@ namespace App\Http\Controllers;
 
 use App\Enums\UserRole;
 use App\Http\Requests\CallNextQueueRequest;
+use App\Models\User;
 use App\Services\DashboardAnalyticsService;
 use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
@@ -30,28 +31,18 @@ final class DashboardController extends Controller
      */
     public function index(Request $request): View
     {
+        /** @var User $user */
         $user = Auth::user();
-        $role = $user->role;
-
-        // Resolving BackedEnum or string representation of UserRole
-        $roleValue = $role instanceof \BackedEnum ? $role : UserRole::tryFrom((string) $role);
 
         // Menyelaraskan role warga ke pengunjung
-        if ($roleValue === null || $role === 'warga') {
-            $roleValue = UserRole::Pengunjung;
-        }
-
-        $data = [];
-        $today = Carbon::today()->toDateString();
-
-        if ($roleValue === UserRole::SuperAdmin) {
-            $data = $this->analyticsService->getSuperAdminDashboardData($today)->toArray();
-        } elseif ($roleValue === UserRole::AdminFo) {
-            $data = $this->analyticsService->getFoDashboardData($today)->toArray();
-        } elseif ($roleValue === UserRole::AdminGerai) {
-            $data = $this->analyticsService->getAdminGeraiDashboardData($user->department, $today)->toArray();
-        } elseif ($roleValue === UserRole::Pengunjung) {
-            $data = $this->analyticsService->getVisitorDashboardData($user, $today)->toArray();
+        if ($user->hasRole(UserRole::SuperAdmin)) {
+            $data = $this->analyticsService->getSuperAdminDashboardData(Carbon::today()->toDateString())->toArray();
+        } elseif ($user->hasRole(UserRole::AdminFo)) {
+            $data = $this->analyticsService->getFoDashboardData(Carbon::today()->toDateString())->toArray();
+        } elseif ($user->hasRole(UserRole::AdminGerai)) {
+            $data = $this->analyticsService->getAdminGeraiDashboardData($user->department, Carbon::today()->toDateString())->toArray();
+        } else {
+            $data = $this->analyticsService->getVisitorDashboardData($user, Carbon::today()->toDateString())->toArray();
         }
 
         return view('dashboard.dashboard', $data);

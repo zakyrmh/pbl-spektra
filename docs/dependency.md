@@ -1,104 +1,100 @@
-# Identifikasi Dependency / Package Laravel
+# Identifikasi Dependensi Proyek (PBL Spektra)
 
-## 📊 Tabel Dependency Utama
-
-Berikut adalah pemetaan dependensi utama yang digunakan dalam proyek PBL Spektra, baik untuk kebutuhan backend inti maupun development tooling:
-
-| Package                                                                                   | Fungsi                                                                      | Alasan                                                                                        |  Versi   | Risiko                                                                                                |
-| :---------------------------------------------------------------------------------------- | :-------------------------------------------------------------------------- | :-------------------------------------------------------------------------------------------- | :------: | :---------------------------------------------------------------------------------------------------- |
-| **[laravel/framework](https://packagist.org/packages/laravel/framework)**                 | Framework inti PHP Laravel (routing, Eloquent ORM, middleware, Blade, dll). | Menjadi pondasi utama dan penyedia runtime seluruh logika sistem.                             | `^13.0`  | Kerusakan sistem jika terjadi inkonsistensi saat upgrade versi major.                                 |
-| **[laravel/tinker](https://packagist.org/packages/laravel/tinker)**                       | REPL (Read-Eval-Print Loop) interaktif Laravel di command line.             | Mempercepat testing query dan modifikasi basis data saat development.                         |  `^3.0`  | Kesalahan penulisan perintah CLI dapat merusak data secara permanen di database produksi.             |
-| **[laravel/boost](https://packagist.org/packages/laravel/boost)**                         | Paket utilitas untuk code scaffolding dan generator component.              | Mempercepat pembentukan boilerplate code di awal pengerjaan fitur.                            |  `^2.2`  | Ketergantungan berlebih pada generator; boilerplate sulit disesuaikan jika pengembang kurang paham.   |
-| **[laravel/pail](https://packagist.org/packages/laravel/pail)**                           | CLI Log Tailing real-time dengan format output bersih di terminal.          | Mempermudah peninjauan jalannya request/event (antrean) tanpa membuka berkas log manual.      | `^1.2.5` | Tidak ada risiko performa/keamanan yang signifikan (tool dev-only).                                   |
-| **[laravel/pint](https://packagist.org/packages/laravel/pint)**                           | Code formatter PHP berbasis PHP-CS-Fixer dengan aturan gaya Laravel.        | Memastikan standar penulisan kode (coding style) seragam di seluruh tim.                      | `^1.29`  | Risiko konflik kode (merge conflict) jika format otomatis massal dijalankan sebelum commit.           |
-| **[pusher/pusher-php-server](https://packagist.org/packages/pusher/pusher-php-server)**   | Library server untuk integrasi WebSocket real-time via Pusher.              | Menyiarkan pemanggilan nomor antrean loket gerai ke layar display ruang tunggu secara instan. |  `^7.2`  | Ketergantungan pada kestabilan internet/layanan pihak ketiga jika menggunakan cloud Pusher.           |
-| **[maatwebsite/excel](https://packagist.org/packages/maatwebsite/excel)**                 | Modul pengolahan file Excel (`.xlsx`) dan file CSV.                         | Membantu administrator mengekspor log data antrean bulanan/mingguan ke format Excel.          |  `^3.1`  | Lonjakan memori server (Out of Memory) jika memproses jutaan baris data sekaligus secara synchronous. |
-| **[spatie/laravel-permission](https://packagist.org/packages/spatie/laravel-permission)** | Manajemen otorisasi hak akses berbasis Role dan Permission (RBAC).          | Memisahkan hak akses menu Admin, Petugas Loket Gerai, dan Pengunjung secara aman.             |  `^6.0`  | Kerentanan keamanan jika mapping middleware hak akses pada rute sensitif tidak tepat.                 |
+Dokumen ini memuat daftar pustaka (dependency/package) yang digunakan dalam proyek **PBL Spektra**. Seluruh data disinkronkan secara langsung dengan berkas konfigurasi `composer.json`, `composer.lock`, `package.json`, dan `package-lock.json` untuk memastikan akurasi versi yang terpasang di lingkungan pengembangan.
 
 ---
 
-## 🛠️ Detail Cara Instalasi & Dampak Penggunaan Package
+## 📊 1. Dependensi Backend (PHP / Composer)
 
-### 1. laravel/framework
+Berikut adalah daftar pustaka PHP yang dikelola menggunakan **Composer**, baik untuk kebutuhan runtime aplikasi utama maupun kebutuhan lingkungan pengembangan (development & testing):
 
-- **Cara Instalasi**:  
-  Sudah terinstal secara otomatis sebagai kerangka kerja dasar proyek saat inisiasi menggunakan perintah composer.
-    ```bash
-    composer create-project laravel/laravel pbl-spektra
-    ```
-- **Dampak Penggunaan**:
-    - **Backend**: Mengatur siklus hidup HTTP request, pemetaan rute, penanganan exception, dan database driver.
-    - **Performa**: Memberikan beban bootstrap framework standar PHP; dapat dioptimalkan dengan caching config dan routing.
-    - **Keamanan**: Memberikan proteksi SQL Injection, filter CSRF, serta enkripsi kuki secara bawaan.
+| Package | Tipe | Versi (Constraint) | Versi Terkunci (Locked) | Fungsi Utama |
+| :--- | :---: | :---: | :---: | :--- |
+| **[php](https://www.php.net/)** | Runtime | `^8.3` | N/A | Lingkungan runtime dasar aplikasi PHP. |
+| **[laravel/framework](https://packagist.org/packages/laravel/framework)** | Core | `^13.0` | `13.17.0` | Framework inti PHP Laravel (routing, Eloquent ORM, middleware, Blade, dll). |
+| **[laravel/tinker](https://packagist.org/packages/laravel/tinker)** | Core | `^3.0` | `3.0.2` | REPL (Read-Eval-Print Loop) interaktif Laravel di command line. |
+| **[fakerphp/faker](https://packagist.org/packages/fakerphp/faker)** | Dev | `^1.23` | `1.24.1` | Pustaka untuk generate data palsu (faker) untuk seeder & factory. |
+| **[laravel/boost](https://packagist.org/packages/laravel/boost)** | Dev | `^2.2` | `2.4.10` | Utilitas AI-assisted development dan generator boilerplate code. |
+| **[laravel/pail](https://packagist.org/packages/laravel/pail)** | Dev | `^1.2.5` | `1.2.7` | Log tailing real-time langsung melalui terminal. |
+| **[laravel/pint](https://packagist.org/packages/laravel/pint)** | Dev | `^1.29` | `1.29.3` | Code formatter PHP berbasis PHP-CS-Fixer dengan gaya Laravel. |
+| **[mockery/mockery](https://packagist.org/packages/mockery/mockery)** | Dev | `^1.6` | `1.6.12` | Framework objek mock PHP untuk pembuatan unit testing. |
+| **[nunomaduro/collision](https://packagist.org/packages/nunomaduro/collision)** | Dev | `^8.6` | `8.9.4` | Handler error CLI yang interaktif untuk aplikasi konsol PHP. |
+| **[pestphp/pest](https://packagist.org/packages/pestphp/pest)** | Dev | `^4.4` | `4.7.4` | Framework testing PHP yang elegan dan minimalis. |
+| **[pestphp/pest-plugin-laravel](https://packagist.org/packages/pestphp/pest-plugin-laravel)** | Dev | `^4.1` | `4.1.0` | Integrasi dan helper pengujian spesifik untuk framework Laravel di Pest. |
 
-### 2. laravel/tinker
+---
 
-- **Cara Instalasi**:  
-  Diinstal secara default pada framework Laravel modern, atau dapat ditambahkan secara manual melalui:
-    ```bash
-    composer require laravel/tinker --dev
-    ```
-- **Dampak Penggunaan**:
-    - **Development**: Memungkinkan interaksi langsung dengan basis data dan pengujian method di Controller secara cepat via CLI (`php artisan tinker`).
-    - **Produksi**: Harus dibatasi aksesnya di server produksi agar operator tidak sengaja menjalankan kueri perusak data (`DB::truncate()`, dll).
+## 💻 2. Dependensi Frontend & Tooling (Node.js / NPM)
 
-### 3. laravel/boost
+Berikut adalah daftar pustaka Javascript/Node.js yang dikelola menggunakan **NPM** di bawah bagian `devDependencies`:
 
-- **Cara Instalasi**:
-    ```bash
-    composer require laravel/boost --dev
-    ```
-- **Dampak Penggunaan**:
-    - **Development**: Menyediakan generator tambahan untuk mempersingkat pengerjaan kode boilerplate.
-    - **Struktur Proyek**: Menambahkan perintah-perintah Artisan baru khusus development yang mempercepat konfigurasi internal.
+| Package | Tipe | Versi (Constraint) | Versi Terkunci (Locked) | Fungsi Utama |
+| :--- | :---: | :---: | :---: | :--- |
+| **[@tailwindcss/vite](https://www.npmjs.com/package/@tailwindcss/vite)** | Dev | `^4.0.0` | `4.2.2` | Plugin resmi untuk mengintegrasikan Tailwind CSS v4 dengan Vite bundler. |
+| **[axios](https://www.npmjs.com/package/axios)** | Dev | `>=1.11.0 <=1.14.0` | `1.14.0` | HTTP client berbasis Promise untuk komunikasi API asinkron. |
+| **[concurrently](https://www.npmjs.com/package/concurrently)** | Dev | `^9.0.1` | `9.2.1` | Utilitas menjalankan beberapa perintah CLI secara bersamaan dalam satu terminal. |
+| **[husky](https://www.npmjs.com/package/husky)** | Dev | `^9.1.7` | `9.1.7` | Git hooks manager untuk memicu linting/formatting sebelum melakukan commit. |
+| **[laravel-vite-plugin](https://www.npmjs.com/package/laravel-vite-plugin)** | Dev | `^3.0.0` | `3.0.1` | Plugin Vite resmi dari Laravel untuk pemuatan aset (CSS/JS). |
+| **[lint-staged](https://www.npmjs.com/package/lint-staged)** | Dev | `^16.4.0` | `16.4.0` | Menjalankan perintah formatter/linter hanya pada file yang masuk ke git staging. |
+| **[tailwindcss](https://www.npmjs.com/package/tailwindcss)** | Dev | `^4.0.0` | `4.2.2` | Utility-first CSS framework versi terbaru (v4) untuk menata antarmuka. |
+| **[vite](https://www.npmjs.com/package/vite)** | Dev | `^8.0.0` | `8.0.8` | Build tool dan bundler modern berkecepatan tinggi. |
 
-### 4. laravel/pail
+---
 
-- **Cara Instalasi**:
-    ```bash
-    composer require laravel/pail --dev
-    ```
-- **Dampak Penggunaan**:
-    - **Development**: Log error dapat ditonton secara streaming di terminal saat development via `php artisan pail`, sehingga mempersingkat debugging.
+## 🛠️ 3. Detail Cara Instalasi & Dampak Penggunaan Dependensi Utama
 
-### 5. laravel/pint
+### A. Dependensi Backend (Composer)
 
-- **Cara Instalasi**:
-    ```bash
-    composer require laravel/pint --dev
-    ```
-- **Dampak Penggunaan**:
-    - **Development**: Merapikan seluruh file PHP sesuai dengan standar Laravel PSR-12 secara otomatis dengan memicu perintah `./vendor/bin/pint`.
-    - **Git Histori**: Memperkecil perubahan tidak perlu di git diff karena perbedaan pengetikan whitespace/lekukan tab.
+#### 1. laravel/framework
+* **Perintah Instalasi**: Terpasang otomatis saat inisialisasi skeleton Laravel.
+* **Dampak & Kegunaan**: Menyediakan runtime backend, sistem routing, ORM Eloquent, middleware, Blade template, dan penanganan HTTP request.
+* **Risiko**: Kerusakan sistem/error jika terjadi inkonsistensi sintaks saat pembaruan versi major (misalnya migrasi antar versi Laravel).
 
-### 6. pusher/pusher-php-server
+#### 2. laravel/tinker
+* **Perintah Instalasi**: Terpasang otomatis, atau via `composer require laravel/tinker --dev`.
+* **Dampak & Kegunaan**: Menyediakan REPL interaktif (`php artisan tinker`) untuk berinteraksi langsung dengan database, testing query, dan model PHP di terminal.
+* **Risiko**: Eksekusi perintah yang salah di server produksi (seperti truncate database) dapat merusak data secara permanen.
 
-- **Cara Instalasi**:
-    ```bash
-    composer require pusher/pusher-php-server
-    ```
-- **Dampak Penggunaan**:
-    - **Real-time Feature**: Mengaktifkan real-time communication. Setiap panggil loket akan mengirim trigger pesan WebSocket ke monitor ruang tunggu secara asinkron.
-    - **Dependencies**: Memerlukan pustaka frontend (seperti Pusher JS/Laravel Echo) untuk mendengarkan broadcast event.
+#### 3. laravel/boost
+* **Perintah Instalasi**: `composer require laravel/boost --dev`
+* **Dampak & Kegunaan**: Menyediakan code generator bertenaga AI dan utilitas scaffolding untuk mempercepat pembuatan controller, model, dan migration.
+* **Risiko**: Over-dependency pada generator otomatis bagi developer baru yang belum terlalu memahami alur dasar scaffolding.
 
-### 7. maatwebsite/excel
+#### 4. laravel/pail
+* **Perintah Instalasi**: `composer require laravel/pail --dev`
+* **Dampak & Kegunaan**: Memungkinkan pengembang melakukan streaming error log aplikasi secara real-time langsung ke CLI (`php artisan pail`).
+* **Risiko**: Relatif aman dan tidak berdampak ke lingkungan produksi karena dikategorikan sebagai dev-only package.
 
-- **Cara Instalasi**:
-    ```bash
-    composer require maatwebsite/excel
-    ```
-- **Dampak Penggunaan**:
-    - **Laporan**: Memungkinkan developer mendesain class ekspor terstruktur menggunakan interface `FromCollection` atau `FromQuery`.
-    - **Performa Server**: Membutuhkan optimasi chunking/queueing jika data laporan antrean yang diekspor berjumlah sangat besar untuk menjaga kestabilan memori.
+#### 5. laravel/pint
+* **Perintah Instalasi**: `composer require laravel/pint --dev`
+* **Dampak & Kegunaan**: Merapikan gaya penulisan kode PHP agar seragam menggunakan standar Laravel (`./vendor/bin/pint`).
+* **Risiko**: Potensi terjadinya konflik merge yang masif jika format otomatis dijalankan pada file kerja anggota tim lain yang belum dicommit.
 
-### 8. spatie/laravel-permission
+#### 6. pestphp/pest & pest-plugin-laravel
+* **Perintah Instalasi**: `composer require pestphp/pest pestphp/pest-plugin-laravel --dev`
+* **Dampak & Kegunaan**: Menyediakan framework testing modern yang clean dan API yang ramah untuk menguji unit dan fitur aplikasi Laravel.
+* **Risiko**: Memerlukan komitmen tim untuk menulis pengujian secara disiplin agar cakupan tes tetap terjaga seiring berkembangnya kode program.
 
-- **Cara Instalasi**:
-    ```bash
-    composer require spatie/laravel-permission
-    php artisan vendor:publish --provider="Spatie\Permission\PermissionServiceProvider"
-    php artisan migrate
-    ```
-- **Dampak Penggunaan**:
-    - **Database**: Menambahkan tabel model RBAC (`roles`, `permissions`, `model_has_roles`, `model_has_permissions`, `role_has_permissions`) ke basis data.
-    - **Autentikasi**: Menyederhanakan kontrol hak akses di Controller dan Blade View melalui direktif `@can` dan `@role`.
+---
+
+### B. Dependensi Frontend (NPM)
+
+#### 1. tailwindcss & @tailwindcss/vite
+* **Perintah Instalasi**: Terpasang melalui `npm install tailwindcss @tailwindcss/vite --save-dev`
+* **Dampak & Kegunaan**: Menyediakan engine utility-first CSS v4 terbaru yang terintegrasi langsung ke siklus build Vite untuk kompilasi stylesheet yang optimal.
+* **Risiko**: Kepatuhan sintaks baru pada Tailwind v4 yang memerlukan penyesuaian dari kebiasaan versi v3 (seperti penghapusan file konfigurasi JavaScript dan beralih ke CSS-first configuration).
+
+#### 2. vite & laravel-vite-plugin
+* **Perintah Instalasi**: Terpasang melalui `npm install vite laravel-vite-plugin --save-dev`
+* **Dampak & Kegunaan**: Mengompilasi serta memuat aset CSS dan JS secara dinamis (HMR - Hot Module Replacement) selama masa pengembangan dan kompilasi produksi.
+* **Risiko**: Eror kompilasi aset jika konfigurasi path di file `vite.config.js` tidak sesuai dengan struktur build server.
+
+#### 3. axios
+* **Perintah Instalasi**: `npm install axios --save-dev`
+* **Dampak & Kegunaan**: Membantu melakukan pengiriman request asynchronous (AJAX) dari antarmuka (frontend) ke API backend Laravel.
+* **Risiko**: Kerentanan keamanan CORS jika API Laravel tidak dikonfigurasi dengan aman, serta penanganan error promise yang tidak terkelola dengan baik di sisi klien.
+
+#### 4. husky & lint-staged
+* **Perintah Instalasi**: `npm install husky lint-staged --save-dev`
+* **Dampak & Kegunaan**: Mengotomatiskan eksekusi formatter (`laravel/pint`) hanya pada file PHP yang diubah tepat sesaat sebelum kode di-commit ke Git.
+* **Risiko**: Proses commit bisa sedikit melambat sesaat karena sistem harus menjalankan evaluasi linter/formatter terlebih dahulu.

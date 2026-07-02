@@ -1,11 +1,127 @@
 @import 'tailwindcss';
 
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+    color-scheme: light;
+}
+
+.dark {
+    color-scheme: dark;
+}
+
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
 @source '../**/*.blade.php';
 @source '../**/*.js';
 
 @theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-        'Segoe UI Symbol', 'Noto Color Emoji';
+    /* Brand & Actions */
+    --color-primary: #1B4FA8;
+    --color-primary-hover: #153D88;
+    --color-primary-disabled: #9EB4D8;
+    --color-accent-teal: #29ABE2;
+    --color-accent-gold: #F5C200;
+
+    /* Surface */
+    --color-canvas: #FFFFFF;
+    --color-surface-soft: #F4F6FA;
+    --color-surface-card: #EFF2F7;
+    --color-surface-strong: #DDE3EE;
+    --color-surface-dark: #101826;
+    --color-surface-dark-elevated: #1C2A3E;
+    --color-hairline: #D1D9E6;
+    --color-hairline-soft: #E8ECF4;
+
+    /* Text Colors */
+    --color-ink: #111827;
+    --color-body: #374151;
+    --color-muted: #6B7280;
+    --color-muted-soft: #9CA3AF;
+    --color-on-primary: #FFFFFF;
+    --color-on-dark: #FFFFFF;
+    --color-on-dark-soft: #A8B4C8;
+
+    /* Status Colors */
+    --color-status-waiting: #D97706;
+    --color-status-called: #1B4FA8;
+    --color-status-serving: #059669;
+    --color-status-done: #6B7280;
+    --color-status-skipped: #DC2626;
+    --color-status-closed: #374151;
+
+    /* Typography families */
+    --font-display: 'Plus Jakarta Sans', Manrope, system-ui, sans-serif;
+    --font-body: 'Geist Sans', Inter, system-ui, sans-serif;
+    --font-mono: 'Geist Mono', 'JetBrains Mono', monospace;
+
+    /* Custom Typographic Scales with Line Heights & Letter Spacing */
+    --text-display-xl: 3.5rem; /* 56px */
+    --text-display-xl--line-height: 1.05;
+    --text-display-xl--letter-spacing: -1.5px;
+
+    --text-display-lg: 2.75rem; /* 44px */
+    --text-display-lg--line-height: 1.1;
+    --text-display-lg--letter-spacing: -1px;
+
+    --text-display-md: 2.25rem; /* 36px */
+    --text-display-md--line-height: 1.15;
+    --text-display-md--letter-spacing: -0.8px;
+
+    --text-display-sm: 1.75rem; /* 28px */
+    --text-display-sm--line-height: 1.2;
+    --text-display-sm--letter-spacing: -0.5px;
+
+    --text-title-lg: 1.375rem; /* 22px */
+    --text-title-lg--line-height: 1.3;
+    --text-title-lg--letter-spacing: -0.3px;
+
+    --text-title-md: 1.125rem; /* 18px */
+    --text-title-md--line-height: 1.4;
+
+    --text-title-sm: 1rem; /* 16px */
+    --text-title-sm--line-height: 1.4;
+
+    --text-body-md: 1rem; /* 16px */
+    --text-body-md--line-height: 1.6;
+
+    --text-body-sm: 0.875rem; /* 14px */
+    --text-body-sm--line-height: 1.5;
+
+    --text-caption: 0.8125rem; /* 13px */
+    --text-caption--line-height: 1.4;
+    --text-caption--letter-spacing: 0.1px;
+
+    --text-queue-number: 5rem; /* 80px */
+    --text-queue-number--line-height: 1.0;
+    --text-queue-number--letter-spacing: -3px;
+
+    --text-button: 0.9375rem; /* 15px */
+    --text-button--line-height: 1.0;
+    --text-button--letter-spacing: 0.1px;
+
+    --text-nav: 0.875rem; /* 14px */
+    --text-nav--line-height: 1.4;
+
+    /* Border Radius Scale */
+    --radius-xs: 4px;
+    --radius-sm: 6px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --radius-xl: 16px;
+    --radius-2xl: 24px;
+    --radius-pill: 9999px;
+    --radius-full: 50%;
+
+    /* Custom spacing / width tokens */
+    --spacing-section: 96px;
+    --spacing-sidebar: 260px; /* Exact 260px layout width matching DESIGN.md */
+
+    /* Custom Border and Ring Widths */
+    --border-width-3: 3px;
+    --ring-width-3: 3px;
+}
+
+[x-cloak] {
+    display: none !important;
 }

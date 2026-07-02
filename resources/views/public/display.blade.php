@@ -267,7 +267,27 @@
         console.log("Audio contexts enabled.");
     }, { once: true });
 
-    // Poll every 5 seconds (REQ-6.2)
-    setInterval(pollDisplayData, 5000);
+    // Listen to real-time WebSocket events using Laravel Echo
+    if (window.Echo) {
+        window.Echo.channel('queue-tracker')
+            .listen('.queue.called', (e) => {
+                console.log('Real-time: Queue called event received', e);
+                pollDisplayData();
+            })
+            .listen('.queue.created', (e) => {
+                console.log('Real-time: Queue created event received', e);
+                pollDisplayData();
+            })
+            .listen('.queue.finished', (e) => {
+                console.log('Real-time: Queue finished event received', e);
+                pollDisplayData();
+            });
+        console.log("WebSockets active: listening on 'queue-tracker' channel.");
+    } else {
+        console.warn("Laravel Echo not found. Falling back to polling.");
+    }
+
+    // Poll every 60 seconds as a fallback (WebSockets will handle real-time updates)
+    setInterval(pollDisplayData, 60000);
 </script>
 @endpush

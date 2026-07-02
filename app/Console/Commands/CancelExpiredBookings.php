@@ -2,10 +2,11 @@
 
 namespace App\Console\Commands;
 
+use App\Enums\QueueStatus;
 use App\Mail\BookingCancelledMail;
 use App\Models\ActivityLog;
-use App\Models\Booking;
 use App\Models\Notification;
+use App\Models\Queue;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
@@ -24,9 +25,9 @@ class CancelExpiredBookings extends Command
     {
         $today = now()->toDateString();
 
-        $expiredBookings = Booking::where('status', 'Pending')
-            ->whereDate('booking_date', '<=', $today)
-            ->with(['user', 'service.department'])
+        $expiredBookings = Queue::where('status', QueueStatus::Booked)
+            ->whereDate('booking_date', '<', $today)
+            ->with(['user', 'department'])
             ->get();
 
         $count = $expiredBookings->count();
@@ -45,7 +46,7 @@ class CancelExpiredBookings extends Command
             try {
                 DB::transaction(function () use ($booking) {
                     $booking->update([
-                        'status' => 'Cancelled',
+                        'status' => QueueStatus::Cancelled,
                         'cancel_reason' => 'Kadaluarsa',
                     ]);
 
@@ -53,7 +54,7 @@ class CancelExpiredBookings extends Command
                     Notification::create([
                         'user_id' => $booking->user_id,
                         'title' => 'Booking Kadaluarsa',
-                        'message' => "Reservasi antrean untuk layanan {$booking->service->name} pada {$booking->booking_date->translatedFormat('d F Y')} otomatis dibatalkan karena tidak dilakukan check-in.",
+                        'message' => "Reservasi antrean untuk layanan {$booking->purpose} pada {$booking->booking_date->translatedFormat('d F Y')} otomatis dibatalkan karena tidak dilakukan check-in.",
                     ]);
 
                     // Catat activity log

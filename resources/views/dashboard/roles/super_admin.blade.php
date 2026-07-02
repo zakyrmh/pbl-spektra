@@ -15,8 +15,8 @@
         </div>
         <div class="flex flex-wrap items-center gap-3">
             <button onclick="window.location.reload()" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-pill text-xs font-semibold border border-hairline dark:border-white/10 bg-canvas dark:bg-surface-dark-elevated hover:bg-surface-soft dark:hover:bg-white/5 text-ink dark:text-white transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-accent-teal">
-                <svg class="w-4 h-4 text-primary dark:text-accent-teal" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.21 7.89H18" />
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4 shrink-0 text-primary dark:text-accent-teal">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
                 </svg>
                 <span>Refresh Data</span>
             </button>

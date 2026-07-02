@@ -6,6 +6,7 @@ namespace App\Http\Controllers\AdminGerai;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\AdminGerai\ForwardQueueRequest;
+use App\Http\Resources\AdminGerai\CalledQueueResource;
 use App\Models\Department;
 use App\Models\Queue;
 use App\Services\AdminGerai\BoothOperationService;
@@ -109,17 +110,7 @@ final class CounterController extends Controller
 
         return response()->json([
             'success' => true,
-            'queue' => [
-                'id' => $nextQueue->id,
-                'queue_number' => $nextQueue->queue_number,
-                'status' => $nextQueue->status->value ?? $nextQueue->status,
-                'called_at' => $nextQueue->called_at?->toIso8601String(),
-                'user' => [
-                    'name' => $nextQueue->user?->name ?? 'Warga',
-                    'nik' => $nextQueue->user?->nik ?? '-',
-                ],
-                'purpose' => $nextQueue->purpose ?? 'Layanan Umum',
-            ],
+            'queue' => new CalledQueueResource($nextQueue),
         ]);
     }
 
@@ -138,17 +129,7 @@ final class CounterController extends Controller
 
         return response()->json([
             'success' => true,
-            'queue' => [
-                'id' => $calledQueue->id,
-                'queue_number' => $calledQueue->queue_number,
-                'status' => $calledQueue->status->value ?? $calledQueue->status,
-                'called_at' => $calledQueue->called_at?->toIso8601String(),
-                'user' => [
-                    'name' => $calledQueue->user?->name ?? 'Warga',
-                    'nik' => $calledQueue->user?->nik ?? '-',
-                ],
-                'purpose' => $calledQueue->purpose ?? 'Layanan Umum',
-            ],
+            'queue' => new CalledQueueResource($calledQueue),
         ]);
     }
 

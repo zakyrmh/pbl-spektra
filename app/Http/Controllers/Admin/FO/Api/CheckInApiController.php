@@ -9,6 +9,8 @@ use App\Enums\QueueStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\AdminFO\ApiStoreWalkInTicketRequest;
 use App\Http\Requests\AdminFO\CheckNikRequest;
+use App\Http\Resources\AdminFO\NotificationResource;
+use App\Http\Resources\AdminFO\VerifyBookingResource;
 use App\Http\Resources\AdminFO\VisitorLookupResource;
 use App\Models\Queue;
 use App\Services\AdminFO\CheckInService;
@@ -34,7 +36,7 @@ final class CheckInApiController extends Controller
      * Verifikasi booking via API.
      * GET /api/fo/bookings/verify?code={booking_code}
      */
-    public function verify(Request $request): JsonResponse
+    public function verify(Request $request): JsonResponse|VerifyBookingResource
     {
         $code = trim((string) $request->query('code', ''));
 
@@ -48,20 +50,7 @@ final class CheckInApiController extends Controller
             return response()->json(['message' => 'Booking not found or already verified.'], 404);
         }
 
-        return response()->json([
-            'id' => $booking->id,
-            'booking_code' => $booking->booking_code,
-            'user' => [
-                'name' => $booking->user->name,
-                'nik' => $booking->user->nik,
-            ],
-            'department' => [
-                'name' => $booking->department?->name ?? '-',
-            ],
-            'service' => [
-                'name' => $booking->purpose ?? '-',
-            ],
-        ]);
+        return new VerifyBookingResource($booking);
     }
 
     /**
@@ -142,26 +131,15 @@ final class CheckInApiController extends Controller
         return new VisitorLookupResource($visitor);
     }
 
-    /**
-     * Get unread notifications for Front Office.
-     */
     public function notifications(Request $request): JsonResponse
     {
         $notifications = $request->user()->unreadNotifications()
             ->where('title', 'Booking Baru Masuk')
             ->latest()
-            ->get()
-            ->map(function ($notification) {
-                return [
-                    'id' => $notification->id,
-                    'title' => $notification->title ?? $notification->data['title'] ?? 'Booking Baru Masuk',
-                    'message' => $notification->message ?? $notification->data['message'] ?? '',
-                    'created_at' => $notification->created_at->toIso8601String(),
-                ];
-            });
+            ->get();
 
         return response()->json([
-            'notifications' => $notifications,
+            'notifications' => NotificationResource::collection($notifications),
             'unread_count' => $request->user()->unreadNotifications()->count(),
         ]);
     }

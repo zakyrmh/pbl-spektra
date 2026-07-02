@@ -237,8 +237,13 @@ Route::middleware('auth')->group(function () {
 | Test Email Route (Hanya untuk testing lokal)
 |--------------------------------------------------------------------------
 */
-Route::get('/test-mail', function () {
-    Mail::to('zaxxyyramadhan@gmail.com')->send(new TestEmail);
+if (app()->environment('local')) {
+    Route::get('/test-mail', function () {
+        // Gunakan config daripada hardcoded email
+        $recipient = config('mail.test_recipient', config('mail.from.address'));
 
-    return 'Email terkirim!';
-});
+        Mail::to($recipient)->send(new TestEmail);
+
+        return 'Test email berhasil dikirim ke: '.$recipient;
+    })->name('test.mail');
+}

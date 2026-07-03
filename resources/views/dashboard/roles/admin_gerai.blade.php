@@ -33,7 +33,7 @@
                 </div>
             </div>
             <div class="flex items-center gap-3 shrink-0">
-                <a href="{{ route('admin.daftar-tunggu') }}"
+                <a href="{{ route('admin_gerai.daftar-tunggu') }}"
                     class="h-11 px-6 bg-primary hover:bg-primary-hover text-on-primary font-semibold rounded-pill flex items-center gap-2 text-sm shadow-md transition-all active:scale-95 cursor-pointer">
                     <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -924,7 +924,7 @@
 
                 // Toggle Instansi status via AJAX
                 function toggleInstansiStatus() {
-                    fetch('{{ route('gerai.department.toggle') }}', {
+                    fetch('{{ route('admin_gerai.department.toggle') }}', {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
@@ -975,7 +975,7 @@
 
                 // Set Loket status via AJAX
                 function setLoketStatus(newStatus) {
-                    fetch('{{ route('gerai.status') }}', {
+                    fetch('{{ route('admin_gerai.status') }}', {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
@@ -1068,7 +1068,7 @@
                         return;
                     }
 
-                    fetch('{{ route('gerai.call-next') }}', {
+                    fetch('{{ route('admin_gerai.call-next') }}', {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
@@ -1224,6 +1224,9 @@
                         return;
                     }
 
+                    const notes = prompt("Masukkan catatan pelayanan / kunjungan (opsional):", "");
+                    if (notes === null) return; // Batal menyelesaikan
+
                     const activeNum = document.getElementById('activeCallNumber').innerText;
                     const name = document.getElementById('citizenName').innerText;
 
@@ -1233,7 +1236,10 @@
                                 'Content-Type': 'application/json',
                                 'X-CSRF-TOKEN': csrfToken,
                                 'Accept': 'application/json'
-                            }
+                            },
+                            body: JSON.stringify({
+                                visit_notes: notes
+                            })
                         })
                         .then(response => response.json())
                         .then(data => {

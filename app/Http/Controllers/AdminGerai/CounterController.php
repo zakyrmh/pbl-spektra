@@ -125,6 +125,13 @@ final class CounterController extends Controller
             abort(403);
         }
 
+        if (! in_array(($queue->status->value ?? $queue->status), ['Checked-In', 'Skipped'], true)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Hanya antrean berstatus Checked-In atau Skipped yang dapat dipanggil.',
+            ], 422);
+        }
+
         $calledQueue = $this->boothService->callQueue($queue, $user);
 
         return response()->json([
@@ -137,7 +144,7 @@ final class CounterController extends Controller
      * Menyelesaikan pelayanan antrean.
      * POST /api/queues/{queue}/finish
      */
-    public function finishService(Queue $queue): JsonResponse
+    public function finishService(Request $request, Queue $queue): JsonResponse
     {
         $user = Auth::user();
         if ($queue->department_id !== $user->departments_id) {
@@ -151,7 +158,11 @@ final class CounterController extends Controller
             ], 422);
         }
 
-        $this->boothService->finishService($queue, $user);
+        $request->validate([
+            'visit_notes' => ['nullable', 'string', 'max:5000'],
+        ]);
+
+        $this->boothService->finishService($queue, $user, $request->input('visit_notes'));
 
         return response()->json([
             'success' => true,

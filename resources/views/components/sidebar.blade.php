@@ -21,8 +21,8 @@
     } elseif ($role === 'admin_gerai') {
         $menu = [
             ['title' => 'Dashboard Gerai', 'url' => route('admin_gerai.dashboard'), 'icon' => 'home'],
-            ['title' => 'Daftar Tunggu Gerai', 'url' => route('admin.daftar-tunggu'), 'icon' => 'users'],
-            ['title' => 'Log Pelayanan', 'url' => route('admin.log-pelayanan'), 'icon' => 'clipboard-list'],
+            ['title' => 'Daftar Tunggu Gerai', 'url' => route('admin_gerai.daftar-tunggu'), 'icon' => 'users'],
+            ['title' => 'Log Pelayanan', 'url' => route('admin_gerai.log-pelayanan'), 'icon' => 'clipboard-list'],
         ];
     } elseif ($role === 'super_admin') {
         $menu = [

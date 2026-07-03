@@ -168,12 +168,13 @@ final class BoothOperationService
     /**
      * Menyelesaikan pelayanan antrean.
      */
-    public function finishService(Queue $queue, User $user): void
+    public function finishService(Queue $queue, User $user, ?string $visitNotes = null): void
     {
-        DB::transaction(function () use ($queue, $user) {
+        DB::transaction(function () use ($queue, $user, $visitNotes) {
             $queue->update([
                 'status' => QueueStatus::Completed->value,
                 'completed_at' => now(),
+                'visit_notes' => $visitNotes,
             ]);
 
             // Kirim notifikasi ke warga menggunakan model Notification custom proyek ini

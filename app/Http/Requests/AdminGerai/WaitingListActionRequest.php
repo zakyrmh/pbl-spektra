@@ -35,7 +35,7 @@ class WaitingListActionRequest extends FormRequest
      */
     public function rules(): array
     {
-        if ($this->routeIs('admin.daftar-tunggu.cancel')) {
+        if ($this->routeIs('admin_gerai.daftar-tunggu.cancel')) {
             return [
                 'reason' => ['required', 'string', 'min:5'],
             ];

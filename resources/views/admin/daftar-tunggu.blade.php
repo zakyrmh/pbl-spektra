@@ -60,7 +60,7 @@
         </div>
 
         {{-- Filters and Search Form --}}
-        <form method="GET" action="{{ route('admin.daftar-tunggu') }}"
+        <form method="GET" action="{{ route('admin_gerai.daftar-tunggu') }}"
             class="bg-canvas dark:bg-surface-dark-elevated p-4 rounded-lg border border-hairline dark:border-white/10 flex flex-wrap items-end gap-4 font-body">
             <div class="flex-1 min-w-sidebar">
                 <label for="search" class="block text-title-sm font-semibold text-ink dark:text-white mb-2">Cari
@@ -79,7 +79,7 @@
                 </div>
             </div>
             <div class="flex gap-2">
-                <a href="{{ route('admin.daftar-tunggu') }}"
+                <a href="{{ route('admin_gerai.daftar-tunggu') }}"
                     class="h-12 px-5 text-button font-semibold text-muted dark:text-on-dark-soft hover:bg-black/5 dark:hover:bg-white/5 rounded-pill border border-hairline dark:border-white/10 flex items-center transition-all cursor-pointer">
                     Reset
                 </a>

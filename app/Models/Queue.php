@@ -20,6 +20,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
     'queue_number',
     'status',
     'cancel_reason',
+    'visit_notes',
     'checked_in_at',
     'called_at',
     'cancelled_at',

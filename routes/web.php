@@ -10,7 +10,7 @@ use App\Http\Controllers\Admin\FO\WalkInTicketController;
 use App\Http\Controllers\AdminGerai\CounterController;
 use App\Http\Controllers\AdminGerai\DaftarTungguController;
 use App\Http\Controllers\AdminGerai\LogPelayananController;
-// PapanPanggilController deprecated — functionality merged into CounterController/admin_gerai dashboard
+use App\Http\Controllers\AdminGerai\PapanPanggilController;
 use App\Http\Controllers\Public\AuthController;
 use App\Http\Controllers\Public\BookingController;
 use App\Http\Controllers\Public\DashboardController;
@@ -217,6 +217,12 @@ Route::middleware('auth')->group(function () {
         // ── Log Pelayanan ─────────────────────────────────────────────────
         Route::get('/admin/log-pelayanan', [LogPelayananController::class, 'index'])->name('admin.log-pelayanan');
         Route::get('/admin/log-pelayanan/export', [LogPelayananController::class, 'export'])->name('admin.log-pelayanan.export');
+
+        // ── Papan Panggil ─────────────────────────────────────────────────
+        Route::get('/admin/papan-panggil', [PapanPanggilController::class, 'index'])->name('admin_gerai.papan-panggil');
+        Route::post('/admin/papan-panggil/next', [PapanPanggilController::class, 'next'])->name('admin.papan-panggil.next');
+        Route::post('/admin/papan-panggil/{booking}/complete', [PapanPanggilController::class, 'complete'])->name('admin.papan-panggil.complete');
+        Route::post('/admin/papan-panggil/{booking}/skip', [PapanPanggilController::class, 'skip'])->name('admin.papan-panggil.skip');
 
         // ── API Endpoints Gerai ───────────────────────────────────────────
         Route::post('/api/counter/status', [CounterController::class, 'updateStatus'])->name('gerai.status');

@@ -8,8 +8,7 @@
             class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-canvas dark:bg-surface-dark-elevated p-6 rounded-lg border border-hairline dark:border-white/10 shadow-xs">
             <div class="flex flex-col sm:flex-row sm:items-center gap-6">
                 <div>
-                    <h1 class="text-2xl font-bold text-ink dark:text-white font-display tracking-tight">Dashboard Gerai
-                    </h1>
+                    <h1 class="text-2xl font-bold text-ink dark:text-white font-display tracking-tight">Dashboard Gerai</h1>
                     <p class="text-sm text-muted dark:text-on-dark-soft font-body mt-1">
                         Ringkasan statistik real-time dan analisis pelayanan untuk Instansi <span
                             class="font-semibold text-primary dark:text-accent-teal">{{ Auth::user()->department ? Auth::user()->department->name : '-' }}</span>
@@ -20,7 +19,8 @@
                     class="flex items-center gap-3 bg-surface-soft dark:bg-white/5 border border-hairline dark:border-white/10 p-2.5 rounded-lg shrink-0 font-body">
                     <span class="text-xs font-bold text-ink dark:text-white font-display">Status Gerai:</span>
                     <span id="geraiStatusText"
-                        class="px-2.5 py-0.5 rounded-pill text-xs font-bold {{ $isGeraiOpen ? 'bg-green-100 text-green-800 dark:bg-green-950/40 dark:text-green-300' : 'bg-rose-100 text-rose-800 dark:bg-rose-950/40 dark:text-rose-300' }}">
+                        class="inline-flex items-center gap-1.5 px-3 py-1 rounded-pill text-caption font-semibold {{ $isGeraiOpen ? 'bg-status-serving/10 text-green-800 dark:text-green-400 border border-status-serving/20' : 'bg-status-skipped/10 text-rose-800 dark:text-rose-400 border border-status-skipped/20' }}">
+                        <span class="w-2 h-2 rounded-full {{ $isGeraiOpen ? 'bg-status-serving' : 'bg-status-skipped' }}"></span>
                         {{ $isGeraiOpen ? 'BUKA' : 'TUTUP' }}
                     </span>
                     <label class="relative inline-flex items-center cursor-pointer select-none">
@@ -34,15 +34,15 @@
             </div>
             <div class="flex items-center gap-3 shrink-0">
                 <a href="{{ route('admin.daftar-tunggu') }}"
-                    class="h-11 px-5 bg-primary hover:bg-primary-hover text-white font-semibold rounded-pill flex items-center gap-2 text-sm shadow-md transition-all cursor-pointer">
+                    class="h-11 px-6 bg-primary hover:bg-primary-hover text-on-primary font-semibold rounded-pill flex items-center gap-2 text-sm shadow-md transition-all active:scale-95 cursor-pointer">
                     <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round"
                             d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
                     </svg>
                     Daftar Tunggu Gerai
                 </a>
-                <a href="{{ route('admin.papan-panggil') }}"
-                    class="h-11 px-5 bg-canvas border border-hairline text-ink dark:text-white dark:border-white/15 hover:bg-surface-soft dark:hover:bg-white/10 font-semibold rounded-pill flex items-center gap-2 text-sm transition-all cursor-pointer">
+                <a href="{{ route('admin_gerai.papan-panggil') }}"
+                    class="h-11 px-6 bg-canvas border border-hairline text-ink dark:text-white dark:border-white/15 hover:bg-surface-soft dark:hover:bg-white/10 font-semibold rounded-pill flex items-center gap-2 text-sm transition-all cursor-pointer">
                     <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round"
                             d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
@@ -136,29 +136,29 @@
                 <h3
                     class="text-lg font-bold text-ink dark:text-white font-display border-b border-hairline dark:border-white/10 pb-2">
                     Kemajuan Kuota Sesi & Status Operasional</h3>
-                <div class="overflow-x-auto">
+                <div class="overflow-x-auto rounded-lg border border-hairline dark:border-white/10">
                     <table class="w-full text-left border-collapse">
                         <thead>
                             <tr
-                                class="bg-surface-soft dark:bg-white/5 border-b border-hairline dark:border-white/15 text-xs font-bold uppercase tracking-wider text-ink dark:text-white font-display">
-                                <th class="p-4">Layanan</th>
-                                <th class="p-4">Sesi</th>
-                                <th class="p-4">Kemajuan Kuota</th>
-                                <th class="p-4">Status Sesi</th>
-                                <th class="p-4 text-center">Buka/Tutup Sesi</th>
+                                class="bg-surface-soft dark:bg-white/5 border-b border-hairline dark:border-white/10 text-xs font-bold uppercase tracking-wider text-muted dark:text-on-dark-soft font-display">
+                                <th class="py-3 px-4">Layanan</th>
+                                <th class="py-3 px-4">Sesi</th>
+                                <th class="py-3 px-4">Kemajuan Kuota</th>
+                                <th class="py-3 px-4">Status Sesi</th>
+                                <th class="py-3 px-4 text-center">Buka/Tutup Sesi</th>
                             </tr>
                         </thead>
                         <tbody
-                            class="divide-y divide-hairline dark:divide-white/10 text-body-sm text-ink dark:text-on-dark-soft">
+                            class="divide-y divide-hairline-soft dark:divide-white/5 text-xs text-ink dark:text-white">
                             @forelse($schedules as $sched)
-                                <tr class="hover:bg-black/2 dark:hover:bg-white/2 transition-colors">
-                                    <td class="p-4 font-semibold">{{ $sched->purpose ?? '-' }}</td>
-                                    <td class="p-4 font-mono font-bold">{{ $sched->session_name }}</td>
-                                    <td class="p-4">
+                                <tr class="hover:bg-surface-soft dark:hover:bg-white/5 transition-colors duration-150">
+                                    <td class="py-3.5 px-4 font-semibold">{{ $sched->purpose ?? '-' }}</td>
+                                    <td class="py-3.5 px-4 font-mono font-bold">{{ $sched->session_name }}</td>
+                                    <td class="py-3.5 px-4">
                                         <div class="flex items-center gap-2">
                                             <span
                                                 class="font-mono font-bold text-primary dark:text-accent-teal">{{ $sched->quota_used }}</span>
-                                            <span class="text-xs text-muted">/ {{ $sched->quota_total }}</span>
+                                            <span class="text-xs text-muted dark:text-on-dark-soft">/ {{ $sched->quota_total }}</span>
                                             @php
                                                 $percentage =
                                                     $sched->quota_total > 0
@@ -175,15 +175,15 @@
                                             </div>
                                         </div>
                                     </td>
-                                    <td class="p-4">
+                                    <td class="py-3.5 px-4">
                                         <span id="scheduleStatusLabel-{{ $sched->id }}"
-                                            class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-pill text-caption font-semibold {{ $sched->is_open ? 'bg-status-serving/10 text-status-serving border border-status-serving/15' : 'bg-status-skipped/10 text-status-skipped border border-status-skipped/15' }}">
+                                            class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-pill text-caption font-semibold {{ $sched->is_open ? 'bg-status-serving/10 text-emerald-800 dark:text-green-400 border border-status-serving/20' : 'bg-status-skipped/10 text-red-800 dark:text-red-400 border border-status-skipped/20' }}">
                                             <span
                                                 class="w-2 h-2 rounded-full {{ $sched->is_open ? 'bg-status-serving' : 'bg-status-skipped' }}"></span>
                                             {{ $sched->is_open ? 'Buka' : 'Tutup' }}
                                         </span>
                                     </td>
-                                    <td class="p-4 text-center">
+                                    <td class="py-3.5 px-4 text-center">
                                         <!-- Toggle Switch -->
                                         <label class="relative inline-flex items-center cursor-pointer select-none">
                                             <input type="checkbox" class="sr-only peer"
@@ -197,7 +197,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="5" class="p-8 text-center text-muted dark:text-on-dark-soft">
+                                    <td colspan="5" class="py-6 text-center text-muted dark:text-on-dark-soft italic">
                                         Tidak ada jadwal pelayanan terdaftar hari ini.
                                     </td>
                                 </tr>
@@ -548,38 +548,38 @@
         <div class="space-y-6 pb-16">
             <!-- Header Banner -->
             <div
-                class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-canvas dark:bg-surface-dark-elevated p-6 rounded-lg border border-hairline dark:border-white/10 shadow-sm">
+                class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 bg-canvas dark:bg-surface-dark-elevated p-6 rounded-lg border border-hairline dark:border-white/10 shadow-sm">
                 <div>
-                    <div class="flex items-center gap-2">
+                    <div class="flex flex-wrap items-center gap-2.5">
                         @php
                             $badgeClass =
-                                'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 border border-green-200/50';
-                            $dotClass = 'bg-green-500';
+                                'bg-status-serving/10 text-emerald-800 dark:text-green-400 border border-status-serving/20';
+                            $dotClass = 'bg-status-serving';
                             $statusLabel = 'Loket Buka (Aktif)';
 
                             if ($status === 'istirahat') {
                                 $badgeClass =
-                                    'bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 border border-amber-200/50';
-                                $dotClass = 'bg-amber-500';
+                                    'bg-status-waiting/10 text-amber-800 dark:text-amber-400 border border-status-waiting/20';
+                                $dotClass = 'bg-status-waiting';
                                 $statusLabel = 'Loket Istirahat';
                             } elseif ($status === 'nonaktif') {
                                 $badgeClass =
-                                    'bg-rose-50 dark:bg-rose-900/20 text-rose-700 dark:text-rose-400 border border-rose-200/50';
-                                $dotClass = 'bg-rose-500';
+                                    'bg-status-skipped/10 text-red-800 dark:text-red-400 border border-status-skipped/20';
+                                $dotClass = 'bg-status-skipped';
                                 $statusLabel = 'Loket Tutup';
                             }
                         @endphp
                         <span
-                            class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold transition-all {{ $badgeClass }}"
+                            class="inline-flex items-center gap-1.5 px-3 py-1 rounded-pill text-caption font-semibold transition-all {{ $badgeClass }}"
                             id="loketStatusBadge">
-                            <span class="w-1.5 h-1.5 rounded-full {{ $dotClass }}" id="loketStatusDot"></span>
+                            <span class="w-2 h-2 rounded-full {{ $dotClass }}" id="loketStatusDot"></span>
                             <span id="loketStatusText">{{ $statusLabel }}</span>
                         </span>
                         <span
-                            class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold transition-all {{ $department->is_open ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 border border-green-200/50' : 'bg-rose-50 dark:bg-rose-900/20 text-rose-700 dark:text-rose-400 border border-rose-200/50' }}"
+                            class="inline-flex items-center gap-1.5 px-3 py-1 rounded-pill text-caption font-semibold transition-all {{ $department->is_open ? 'bg-status-serving/10 text-emerald-800 dark:text-green-400 border border-status-serving/20' : 'bg-status-skipped/10 text-red-800 dark:text-red-400 border border-status-skipped/20' }}"
                             id="instansiStatusBadge">
                             <span
-                                class="w-1.5 h-1.5 rounded-full {{ $department->is_open ? 'bg-green-500' : 'bg-rose-500' }}"
+                                class="w-2 h-2 rounded-full {{ $department->is_open ? 'bg-status-serving' : 'bg-status-skipped' }}"
                                 id="instansiStatusDot"></span>
                             <span id="instansiStatusText">Instansi:
                                 {{ $department->is_open ? 'Buka' : 'Tutup' }}</span>
@@ -587,7 +587,7 @@
                         <span class="text-xs text-muted dark:text-on-dark-soft font-semibold font-display">Loket
                             {{ $department->nomor_loket }} — {{ $department->name }}</span>
                     </div>
-                    <h2 class="text-2xl font-bold text-ink dark:text-white mt-2 font-display">Papan Panggil & Layanan
+                    <h2 class="text-2xl font-bold text-ink dark:text-white mt-2.5 font-display">Papan Panggil & Layanan
                         Gerai</h2>
                     <p class="text-sm text-muted dark:text-on-dark-soft font-body">Panggil nomor antrean dan selesaikan pelayanan warga.</p>
                 </div>
@@ -599,7 +599,7 @@
                         <div
                             class="inline-flex rounded-lg border border-hairline dark:border-white/10 p-1 bg-surface-soft dark:bg-white/5">
                             <button type="button" onclick="toggleInstansiStatus()" id="btnInstansiStatus"
-                                class="px-3 py-1.5 text-xs font-bold rounded-md transition-all focus-visible:outline-none cursor-pointer {{ $department->is_open ? 'bg-canvas dark:bg-surface-dark-elevated text-green-600 dark:text-green-400 shadow-xs' : 'bg-canvas dark:bg-surface-dark-elevated text-rose-600 dark:text-rose-400 shadow-xs' }}">
+                                class="px-3 py-1.5 text-xs font-bold rounded-md transition-all focus-visible:outline-none cursor-pointer {{ $department->is_open ? 'bg-canvas dark:bg-surface-dark-elevated text-emerald-600 dark:text-green-400 shadow-xs' : 'bg-canvas dark:bg-surface-dark-elevated text-red-600 dark:text-red-400 shadow-xs' }}">
                                 {{ $department->is_open ? 'BUKA (Aktif)' : 'TUTUP (Terkunci)' }}
                             </button>
                         </div>
@@ -612,11 +612,11 @@
                         <div
                             class="inline-flex rounded-lg border border-hairline dark:border-white/10 p-1 bg-surface-soft dark:bg-white/5">
                             <button type="button" onclick="setLoketStatus('aktif')" id="btnStatusBuka"
-                                class="px-3 py-1.5 text-xs font-bold rounded-md transition-all focus-visible:outline-none cursor-pointer {{ $status === 'aktif' ? 'bg-canvas dark:bg-surface-dark-elevated text-green-600 dark:text-green-400 shadow-xs' : 'text-muted dark:text-on-dark-soft hover:bg-canvas/50 dark:hover:bg-white/5' }}">Buka</button>
+                                class="px-3 py-1.5 text-xs font-bold rounded-md transition-all focus-visible:outline-none cursor-pointer {{ $status === 'aktif' ? 'bg-canvas dark:bg-surface-dark-elevated text-emerald-600 dark:text-green-400 shadow-xs' : 'text-muted dark:text-on-dark-soft hover:bg-canvas/50 dark:hover:bg-white/5' }}">Buka</button>
                             <button type="button" onclick="setLoketStatus('istirahat')" id="btnStatusIstirahat"
                                 class="px-3 py-1.5 text-xs font-bold rounded-md transition-all focus-visible:outline-none cursor-pointer {{ $status === 'istirahat' ? 'bg-canvas dark:bg-surface-dark-elevated text-amber-600 dark:text-amber-400 shadow-xs' : 'text-muted dark:text-on-dark-soft hover:bg-canvas/50 dark:hover:bg-white/5' }}">Istirahat</button>
                             <button type="button" onclick="setLoketStatus('nonaktif')" id="btnStatusTutup"
-                                class="px-3 py-1.5 text-xs font-bold rounded-md transition-all focus-visible:outline-none cursor-pointer {{ $status === 'nonaktif' ? 'bg-canvas dark:bg-surface-dark-elevated text-rose-600 dark:text-rose-400 shadow-xs' : 'text-muted dark:text-on-dark-soft hover:bg-canvas/50 dark:hover:bg-white/5' }}">Tutup</button>
+                                class="px-3 py-1.5 text-xs font-bold rounded-md transition-all focus-visible:outline-none cursor-pointer {{ $status === 'nonaktif' ? 'bg-canvas dark:bg-surface-dark-elevated text-red-600 dark:text-red-400 shadow-xs' : 'text-muted dark:text-on-dark-soft hover:bg-canvas/50 dark:hover:bg-white/5' }}">Tutup</button>
                         </div>
                     </div>
                 </div>
@@ -644,8 +644,9 @@
                             <span id="activeCallNumber"
                                 class="text-7xl md:text-8xl font-extrabold text-primary dark:text-accent-teal font-mono tracking-tight leading-none my-2 transition-all">{{ $activeQueue ? $activeQueue->queue_number : '-' }}</span>
                             <span id="activeCallStatus"
-                                class="inline-flex items-center gap-1.5 px-3 py-1 bg-primary/10 text-primary dark:text-accent-teal rounded-full text-xs font-bold border border-primary/20 font-display">
-                                {{ $activeQueue ? 'Sedang Dilayani' : 'Belum Ada Panggilan' }}
+                                class="inline-flex items-center gap-1.5 px-3 py-1 bg-status-serving/10 text-emerald-800 dark:text-green-400 rounded-pill text-xs font-bold border border-status-serving/20 font-display">
+                                <span class="w-2 h-2 rounded-full bg-status-serving" id="activeCallStatusDot"></span>
+                                <span id="activeCallStatusText">{{ $activeQueue ? 'Sedang Dilayani' : 'Belum Ada Panggilan' }}</span>
                             </span>
                             <!-- Background watermarked icon -->
                             <div
@@ -665,7 +666,7 @@
                         @endphp
                         <button type="button" onclick="callNextQueue()" id="btnCallNext"
                             {{ $isNextDisabled ? 'disabled' : '' }}
-                            class="w-full h-12 font-semibold rounded-pill text-sm transition-all focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-accent-teal cursor-pointer flex items-center justify-center gap-2 shadow-md {{ $isNextDisabled ? 'bg-gray-200 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed' : 'bg-primary hover:bg-primary-hover text-white' }}">
+                            class="w-full h-11 font-semibold rounded-pill text-sm transition-all focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-accent-teal cursor-pointer flex items-center justify-center gap-2 shadow-md {{ $isNextDisabled ? 'bg-primary-disabled/30 text-primary-disabled dark:bg-white/5 dark:text-white/20 cursor-not-allowed border border-hairline dark:border-white/10' : 'bg-primary hover:bg-primary-hover text-white' }}">
                             <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"
                                 stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M13 5l7 7-7 7M5 5l7 7-7 7" />
@@ -675,7 +676,7 @@
 
                         <div class="grid grid-cols-2 gap-3">
                             <button type="button" onclick="recallActiveQueue()" id="btnRecall"
-                                class="h-11 bg-surface-soft hover:bg-surface-strong text-ink dark:text-white dark:bg-white/5 dark:hover:bg-white/10 border border-hairline dark:border-white/10 font-semibold rounded-pill text-xs transition-all focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-accent-teal cursor-pointer flex items-center justify-center gap-1.5">
+                                class="h-11 bg-canvas hover:bg-surface-soft text-ink dark:text-white dark:bg-white/5 dark:hover:bg-white/10 border border-hairline dark:border-white/15 font-semibold rounded-pill text-xs transition-all focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-accent-teal cursor-pointer flex items-center justify-center gap-1.5">
                                 <svg class="w-4 h-4 text-primary dark:text-accent-teal" fill="none"
                                     viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                     <path stroke-linecap="round" stroke-linejoin="round"
@@ -684,7 +685,7 @@
                                 Panggil Ulang (Recall)
                             </button>
                             <button type="button" onclick="skipActiveQueue()" id="btnSkip"
-                                class="h-11 bg-status-skipped/10 hover:bg-status-skipped/20 text-status-skipped font-semibold rounded-pill text-xs transition-all focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-status-skipped/50 cursor-pointer flex items-center justify-center gap-1.5 border border-status-skipped/20">
+                                class="h-11 bg-status-skipped hover:bg-red-700 text-white font-semibold rounded-pill text-xs transition-all focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-status-skipped/50 cursor-pointer flex items-center justify-center gap-1.5 shadow-sm">
                                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"
                                     stroke-width="2">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -765,11 +766,12 @@
                         <!-- Complete Service Trigger & Forward -->
                         <div class="flex flex-col gap-2 mt-6">
                             <button type="button" onclick="completeActiveService()" id="btnComplete"
-                                class="w-full h-11 bg-green-600 hover:bg-green-500 text-white font-semibold rounded-md text-xs transition-all focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-green-500/50 cursor-pointer">
+                                class="w-full h-11 bg-primary hover:bg-primary-hover text-white font-semibold rounded-pill text-xs transition-all focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-accent-teal cursor-pointer shadow-md flex items-center justify-center gap-1.5">
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg>
                                 Selesaikan Pelayanan &amp; Tandai Sukses
                             </button>
                             <button type="button" onclick="openForwardModal()" id="btnForward"
-                                class="w-full h-10 bg-blue-500/10 hover:bg-blue-500/20 text-blue-600 dark:text-blue-400 font-semibold rounded-md text-xs transition-all focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-blue-500/50 cursor-pointer flex items-center justify-center gap-1.5 border border-blue-500/20">
+                                class="w-full h-11 bg-canvas hover:bg-surface-soft text-ink dark:text-white dark:bg-white/5 dark:hover:bg-white/10 border border-hairline dark:border-white/15 font-semibold rounded-pill text-xs transition-all focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-accent-teal cursor-pointer flex items-center justify-center gap-1.5">
                                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"
                                     stroke-width="2">
                                     <path stroke-linecap="round" stroke-linejoin="round"
@@ -830,36 +832,41 @@
                         <h3
                             class="font-bold text-ink dark:text-white font-display border-b border-hairline dark:border-white/10 pb-2 mb-4">
                             Daftar Antrean Tertunda / Terlewati (Skipped)</h3>
-                        <div class="overflow-x-auto">
+                        <div class="overflow-x-auto rounded-lg border border-hairline dark:border-white/10">
                             <table class="w-full text-left border-collapse">
                                 <thead>
                                     <tr
-                                        class="bg-surface-soft dark:bg-white/5 text-muted dark:text-on-dark-soft text-[11px] font-bold uppercase tracking-wider border-b border-hairline dark:border-white/10">
-                                        <th class="py-2.5 px-4">Kode Antrean</th>
-                                        <th class="py-2.5 px-4">Nama Warga</th>
-                                        <th class="py-2.5 px-4">Layanan</th>
-                                        <th class="py-2.5 px-4">Status</th>
-                                        <th class="py-2.5 px-4 text-center">Aksi Panggil Balik</th>
+                                        class="bg-surface-soft dark:bg-white/5 border-b border-hairline dark:border-white/10 text-xs font-bold uppercase tracking-wider text-muted dark:text-on-dark-soft font-display">
+                                        <th class="py-3 px-4">Kode Antrean</th>
+                                        <th class="py-3 px-4">Nama Warga</th>
+                                        <th class="py-3 px-4">Layanan</th>
+                                        <th class="py-3 px-4">Status</th>
+                                        <th class="py-3 px-4 text-center">Aksi Panggil Balik</th>
                                     </tr>
                                 </thead>
                                 <tbody id="geraiSkipListBody"
-                                    class="text-xs divide-y divide-hairline dark:divide-white/5">
+                                    class="text-xs divide-y divide-hairline-soft dark:divide-white/5 text-ink dark:text-white">
                                     @foreach ($skippedQueues as $sq)
-                                        <tr class="hover:bg-surface-soft/50 dark:hover:bg-white/5 transition-colors"
+                                        <tr class="hover:bg-surface-soft dark:hover:bg-white/5 transition-colors duration-150"
                                             data-skipped-ticket="{{ $sq->queue_number }}">
                                             <td class="py-3 px-4 font-mono font-bold text-status-skipped">
                                                 {{ $sq->queue_number }}</td>
-                                            <td class="py-3 px-4 text-ink dark:text-white font-medium">
+                                            <td class="py-3 px-4 text-ink dark:text-white font-semibold">
                                                 {{ $sq->user ? $sq->user->name : 'Warga' }}
                                             </td>
                                             <td class="py-3 px-4 text-muted dark:text-on-dark-soft">
                                                 {{ $sq->purpose }}
                                             </td>
-                                            <td class="py-3 px-4 text-status-skipped font-bold">Terlewat</td>
+                                            <td class="py-3 px-4">
+                                                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-pill text-[11px] font-semibold bg-status-skipped/10 text-red-800 dark:text-red-400 border border-status-skipped/15">
+                                                    <span class="w-1.5 h-1.5 rounded-full bg-status-skipped"></span>
+                                                    Terlewat
+                                                </span>
+                                            </td>
                                             <td class="py-3 px-4 text-center">
                                                 <button type="button"
                                                     onclick="recallSkipped({{ $sq->id }}, '{{ $sq->queue_number }}', '{{ $sq->user ? $sq->user->name : 'Warga' }}', '{{ $sq->purpose }}')"
-                                                    class="px-3 py-1.5 bg-primary/10 hover:bg-primary text-primary hover:text-white dark:text-accent-teal dark:hover:text-white dark:bg-accent-teal/10 rounded-md font-bold transition-all focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-accent-teal cursor-pointer">
+                                                    class="inline-flex items-center justify-center h-8 px-3 text-[11px] font-semibold text-primary hover:text-white dark:text-accent-teal hover:bg-primary dark:hover:bg-accent-teal/20 rounded-pill border border-primary/20 dark:border-accent-teal/20 transition-all cursor-pointer">
                                                     Panggil Balik
                                                 </button>
                                             </td>
@@ -1171,17 +1178,22 @@
                                 if (fallbackRow) fallbackRow.remove();
 
                                 const tr = document.createElement('tr');
-                                tr.className = 'hover:bg-surface-soft/50 dark:hover:bg-white/5 transition-colors';
+                                tr.className = 'hover:bg-surface-soft dark:hover:bg-white/5 transition-colors duration-150';
                                 tr.setAttribute('data-skipped-ticket', activeNum);
 
                                 const qId = geraiState.activeQueueId;
                                 tr.innerHTML = `
                     <td class="py-3 px-4 font-mono font-bold text-status-skipped">${activeNum}</td>
-                    <td class="py-3 px-4 text-ink dark:text-white font-medium">${name}</td>
+                    <td class="py-3 px-4 text-ink dark:text-white font-semibold">${name}</td>
                     <td class="py-3 px-4 text-muted dark:text-on-dark-soft">${service}</td>
-                    <td class="py-3 px-4 text-status-skipped font-bold">Terlewat</td>
+                    <td class="py-3 px-4">
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-pill text-[11px] font-semibold bg-status-skipped/10 text-red-800 dark:text-red-400 border border-status-skipped/15">
+                            <span class="w-1.5 h-1.5 rounded-full bg-status-skipped"></span>
+                            Terlewat
+                        </span>
+                    </td>
                     <td class="py-3 px-4 text-center">
-                        <button type="button" onclick="recallSkipped(${qId}, '${activeNum}', '${name}', '${service}')" class="px-3 py-1.5 bg-primary/10 hover:bg-primary text-primary hover:text-white dark:text-accent-teal dark:hover:text-white dark:bg-accent-teal/10 rounded-md font-bold transition-all focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-accent-teal cursor-pointer">
+                        <button type="button" onclick="recallSkipped(${qId}, '${activeNum}', '${name}', '${service}')" class="inline-flex items-center justify-center h-8 px-3 text-[11px] font-semibold text-primary hover:text-white dark:text-accent-teal hover:bg-primary dark:hover:bg-accent-teal/20 rounded-pill border border-primary/20 dark:border-accent-teal/20 transition-all cursor-pointer">
                             Panggil Balik
                         </button>
                     </td>
@@ -1353,26 +1365,26 @@
                     if (!container) return;
 
                     const toast = document.createElement('div');
-                    let borderClr = 'border-green-500';
-                    let bgClr = 'bg-white dark:bg-gray-800';
+                    let borderClr = '';
+                    let bgClr = 'bg-slate-900 text-white';
                     let iconHtml = '';
 
                     if (type === 'success') {
-                        borderClr = 'border-l-4 border-green-500';
+                        borderClr = 'border-l-4 border-status-serving';
                         iconHtml =
-                            `<svg class="w-5 h-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>`;
+                            `<svg class="w-5 h-5 text-status-serving" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>`;
                     } else if (type === 'warning') {
-                        borderClr = 'border-l-4 border-amber-500';
+                        borderClr = 'border-l-4 border-status-waiting';
                         iconHtml =
-                            `<svg class="w-5 h-5 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>`;
+                            `<svg class="w-5 h-5 text-status-waiting" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>`;
                     } else {
-                        borderClr = 'border-l-4 border-blue-500';
+                        borderClr = 'border-l-4 border-primary';
                         iconHtml =
-                            `<svg class="w-5 h-5 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>`;
+                            `<svg class="w-5 h-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>`;
                     }
 
                     toast.className =
-                        `flex items-start gap-3 p-4 rounded-lg shadow-xl border border-hairline dark:border-white/10 ${bgClr} ${borderClr} max-w-sm pointer-events-auto transition-all duration-300 transform translate-y-2 opacity-0`;
+                        `flex items-start gap-3 p-4 rounded-xl shadow-2xl border border-white/10 ${bgClr} ${borderClr} max-w-sm pointer-events-auto transition-all duration-300 transform translate-y-2 opacity-0`;
                     toast.innerHTML = `
             <div class="shrink-0">${iconHtml}</div>
             <div class="flex-grow">

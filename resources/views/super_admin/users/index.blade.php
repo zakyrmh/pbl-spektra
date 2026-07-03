@@ -206,10 +206,13 @@
 ════════════════════════════════════════════════════════════ --}}
 <div
     id="user-modal"
+    x-data="userModal()"
+    x-on:keydown.escape.window="handleDismiss()"
     class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 items-center justify-center p-4 hidden"
     aria-modal="true"
     role="dialog"
     aria-labelledby="modal-title"
+    @click.self="handleDismiss()"
 >
     <div
         id="user-modal-card"
@@ -221,13 +224,13 @@
                 <h2 class="text-lg font-bold font-display text-ink dark:text-white" id="modal-title">Tambah Pengguna Baru</h2>
                 <p class="text-xs text-muted dark:text-on-dark-soft mt-0.5" id="modal-subtitle">Isi formulir di bawah untuk membuat akun baru.</p>
             </div>
-            <button onclick="closeUserModal()" class="text-muted hover:text-ink dark:hover:text-white p-2 hover:bg-surface-soft dark:hover:bg-white/5 rounded-md transition-all cursor-pointer">
+            <button @click="handleDismiss()" class="text-muted hover:text-ink dark:hover:text-white p-2 hover:bg-surface-soft dark:hover:bg-white/5 rounded-md transition-all cursor-pointer">
                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
             </button>
         </div>
 
         {{-- Modal Body: Form --}}
-        <form id="user-form" method="POST" action="{{ route('users.store') }}" class="px-6 py-6 space-y-5" novalidate>
+        <form id="user-form" method="POST" action="{{ route('users.store') }}" class="px-6 py-6 space-y-5" novalidate @input="isDirty = true" @change="isDirty = true">
             @csrf
             <span id="form-method-spoofing"></span>
             <input type="hidden" id="f-user-id" name="user_id" value="">
@@ -375,7 +378,7 @@
             @endif
 
             <div class="flex items-center justify-end gap-3 pt-2">
-                <button type="button" onclick="closeUserModal()" class="px-5 h-11 text-sm font-semibold text-ink dark:text-white bg-canvas hover:bg-surface-soft dark:bg-white/5 dark:hover:bg-white/10 rounded-pill border border-hairline dark:border-white/10 transition-all cursor-pointer">
+                <button type="button" @click="handleDismiss()" class="px-5 h-11 text-sm font-semibold text-ink dark:text-white bg-canvas hover:bg-surface-soft dark:bg-white/5 dark:hover:bg-white/10 rounded-pill border border-hairline dark:border-white/10 transition-all cursor-pointer">
                     Batal
                 </button>
                 <button type="submit" id="modal-submit-btn" class="inline-flex h-11 items-center justify-center gap-2 px-6 bg-primary hover:bg-primary-hover text-on-primary font-semibold rounded-pill shadow-md hover:shadow-primary/20 transition-all active:scale-95 cursor-pointer">
@@ -384,6 +387,64 @@
                 </button>
             </div>
         </form>
+    </div>
+
+    {{-- ═══════════════════════════════════════════
+         SECONDARY CONFIRMATION MODAL (Discard Changes?)
+    ═══════════════════════════════════════════ --}}
+    <div
+        x-show="showConfirm"
+        x-transition:enter="transition ease-out duration-200"
+        x-transition:enter-start="opacity-0"
+        x-transition:enter-end="opacity-100"
+        x-transition:leave="transition ease-in duration-150"
+        x-transition:leave-start="opacity-100"
+        x-transition:leave-end="opacity-0"
+        class="fixed inset-0 bg-slate-900/40 backdrop-blur-[2px] z-[60] flex items-center justify-center p-4"
+        style="display: none;"
+        @click.self="showConfirm = false"
+    >
+        <div
+            x-show="showConfirm"
+            x-transition:enter="transition ease-out duration-200"
+            x-transition:enter-start="opacity-0 scale-95 translate-y-2"
+            x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+            x-transition:leave="transition ease-in duration-150"
+            x-transition:leave-start="opacity-100 scale-100"
+            x-transition:leave-end="opacity-0 scale-95 translate-y-2"
+            class="bg-canvas dark:bg-surface-dark-elevated border border-hairline dark:border-white/10 text-ink dark:text-white rounded-xl shadow-2xl w-full max-w-sm overflow-hidden"
+            @click.stop
+        >
+            {{-- Confirm Header --}}
+            <div class="px-6 pt-6 pb-4 text-center">
+                <div class="mx-auto w-12 h-12 bg-status-waiting/10 dark:bg-status-waiting/20 rounded-full flex items-center justify-center mb-4">
+                    <svg class="w-6 h-6 text-status-waiting" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                    </svg>
+                </div>
+                <h3 class="text-base font-bold font-display text-ink dark:text-white">Buang Perubahan?</h3>
+                <p class="text-sm text-muted dark:text-on-dark-soft mt-2 leading-relaxed">
+                    Anda memiliki perubahan yang belum disimpan. Apakah Anda yakin ingin menutup formulir ini? Semua perubahan akan hilang.
+                </p>
+            </div>
+            {{-- Confirm Actions --}}
+            <div class="px-6 pb-6 flex items-center gap-3">
+                <button
+                    type="button"
+                    @click="showConfirm = false"
+                    class="flex-1 h-11 text-sm font-semibold text-ink dark:text-white bg-canvas hover:bg-surface-soft dark:bg-white/5 dark:hover:bg-white/10 rounded-pill border border-hairline dark:border-white/10 transition-all cursor-pointer"
+                >
+                    Kembali Mengedit
+                </button>
+                <button
+                    type="button"
+                    @click="confirmDiscard()"
+                    class="flex-1 h-11 text-sm font-semibold text-on-primary bg-status-skipped hover:bg-red-700 rounded-pill shadow-md transition-all active:scale-95 cursor-pointer"
+                >
+                    Buang Perubahan
+                </button>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -595,9 +656,42 @@
         @endif
     });
 
+    // ── Alpine.js Modal Component ──────────────────────────────
+    function userModal() {
+        return {
+            isDirty: false,
+            showConfirm: false,
+
+            handleDismiss() {
+                if (this.isDirty) {
+                    this.showConfirm = true;
+                } else {
+                    closeUserModal();
+                }
+            },
+
+            confirmDiscard() {
+                this.showConfirm = false;
+                this.isDirty = false;
+                closeUserModal();
+            },
+
+            resetDirty() {
+                this.isDirty = false;
+                this.showConfirm = false;
+            }
+        };
+    }
+
     // ── Modal Management ──────────────────────────────────────
     let isEditMode = false;
     let editUserId = null;
+
+    /** Get the Alpine.js data proxy for the user-modal element */
+    function getModalAlpine() {
+        const el = document.getElementById('user-modal');
+        return el && window.Alpine ? Alpine.$data(el) : null;
+    }
 
     function openUserModal() {
         isEditMode = false;
@@ -648,8 +742,13 @@
     function showModal() {
         const overlay = document.getElementById('user-modal');
         const card    = document.getElementById('user-modal-card');
+
+        // Reset Alpine dirty state on every fresh open
+        const alpine = getModalAlpine();
+        if (alpine) alpine.resetDirty();
+
         overlay.classList.remove('hidden');
-        overlay.classList.add('flex');        // aktifkan flexbox setelah hidden dihapus
+        overlay.classList.add('flex');
         setTimeout(() => {
             overlay.style.opacity = '1';
             card.classList.remove('scale-95');
@@ -665,21 +764,11 @@
         card.classList.remove('scale-100');
         card.classList.add('scale-95');
         setTimeout(() => {
-            overlay.classList.remove('flex'); // hapus flex sebelum hidden ditambahkan
+            overlay.classList.remove('flex');
             overlay.classList.add('hidden');
             document.body.style.overflow = '';
         }, 200);
     }
-
-    // Tutup modal saat klik overlay
-    document.getElementById('user-modal').addEventListener('click', function (e) {
-        if (e.target === this) closeUserModal();
-    });
-
-    // Tutup modal dengan ESC
-    document.addEventListener('keydown', function (e) {
-        if (e.key === 'Escape') closeUserModal();
-    });
 
     // ── Role Change Handler ───────────────────────────────────
     function handleRoleChange(role, instansiVal = null) {

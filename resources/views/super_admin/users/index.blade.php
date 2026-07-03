@@ -449,6 +449,71 @@
 </div>
 
 {{-- ════════════════════════════════════════════════════════════
+     MODAL KONFIRMASI HAPUS PENGGUNA (Reusable)
+════════════════════════════════════════════════════════════ --}}
+<div
+    id="delete-confirm-modal"
+    x-data="deleteConfirmModal()"
+    x-show="open"
+    x-on:keydown.escape.window="open && (open = false)"
+    x-transition:enter="transition ease-out duration-200"
+    x-transition:enter-start="opacity-0"
+    x-transition:enter-end="opacity-100"
+    x-transition:leave="transition ease-in duration-150"
+    x-transition:leave-start="opacity-100"
+    x-transition:leave-end="opacity-0"
+    class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[70] flex items-center justify-center p-4"
+    style="display: none;"
+    @click.self="open = false"
+>
+    <div
+        x-show="open"
+        x-transition:enter="transition ease-out duration-200"
+        x-transition:enter-start="opacity-0 scale-95 translate-y-2"
+        x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+        x-transition:leave="transition ease-in duration-150"
+        x-transition:leave-start="opacity-100 scale-100"
+        x-transition:leave-end="opacity-0 scale-95 translate-y-2"
+        class="bg-canvas dark:bg-surface-dark-elevated border border-hairline dark:border-white/10 text-ink dark:text-white rounded-xl shadow-2xl w-full max-w-sm overflow-hidden"
+        @click.stop
+    >
+        {{-- Header --}}
+        <div class="px-6 pt-6 pb-4 text-center">
+            <div class="mx-auto w-12 h-12 bg-red-500/10 dark:bg-red-500/20 rounded-full flex items-center justify-center mb-4">
+                <svg class="w-6 h-6 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+            </div>
+            <h3 class="text-base font-bold font-display text-ink dark:text-white">Hapus Pengguna?</h3>
+            <p class="text-sm text-muted dark:text-on-dark-soft mt-2 leading-relaxed">
+                Anda akan menghapus <strong class="text-ink dark:text-white font-semibold" x-text="userName"></strong> secara permanen dari sistem. Tindakan ini tidak dapat dibatalkan.
+            </p>
+        </div>
+        {{-- Actions --}}
+        <div class="px-6 pb-6 flex items-center gap-3">
+            <button
+                type="button"
+                @click="open = false"
+                class="flex-1 h-11 text-sm font-semibold text-ink dark:text-white bg-canvas hover:bg-surface-soft dark:bg-white/5 dark:hover:bg-white/10 rounded-pill border border-hairline dark:border-white/10 transition-all cursor-pointer"
+            >
+                Batal
+            </button>
+            <form :action="actionUrl" method="POST" class="flex-1" x-ref="deleteForm">
+                @csrf
+                @method('DELETE')
+                <button
+                    type="submit"
+                    class="w-full h-11 inline-flex items-center justify-center gap-2 text-sm font-semibold text-on-primary bg-red-500 hover:bg-red-600 rounded-pill shadow-md transition-all active:scale-95 cursor-pointer"
+                >
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                    Hapus Permanen
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+{{-- ════════════════════════════════════════════════════════════
      JAVASCRIPT
 ════════════════════════════════════════════════════════════ --}}
 @push('scripts')
@@ -768,6 +833,29 @@
             overlay.classList.add('hidden');
             document.body.style.overflow = '';
         }, 200);
+    }
+
+    // ── Delete Confirmation Modal (Alpine Component) ─────────
+    function deleteConfirmModal() {
+        return {
+            open: false,
+            actionUrl: '',
+            userName: '',
+
+            show(url, name) {
+                this.actionUrl = url;
+                this.userName  = name;
+                this.open      = true;
+            }
+        };
+    }
+
+    /** Open the custom delete confirmation modal */
+    function openDeleteModal(url, name) {
+        const el = document.getElementById('delete-confirm-modal');
+        if (el && window.Alpine) {
+            Alpine.$data(el).show(url, name);
+        }
     }
 
     // ── Role Change Handler ───────────────────────────────────

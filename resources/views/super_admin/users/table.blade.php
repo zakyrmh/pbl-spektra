@@ -166,14 +166,14 @@
 
                                 {{-- Hapus --}}
                                 @if($user->id !== auth()->id())
-                                    <form action="{{ route('users.destroy', $user) }}" method="POST" onsubmit="return confirm('Hapus pengguna {{ addslashes($user->name) }} secara permanen dari sistem?')">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-status-skipped dark:text-red-400 hover:bg-status-skipped/10 transition-colors text-left cursor-pointer">
-                                            <svg class="w-4 h-4 text-status-skipped" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                                            Hapus Pengguna
-                                        </button>
-                                    </form>
+                                    <button
+                                        type="button"
+                                        onclick="openDeleteModal('{{ route('users.destroy', $user) }}', '{{ addslashes($user->name) }}')"
+                                        class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-status-skipped dark:text-red-400 hover:bg-status-skipped/10 transition-colors text-left cursor-pointer"
+                                    >
+                                        <svg class="w-4 h-4 text-status-skipped" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                        Hapus Pengguna
+                                    </button>
                                 @endif
 
                             </div>

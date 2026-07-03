@@ -1,5 +1,7 @@
 <?php
 
+require_once dirname(__DIR__).'/app/helpers.php';
+
 use App\Http\Middleware\RoleMiddleware;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;

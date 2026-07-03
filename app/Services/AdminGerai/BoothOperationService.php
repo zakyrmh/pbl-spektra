@@ -15,8 +15,10 @@ use App\Models\Notification;
 use App\Models\Queue;
 use App\Models\User;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 /**
  * BoothOperationService
@@ -142,7 +144,7 @@ final class BoothOperationService
     /**
      * Memanggil antrean berikutnya secara otomatis (Next Queue).
      */
-    public function callNext(User $user): ?Queue
+    public function callNext(User $user, ?string $visitNotes = null): ?Queue
     {
         $nextQueue = Queue::where('department_id', $user->departments_id)
             ->whereDate('booking_date', Carbon::today())
@@ -154,15 +156,15 @@ final class BoothOperationService
             return null;
         }
 
-        return $this->callQueueDirect($nextQueue, $user);
+        return $this->callQueueDirect($nextQueue, $user, $visitNotes);
     }
 
     /**
      * Memanggil antrean tertentu berdasarkan ID.
      */
-    public function callQueue(Queue $queue, User $user): Queue
+    public function callQueue(Queue $queue, User $user, ?string $visitNotes = null): Queue
     {
-        return $this->callQueueDirect($queue, $user);
+        return $this->callQueueDirect($queue, $user, $visitNotes);
     }
 
     /**
@@ -240,57 +242,81 @@ final class BoothOperationService
 
         DB::transaction(function () use ($queue, $targetDepartment) {
             $originalDeptName = $queue->department?->name ?? 'Tidak diketahui';
+            $oldQueueNumber = $queue->queue_number;
 
+            // Generate new queue number for the target department
+            $today = Carbon::today()->toDateString();
+            $queueNumbers = Queue::where('department_id', $targetDepartment->id)
+                ->whereDate('booking_date', $today)
+                ->whereNotNull('queue_number')
+                ->lockForUpdate()
+                ->pluck('queue_number')
+                ->map(function ($num) {
+                    $parts = explode('-', $num);
+
+                    return (int) end($parts);
+                });
+
+            $nextNumber = $queueNumbers->isEmpty() ? 1 : $queueNumbers->max() + 1;
+            $prefix = $targetDepartment->inisial ?: 'Q';
+            $newQueueNumber = $prefix.'-'.str_pad((string) $nextNumber, 3, '0', STR_PAD_LEFT);
+
+            // Update queue record directly
             $queue->update([
-                'status' => QueueStatus::Completed->value,
-                'completed_at' => now(),
-                'cancel_reason' => "Dialihkan ke Gerai {$targetDepartment->name}.",
+                'department_id' => $targetDepartment->id,
+                'queue_number' => $newQueueNumber,
+                'status' => QueueStatus::CheckedIn->value,
+                'called_at' => null,
+                'completed_at' => null,
+                'visit_notes' => null,
+                'cancel_reason' => null,
             ]);
 
             ActivityLog::record(
                 action: 'FORWARD_QUEUE',
                 modelType: 'Queue',
                 modelId: $queue->id,
-                description: "Operator menyelesaikan antrean {$queue->queue_number} dan dialihkan dari instansi '{$originalDeptName}' ke instansi '{$targetDepartment->name}'.",
+                description: "Operator mengoper antrean dari instansi '{$originalDeptName}' ({$oldQueueNumber}) ke instansi '{$targetDepartment->name}' ({$newQueueNumber}).",
                 actorUserId: Auth::id()
             );
 
-            // Notify FO users to re-register the walk-in
+            // Notify FO users
             $foUsers = User::byRole(UserRole::AdminFo)->get();
             foreach ($foUsers as $fo) {
                 $fo->notifications()->create([
                     'id' => Str::uuid()->toString(),
                     'type' => 'App\Notifications\QueueForwarded',
                     'data' => [
-                        'title' => 'Pengunjung Oper Antrean',
-                        'message' => "Pengunjung dari antrean {$queue->queue_number} dialihkan ke {$targetDepartment->name}. Mohon daftarkan ulang sebagai Walk-In.",
+                        'title' => 'Antrean Dioper',
+                        'message' => "Antrean {$oldQueueNumber} dari {$originalDeptName} telah dioper ke {$targetDepartment->name} dengan nomor baru {$newQueueNumber}.",
                     ],
                 ]);
             }
 
-            // Fallback flash session as requested in instructions just in case FO relies on session somehow
-            session()->flash('transfer_notification', true);
-
-            // Notify the citizen about the forwarding
+            // Notify the citizen
             if ($queue->user_id) {
                 Notification::create([
                     'user_id' => $queue->user_id,
-                    'title' => 'Antrean Dipindahkan',
-                    'message' => "Nomor antrean {$queue->queue_number} Anda telah dipindahkan ke instansi {$targetDepartment->name}. Silakan menunggu panggilan di loket baru.",
+                    'title' => 'Antrean Dioper',
+                    'message' => "Antrean Anda telah dioper ke instansi {$targetDepartment->name} dengan nomor antrean baru {$newQueueNumber}. Silakan menunggu panggilan di loket baru.",
                 ]);
             }
         });
+
+        if (class_exists(QueueFinished::class)) {
+            event(new QueueFinished($queue));
+        }
     }
 
     /**
      * Memproses logika pemanggilan antrean (Internal Helper).
      */
-    private function callQueueDirect(Queue $queue, User $user): Queue
+    private function callQueueDirect(Queue $queue, User $user, ?string $visitNotes = null): Queue
     {
         $today = Carbon::today();
 
-        $updatedQueue = DB::transaction(function () use ($queue, $today, $user) {
-            // Selesaikan antrean Serving lain di instansi (cegah stuck)
+        $updatedQueue = DB::transaction(function () use ($queue, $today, $user, $visitNotes) {
+            // Selesaikan antrean Serving lain di instansi (cegah stuck) dengan menyimpan catatan kunjungan
             Queue::where('department_id', $queue->department_id)
                 ->whereDate('booking_date', $today)
                 ->where('status', QueueStatus::Serving->value)
@@ -298,12 +324,22 @@ final class BoothOperationService
                 ->update([
                     'status' => QueueStatus::Completed->value,
                     'completed_at' => now(),
+                    'visit_notes' => $visitNotes,
                 ]);
 
             $queue->update([
                 'status' => QueueStatus::Serving->value,
                 'called_at' => now(),
             ]);
+
+            // Notify the citizen that they are called/recalled
+            if ($queue->user_id) {
+                Notification::create([
+                    'user_id' => $queue->user_id,
+                    'title' => 'Nomor Antrean Dipanggil',
+                    'message' => "Nomor antrean {$queue->queue_number} Anda dipanggil di loket {$queue->department?->nomor_loket}. Silakan menuju loket sekarang.",
+                ]);
+            }
 
             ActivityLog::record(
                 action: 'CALL_QUEUE',

@@ -662,7 +662,7 @@
                     <!-- Call Control Action Buttons -->
                     <div class="mt-8 space-y-3">
                         @php
-                            $isNextDisabled = $status !== 'aktif';
+                            $isNextDisabled = $status !== 'aktif' || $waitingQueues->isEmpty();
                         @endphp
                         <button type="button" onclick="callNextQueue()" id="btnCallNext"
                             {{ $isNextDisabled ? 'disabled' : '' }}
@@ -732,36 +732,7 @@
                             </div>
                         </div>
 
-                        <!-- Checklist Dokumen Persyaratan -->
-                        <div class="space-y-3 mt-4">
-                            <h4 class="text-xs font-bold text-ink dark:text-white font-display">Checklist Berkas Persyaratan</h4>
-                            <div id="documentChecklist" class="space-y-2">
-                                @if($activeQueue)
-                                    @php
-                                        $purpose = strtolower($activeQueue->purpose ?? '');
-                                        if (str_contains($purpose, 'kk') || str_contains($purpose, 'keluarga')) {
-                                            $docs = ['Fotokopi Kartu Keluarga (KK)', 'Surat Pengantar RT/RW Keterangan Rusak/Hilang', 'KTP Asli Pemohon'];
-                                        } elseif (str_contains($purpose, 'ktp') || str_contains($purpose, 'identitas')) {
-                                            $docs = ['Fotokopi Kartu Keluarga (KK)', 'Surat Pengantar RT/RW Keterangan Rusak/Hilang', 'KTP Lama / Surat Kehilangan Kepolisian'];
-                                        } elseif (str_contains($purpose, 'akta') || str_contains($purpose, 'lahir')) {
-                                            $docs = ['Surat Keterangan Lahir dari Bidan/Rumah Sakit', 'Fotokopi Buku Nikah Orang Tua', 'Fotokopi KK Orang Tua'];
-                                        } else {
-                                            $docs = ['KTP Asli / NIK Pengunjung', 'Berkas Persyaratan Layanan Utama'];
-                                        }
-                                    @endphp
-                                    @foreach($docs as $doc)
-                                        <label class="flex items-center gap-3 p-3 bg-surface-soft dark:bg-white/5 hover:bg-surface-strong dark:hover:bg-white/10 rounded-md border border-hairline dark:border-white/5 transition-all cursor-pointer">
-                                            <input type="checkbox" class="w-4.5 h-4.5 border border-hairline dark:border-white/10 rounded-md bg-canvas text-primary focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-accent-teal">
-                                            <span class="text-xs text-ink dark:text-white font-medium">{{ $doc }}</span>
-                                        </label>
-                                    @endforeach
-                                @else
-                                    <div class="text-center py-4 bg-surface-soft dark:bg-white/5 border border-hairline dark:border-white/5 rounded-lg text-xs text-muted dark:text-on-dark-soft italic">
-                                        Belum ada antrean yang dipanggil.
-                                    </div>
-                                @endif
-                            </div>
-                        </div>
+
 
                         <!-- Complete Service Trigger & Forward -->
                         <div class="flex flex-col gap-2 mt-6">
@@ -889,8 +860,7 @@
             <!-- Sound alerts and Notification Toast Container -->
             <audio id="bellChime" src="https://assets.mixkit.co/active_storage/sfx/2568/2568-84.wav"
                 preload="auto"></audio>
-            <div id="toastContainer"
-                class="fixed bottom-6 right-6 z-50 flex flex-col gap-3 max-w-sm w-full pointer-events-none"></div>
+
 
             <!-- JavaScript State Control for Gerai -->
             <script>
@@ -921,6 +891,35 @@
                         @endforeach
                     ]
                 };
+
+                // Update the calling button active/disabled state
+                function updateNextButtonState() {
+                    const btn = document.getElementById('btnCallNext');
+                    if (!btn) return;
+
+                    const isDisabled = geraiState.status !== 'aktif' || geraiState.queueList.length === 0;
+
+                    if (isDisabled) {
+                        btn.setAttribute('disabled', 'true');
+                        btn.className = "w-full h-11 font-semibold rounded-pill text-sm transition-all focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-accent-teal cursor-not-allowed flex items-center justify-center gap-2 shadow-md bg-primary-disabled/30 text-primary-disabled dark:bg-white/5 dark:text-white/20 border border-hairline dark:border-white/10";
+                    } else {
+                        btn.removeAttribute('disabled');
+                        btn.className = "w-full h-11 font-semibold rounded-pill text-sm transition-all focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-accent-teal cursor-pointer flex items-center justify-center gap-2 shadow-md bg-primary hover:bg-primary-hover text-white";
+                    }
+                }
+
+                // Initial run
+                updateNextButtonState();
+
+                // Prompt helper using custom Alpine.js modal
+                function askVisitNotes(onConfirm, onCancel) {
+                    window.dispatchEvent(new CustomEvent('open-visit-notes-modal', {
+                        detail: {
+                            onConfirm: onConfirm,
+                            onCancel: onCancel
+                        }
+                    }));
+                }
 
                 // Toggle Instansi status via AJAX
                 function toggleInstansiStatus() {
@@ -1013,9 +1012,8 @@
                                     btnBuka.className =
                                         'px-3 py-1.5 text-xs font-bold rounded-md transition-all bg-canvas dark:bg-surface-dark-elevated text-green-600 dark:text-green-400 shadow-xs focus-visible:outline-none cursor-pointer';
 
-                                    document.getElementById('btnCallNext').removeAttribute('disabled');
-                                    document.getElementById('btnCallNext').className =
-                                        'w-full h-12 bg-primary hover:bg-primary-hover text-white font-semibold rounded-pill text-sm transition-all focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-accent-teal cursor-pointer flex items-center justify-center gap-2 shadow-md';
+                                    geraiState.status = 'aktif';
+                                    updateNextButtonState();
                                     createToast('Status Loket', 'Loket dibuka kembali. Selamat melayani!', 'success');
                                 } else if (data.status === 'istirahat') {
                                     badge.className =
@@ -1025,9 +1023,8 @@
                                     btnIstirahat.className =
                                         'px-3 py-1.5 text-xs font-bold rounded-md transition-all bg-canvas dark:bg-surface-dark-elevated text-amber-600 dark:text-amber-400 shadow-xs focus-visible:outline-none cursor-pointer';
 
-                                    document.getElementById('btnCallNext').setAttribute('disabled', 'true');
-                                    document.getElementById('btnCallNext').className =
-                                        'w-full h-12 bg-gray-200 dark:bg-gray-700 text-gray-400 dark:text-gray-500 font-semibold rounded-pill text-sm transition-all cursor-not-allowed flex items-center justify-center gap-2';
+                                    geraiState.status = 'istirahat';
+                                    updateNextButtonState();
                                     createToast('Status Loket', 'Loket sedang beristirahat sementara.', 'warning');
                                 } else { // nonaktif
                                     badge.className =
@@ -1037,9 +1034,8 @@
                                     btnTutup.className =
                                         'px-3 py-1.5 text-xs font-bold rounded-md transition-all bg-canvas dark:bg-surface-dark-elevated text-rose-600 dark:text-rose-400 shadow-xs focus-visible:outline-none cursor-pointer';
 
-                                    document.getElementById('btnCallNext').setAttribute('disabled', 'true');
-                                    document.getElementById('btnCallNext').className =
-                                        'w-full h-12 bg-gray-200 dark:bg-gray-700 text-gray-400 dark:text-gray-500 font-semibold rounded-pill text-sm transition-all cursor-not-allowed flex items-center justify-center gap-2';
+                                    geraiState.status = 'nonaktif';
+                                    updateNextButtonState();
                                     createToast('Status Loket', 'Loket telah ditutup.', 'warning');
                                 }
                             } else {
@@ -1068,18 +1064,33 @@
                         return;
                     }
 
+                    const hadActive = !!geraiState.activeQueueId;
+                    if (hadActive) {
+                        askVisitNotes((notes) => {
+                            executeCallNext(notes);
+                        });
+                    } else {
+                        executeCallNext(null);
+                    }
+                }
+
+                function executeCallNext(notes) {
                     fetch('{{ route('admin_gerai.call-next') }}', {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
                                 'X-CSRF-TOKEN': csrfToken,
                                 'Accept': 'application/json'
-                            }
+                            },
+                            body: JSON.stringify({
+                                visit_notes: notes
+                            })
                         })
                         .then(response => response.json())
                         .then(data => {
                             if (data.success) {
                                 const q = data.queue;
+                                const hadActive = !!geraiState.activeQueueId;
                                 geraiState.activeQueueId = q.id;
                                 geraiState.currentNumber = parseInt(q.queue_number.split('-')[1]);
 
@@ -1098,6 +1109,14 @@
                                 document.getElementById('citizenService').innerText = q.purpose || '';
                                 document.getElementById('geraiStatRemaining').innerText = geraiState.remainingQueues;
 
+                                // If previous was completed, increment completed count
+                                if (hadActive) {
+                                    geraiState.completedCount++;
+                                    const completedEl = document.getElementById('geraiStatCompleted');
+                                    if (completedEl) completedEl.innerText = geraiState.completedCount;
+                                }
+
+                                updateNextButtonState();
 
                                 createToast('Panggilan Sukses',
                                     `Memanggil nomor ${q.queue_number} (${q.user ? q.user.name : 'Warga'}) ke Loket.`,
@@ -1224,49 +1243,48 @@
                         return;
                     }
 
-                    const notes = prompt("Masukkan catatan pelayanan / kunjungan (opsional):", "");
-                    if (notes === null) return; // Batal menyelesaikan
+                    askVisitNotes((notes) => {
+                        const activeNum = document.getElementById('activeCallNumber').innerText;
+                        const name = document.getElementById('citizenName').innerText;
 
-                    const activeNum = document.getElementById('activeCallNumber').innerText;
-                    const name = document.getElementById('citizenName').innerText;
-
-                    fetch(`/api/queues/${geraiState.activeQueueId}/finish`, {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'X-CSRF-TOKEN': csrfToken,
-                                'Accept': 'application/json'
-                            },
-                            body: JSON.stringify({
-                                visit_notes: notes
+                        fetch(`/api/queues/${geraiState.activeQueueId}/finish`, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'X-CSRF-TOKEN': csrfToken,
+                                    'Accept': 'application/json'
+                                },
+                                body: JSON.stringify({
+                                    visit_notes: notes
+                                })
                             })
-                        })
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data.success) {
-                                createToast('Pelayanan Selesai', `Tiket ${activeNum} (${name}) dinyatakan SUKSES dilayani.`,
-                                    'success');
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.success) {
+                                    createToast('Pelayanan Selesai', `Tiket ${activeNum} (${name}) dinyatakan SUKSES dilayani.`,
+                                        'success');
 
-                                // Increment completedCount and update DOM
-                                geraiState.completedCount++;
-                                document.getElementById('geraiStatCompleted').innerText = geraiState.completedCount;
+                                    // Increment completedCount and update DOM
+                                    geraiState.completedCount++;
+                                    document.getElementById('geraiStatCompleted').innerText = geraiState.completedCount;
 
 
-                                // Clear active display
-                                clearActiveDisplay();
+                                    // Clear active display
+                                    clearActiveDisplay();
 
-                                // Panggil antrean berikutnya jika ada
-                                if (geraiState.queueList.length > 0) {
-                                    callNextQueue();
+                                    // Panggil antrean berikutnya jika ada
+                                    if (geraiState.queueList.length > 0) {
+                                        callNextQueue();
+                                    }
+                                } else {
+                                    createToast('Gagal', data.message || 'Gagal menyelesaikan pelayanan.', 'warning');
                                 }
-                            } else {
-                                createToast('Gagal', data.message || 'Gagal menyelesaikan pelayanan.', 'warning');
-                            }
-                        })
-                        .catch(err => {
-                            console.error(err);
-                            createToast('Error', 'Gagal memproses penyelesaian layanan.', 'warning');
-                        });
+                            })
+                            .catch(err => {
+                                console.error(err);
+                                createToast('Error', 'Gagal memproses penyelesaian layanan.', 'warning');
+                            });
+                    });
                 }
 
                 // Panggil Balik antrean yang diskipped via AJAX
@@ -1338,90 +1356,21 @@
                     document.getElementById('citizenName').innerText = 'Tidak ada pengunjung';
                     document.getElementById('citizenNik').innerText = '-';
                     document.getElementById('citizenService').innerText = '-';
-
-                    const list = document.getElementById('documentChecklist');
-                    if (list) {
-                        list.innerHTML =
-                            `<div class="text-center py-4 bg-surface-soft dark:bg-white/5 border border-hairline dark:border-white/5 rounded-lg text-xs text-muted dark:text-on-dark-soft italic">Belum ada antrean yang dipanggil.</div>`;
-                    }
-                }
-
-                // Reset Checklist UI
-                function resetChecklist(docs = []) {
-                    const list = document.getElementById('documentChecklist');
-                    if (!list) return;
-                    list.innerHTML = '';
-
-                    docs.forEach(doc => {
-                        const label = document.createElement('label');
-                        label.className =
-                            'flex items-center gap-3 p-3 bg-surface-soft dark:bg-white/5 hover:bg-surface-strong dark:hover:bg-white/10 rounded-md border border-hairline dark:border-white/5 transition-all cursor-pointer';
-
-                        label.innerHTML = `
-                <input type="checkbox" class="w-4.5 h-4.5 border border-hairline dark:border-white/10 rounded-md bg-canvas text-primary focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-accent-teal">
-                <span class="text-xs text-ink dark:text-white font-medium">${doc}</span>
-            `;
-                        list.appendChild(label);
-                    });
+                    
+                    updateNextButtonState();
                 }
 
                 // Toast Alert
                 function createToast(title, message, type = 'success') {
-                    const container = document.getElementById('toastContainer');
-                    if (!container) return;
-
-                    const toast = document.createElement('div');
-                    let borderClr = '';
-                    let bgClr = 'bg-slate-900 text-white';
-                    let iconHtml = '';
-
-                    if (type === 'success') {
-                        borderClr = 'border-l-4 border-status-serving';
-                        iconHtml =
-                            `<svg class="w-5 h-5 text-status-serving" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>`;
-                    } else if (type === 'warning') {
-                        borderClr = 'border-l-4 border-status-waiting';
-                        iconHtml =
-                            `<svg class="w-5 h-5 text-status-waiting" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>`;
-                    } else {
-                        borderClr = 'border-l-4 border-primary';
-                        iconHtml =
-                            `<svg class="w-5 h-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>`;
-                    }
-
-                    toast.className =
-                        `flex items-start gap-3 p-4 rounded-xl shadow-2xl border border-white/10 ${bgClr} ${borderClr} max-w-sm pointer-events-auto transition-all duration-300 transform translate-y-2 opacity-0`;
-                    toast.innerHTML = `
-            <div class="shrink-0">${iconHtml}</div>
-            <div class="flex-grow">
-                <h5 class="text-xs font-bold text-ink dark:text-white font-display">${title}</h5>
-                <p class="text-[11px] text-muted dark:text-on-dark-soft mt-0.5 font-body leading-tight">${message}</p>
-            </div>
-            <button onclick="this.parentElement.remove()" class="shrink-0 text-gray-400 hover:text-gray-600 dark:hover:text-white transition-colors">
-                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
-            </button>
-        `;
-
-                    container.appendChild(toast);
-
-                    setTimeout(() => {
-                        toast.classList.remove('translate-y-2', 'opacity-0');
-                    }, 50);
-
-                    setTimeout(() => {
-                        toast.classList.add('opacity-0', 'translate-y-[-10px]');
-                        setTimeout(() => {
-                            toast.remove();
-                        }, 300);
-                    }, 4000);
+                    showToast(title, message, type);
                 }
 
 
                 // ─── FORWARD QUEUE MODAL ──────────────────────────────────────────────────
                 function openForwardModal() {
-                    const queueId = currentQueueId;
+                    const queueId = geraiState.activeQueueId;
                     if (!queueId) {
-                        createToast('Perhatian', 'Tidak ada antrean aktif yang dapat diopersikan.', 'warning');
+                        createToast('Perhatian', 'Tidak ada antrean aktif yang dapat dioperkan.', 'warning');
                         return;
                     }
                     document.getElementById('forwardModal').classList.remove('hidden');
@@ -1435,7 +1384,7 @@
                 }
 
                 async function confirmForwardQueue() {
-                    const queueId = currentQueueId;
+                    const queueId = geraiState.activeQueueId;
                     const deptId = document.getElementById('forwardDeptSelect').value;
                     if (!deptId) {
                         createToast('Perhatian', 'Pilih instansi tujuan terlebih dahulu.', 'warning');
@@ -1520,6 +1469,78 @@
                         <button onclick="confirmForwardQueue()" id="btnConfirmForward" type="button"
                             class="h-10 px-6 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-pill text-sm transition-all focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-blue-500/50 cursor-pointer">
                             Konfirmasi Oper
+                        </button>
+                    </div>
+                </div>
+            </div>
+            {{-- ─── CUSTOM MODAL CATATAN KUNJUNGAN (ALPINE.JS) ────────────────────────── --}}
+            <div 
+                x-data="{ 
+                    open: false, 
+                    visitNotes: '', 
+                    onSubmit: null, 
+                    onCancel: null,
+                    show(onConfirm, onCancel) {
+                        this.visitNotes = '';
+                        this.onSubmit = onConfirm;
+                        this.onCancel = onCancel;
+                        this.open = true;
+                    },
+                    confirm() {
+                        this.open = false;
+                        if (this.onSubmit) this.onSubmit(this.visitNotes);
+                    },
+                    cancel() {
+                        this.open = false;
+                        if (this.onCancel) this.onCancel();
+                    }
+                }"
+                x-show="open"
+                @open-visit-notes-modal.window="show($event.detail.onConfirm, $event.detail.onCancel)"
+                class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs"
+                style="display: none;"
+            >
+                <div 
+                    @click.away="cancel()"
+                    class="w-full max-w-md bg-canvas dark:bg-surface-dark-elevated border border-hairline dark:border-white/10 text-ink dark:text-white rounded-xl shadow-2xl p-6 flex flex-col space-y-4"
+                >
+                    <div class="flex items-center gap-3 border-b border-hairline dark:border-white/10 pb-3">
+                        <div class="w-10 h-10 rounded-full bg-primary/10 dark:bg-accent-teal/10 text-primary dark:text-accent-teal flex items-center justify-center shrink-0">
+                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 class="text-sm font-bold font-display">Catatan Pelayanan</h3>
+                            <p class="text-[11px] text-muted dark:text-on-dark-soft mt-0.5">Tulis catatan pelayanan/kunjungan warga.</p>
+                        </div>
+                    </div>
+
+                    <div class="space-y-1">
+                        <label for="modalVisitNotes" class="text-xs font-semibold text-muted dark:text-on-dark-soft font-display">Catatan Kunjungan (Opsional)</label>
+                        <textarea 
+                            id="modalVisitNotes" 
+                            x-model="visitNotes"
+                            placeholder="Tulis ringkasan pelayanan..." 
+                            rows="4"
+                            class="w-full p-3 bg-surface-soft dark:bg-white/5 border border-hairline dark:border-white/10 rounded-lg text-xs text-ink dark:text-white placeholder-gray-400 dark:placeholder-white/20 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-accent-teal resize-none leading-relaxed"
+                        ></textarea>
+                    </div>
+
+                    <div class="flex justify-end gap-2.5 pt-2">
+                        <button 
+                            type="button" 
+                            @click="cancel()"
+                            class="h-9 px-4 text-xs font-semibold text-muted dark:text-on-dark-soft bg-surface-soft dark:bg-white/5 border border-hairline dark:border-white/10 rounded-pill hover:bg-surface-strong dark:hover:bg-white/10 transition-colors focus-visible:outline-none cursor-pointer"
+                        >
+                            Batal
+                        </button>
+                        <button 
+                            type="button" 
+                            @click="confirm()"
+                            class="h-9 px-4 text-xs font-semibold text-white bg-primary hover:bg-primary-hover rounded-pill shadow-xs transition-colors focus-visible:outline-none cursor-pointer"
+                        >
+                            Simpan & Lanjutkan
                         </button>
                     </div>
                 </div>

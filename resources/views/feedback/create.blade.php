@@ -63,12 +63,12 @@
                 
                 <div x-data="{ rating: {{ old('rating', 0) }}, hoverRating: 0 }" class="flex flex-col items-center gap-3 py-2">
                     <div class="flex items-center gap-2">
-                        <template x-for="star in 5">
+                        <template x-for="star in [1, 2, 3, 4, 5]">
                             <button type="button" 
                                     @click="rating = star" 
                                     @mouseover="hoverRating = star" 
                                     @mouseleave="hoverRating = 0"
-                                    class="w-12 h-12 flex items-center justify-center text-gray-300 dark:text-gray-600 transition-all duration-150 transform hover:scale-110 focus:outline-none cursor-pointer"
+                                    class="w-12 h-12 flex items-center justify-center transition-all duration-150 transform hover:scale-110 focus:outline-none cursor-pointer"
                                     :class="(hoverRating ? star <= hoverRating : star <= rating) ? 'text-amber-400 dark:text-amber-400' : 'text-gray-300 dark:text-gray-600'">
                                 <svg class="w-10 h-10 stroke-current fill-current" viewBox="0 0 24 24">
                                     <path d="M12 .587l3.668 7.431 8.2 1.192-5.934 5.787 1.4 8.168L12 18.896l-7.334 3.857 1.4-8.168L.136 9.21l8.2-1.192z"/>

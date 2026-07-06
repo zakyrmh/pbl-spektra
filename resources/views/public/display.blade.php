@@ -5,6 +5,14 @@
 @section('base_content')
 <div class="min-h-screen bg-surface-dark text-white flex flex-col justify-between overflow-hidden p-6 font-display">
     
+    <!-- Floating Audio Status Banner -->
+    <div id="audio-status-banner" onclick="enableAudio()" class="fixed top-6 left-1/2 -translate-x-1/2 z-50 bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs md:text-sm px-6 py-3 rounded-full shadow-lg border border-amber-400 flex items-center gap-3 cursor-pointer transition-all active:scale-95 animate-pulse">
+        <svg class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19.114 5.636a9 9 0 010 12.728M16.463 8.288a5.25 5.25 0 010 7.424M6.75 8.25l4.72-4.72a.75.75 0 011.28.53v15.88a.75.75 0 01-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.01 9.01 0 012.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75z" />
+        </svg>
+        <span>Klik untuk Mengaktifkan Suara Panggilan</span>
+    </div>
+
     <!-- Header Monitor -->
     <div class="flex items-center justify-between border-b border-white/10 pb-4">
         <div class="flex items-center gap-4">
@@ -51,7 +59,9 @@
             <!-- Giant Active Number -->
             <div class="py-6 flex flex-col items-center justify-center text-center">
                 <span class="text-[10px] font-bold text-on-dark-soft uppercase tracking-wider">Nomor Antrean</span>
-                <span class="text-5xl md:text-6xl font-extrabold text-accent-teal font-mono tracking-tight my-2 active-number" data-current-val="{{ $activeQueue ? $activeQueue->queue_number : '-' }}">
+                <span class="text-5xl md:text-6xl font-extrabold text-accent-teal font-mono tracking-tight my-2 active-number" 
+                      data-current-val="{{ $activeQueue ? $activeQueue->queue_number : '-' }}"
+                      data-called-at="{{ $activeQueue && $activeQueue->called_at ? $activeQueue->called_at->toIso8601String() : '' }}">
                     {{ $activeQueue ? $activeQueue->queue_number : '-' }}
                 </span>
                 <span class="text-[9px] px-2 py-0.5 rounded-md bg-white/5 text-on-dark-soft border border-white/5 uppercase font-semibold">
@@ -146,19 +156,18 @@
     function announceQueue(queueNumber, counterName) {
         if (!('speechSynthesis' in window)) return;
 
-        // Clean queue number reading (e.g. read "A-005" as "A kosong kosong lima" or "A lima")
-        // Separate letters and numbers for clearer speech
+        // Clean queue number reading (e.g. BNR-001 -> B N R, kosong kosong satu)
         const parts = queueNumber.split('-');
         let numberText = '';
         if (parts.length > 1) {
-            const letter = parts[0];
+            const letter = parts[0].split('').join(' '); // B N R
             const digits = parts[1].split('').map(d => d === '0' ? 'kosong' : d).join(' ');
             numberText = `${letter}, ${digits}`;
         } else {
             numberText = queueNumber;
         }
 
-        // Format: "Nomor antrean A, kosong kosong lima. Silakan menuju Loket 01"
+        // Format: "Nomor antrean B N R, kosong kosong satu. Silakan menuju Loket 01"
         const cleanCounterName = counterName.replace('Loket', 'Loket ');
         const text = `Nomor antrean. ${numberText}. Silakan menuju. ${cleanCounterName}.`;
 
@@ -187,7 +196,8 @@
         const id = card.getAttribute('data-counter-id');
         const numSpan = card.querySelector('.active-number');
         const numberVal = numSpan ? numSpan.getAttribute('data-current-val') : '-';
-        lastServingState[id] = numberVal;
+        const calledAtVal = numSpan ? numSpan.getAttribute('data-called-at') : null;
+        lastServingState[id] = { number: numberVal, called_at: calledAtVal };
     });
 
     // AJAX Polling
@@ -224,26 +234,44 @@
                             statusBadge.textContent = 'Aktif';
                         }
 
-                        // Check if queue number changed
-                        const oldNum = lastServingState[c.counter_id] || '-';
+                        // Check if queue number or called_at changed
+                        const oldState = lastServingState[c.counter_id] || { number: '-', called_at: null };
                         const newNum = c.active_number;
+                        const newCalledAt = c.called_at;
 
-                        if (oldNum !== newNum) {
-                            lastServingState[c.counter_id] = newNum;
+                        const isNewCall = oldState.number !== newNum;
+                        const isRecall = oldState.number === newNum && newNum !== '-' && oldState.called_at !== newCalledAt;
+
+                        if (isNewCall || isRecall) {
+                            lastServingState[c.counter_id] = { number: newNum, called_at: newCalledAt };
                             numSpan.textContent = newNum;
                             numSpan.setAttribute('data-current-val', newNum);
+                            numSpan.setAttribute('data-called-at', newCalledAt || '');
                             
                             if (newNum !== '-') {
                                 statusPill.textContent = 'Sedang Dilayani';
                                 
-                                // Glow animation
+                                // Glow animation (force restart)
+                                numSpan.classList.remove('glow-pulse');
+                                void numSpan.offsetWidth; // force reflow
                                 numSpan.classList.add('glow-pulse');
                                 setTimeout(() => {
                                     numSpan.classList.remove('glow-pulse');
                                 }, 8000); // Pulse for 8 seconds
 
-                                // Announce newly called number!
+                                // Announce newly called/recalled number!
                                 announceQueue(newNum, c.counter_name);
+                            } else {
+                                statusPill.textContent = 'Kosong';
+                            }
+                        } else {
+                            // Ensure display stays in sync even if not announced
+                            if (numSpan.textContent !== newNum) {
+                                numSpan.textContent = newNum;
+                                numSpan.setAttribute('data-current-val', newNum);
+                            }
+                            if (newNum !== '-') {
+                                statusPill.textContent = 'Sedang Dilayani';
                             } else {
                                 statusPill.textContent = 'Kosong';
                             }
@@ -262,9 +290,31 @@
         }
     }
 
-    // Click anywhere to enable Web Audio (browsers block autoplay sounds/speech until click)
+    function enableAudio() {
+        // Play chime sound once to unlock
+        playSound();
+        
+        // Hide banner
+        const banner = document.getElementById('audio-status-banner');
+        if (banner) {
+            banner.remove();
+        }
+        
+        // Synthesize confirmation voice
+        if ('speechSynthesis' in window) {
+            const utterance = new SpeechSynthesisUtterance('Suara panggilan aktif');
+            utterance.lang = 'id-ID';
+            utterance.rate = 1.0;
+            const voices = window.speechSynthesis.getVoices();
+            const idVoice = voices.find(voice => voice.lang.includes('id'));
+            if (idVoice) utterance.voice = idVoice;
+            window.speechSynthesis.speak(utterance);
+        }
+    }
+
+    // Click anywhere on body also enables audio
     document.body.addEventListener('click', () => {
-        console.log("Audio contexts enabled.");
+        enableAudio();
     }, { once: true });
 
     // Listen to real-time WebSocket events using Laravel Echo
@@ -287,7 +337,7 @@
         console.warn("Laravel Echo not found. Falling back to polling.");
     }
 
-    // Poll every 60 seconds as a fallback (WebSockets will handle real-time updates)
-    setInterval(pollDisplayData, 60000);
+    // Poll every 3 seconds as a fallback
+    setInterval(pollDisplayData, 3000);
 </script>
 @endpush

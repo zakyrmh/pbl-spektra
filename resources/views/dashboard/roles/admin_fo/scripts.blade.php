@@ -61,25 +61,26 @@
             }
 
             const data = await response.json();
+            const booking = data.data || data;
 
             // Map JSON response to DOM elements
-            document.getElementById('verifyTicketCode').innerText = data.booking_code || code;
-            document.getElementById('verifyName').innerText = (data.user && data.user.name) ? data.user.name : '-';
-            document.getElementById('verifyNik').innerText = (data.user && data.user.nik) ? data.user.nik : '-';
+            document.getElementById('verifyTicketCode').innerText = booking.booking_code || code;
+            document.getElementById('verifyName').innerText = (booking.user && booking.user.name) ? booking.user.name : '-';
+            document.getElementById('verifyNik').innerText = (booking.user && booking.user.nik) ? booking.user.nik : '-';
 
             // Nama instansi di-resolve dari relasi booking->counter->department
-            const departmentName = (data.department && data.department.name) ||
-                (data.counter && data.counter.department && data.counter.department.name) ||
+            const departmentName = (booking.department && booking.department.name) ||
+                (booking.counter && booking.counter.department && booking.counter.department.name) ||
                 '-';
             document.getElementById('verifyTenant').innerText = departmentName;
 
             // Layanan di-resolve dari counter name atau service name
-            const serviceName = (data.counter && data.counter.name) ||
-                (data.service && data.service.name) ||
+            const serviceName = (booking.counter && booking.counter.name) ||
+                (booking.service && booking.service.name) ||
                 '-';
             document.getElementById('verifyService').innerText = serviceName;
 
-            currentVerifiedBookingId = data.id;
+            currentVerifiedBookingId = booking.id;
 
             const pnl = document.getElementById('pnlVerifyDetails');
             pnl.classList.remove('hidden');

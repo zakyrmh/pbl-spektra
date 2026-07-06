@@ -12,18 +12,18 @@ use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
-class FeedbackRequestMail extends Mailable implements ShouldQueue
+class BookingMovedMail extends Mailable implements ShouldQueue
 {
     use Queueable, SerializesModels;
 
-    public Queue $queueModel;
+    public Queue $booking;
 
     /**
      * Create a new message instance.
      */
-    public function __construct(Queue $queue)
+    public function __construct(Queue $booking)
     {
-        $this->queueModel = $queue;
+        $this->booking = $booking;
     }
 
     /**
@@ -32,7 +32,7 @@ class FeedbackRequestMail extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Pelayanan Selesai - Berikan Ulasan Anda ('.$this->queueModel->queue_number.')',
+            subject: 'Pemindahan Sesi Booking Antrean MPP Sawahlunto - '.$this->booking->booking_code,
         );
     }
 
@@ -42,10 +42,7 @@ class FeedbackRequestMail extends Mailable implements ShouldQueue
     public function content(): Content
     {
         return new Content(
-            view: 'emails.feedback_request',
-            with: [
-                'queue' => $this->queueModel,
-            ],
+            view: 'emails.bookings.moved',
         );
     }
 

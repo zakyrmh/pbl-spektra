@@ -56,6 +56,26 @@
              resetDate() {
                  this.selectedDate = '';
                  this.selectedSession = '';
+             },
+             
+             isSessionDisabled(sessionName) {
+                 if (!this.selectedDate) return false;
+                 const today = new Date();
+                 const yyyy = today.getFullYear();
+                 const mm = String(today.getMonth() + 1).padStart(2, '0');
+                 const dd = String(today.getDate()).padStart(2, '0');
+                 const todayStr = `${yyyy}-${mm}-${dd}`;
+                 
+                 if (this.selectedDate === todayStr) {
+                     const currentHour = today.getHours();
+                     if (sessionName === 'Sesi 1' && currentHour >= 12) {
+                         return true;
+                     }
+                     if (sessionName === 'Sesi 2' && currentHour >= 15) {
+                         return true;
+                     }
+                 }
+                 return false;
              }
          }">
          
@@ -197,8 +217,13 @@
                                     <template x-for="s in sessions" :key="s">
                                         <button type="button"
                                                 @click="selectedSession = s" 
-                                                class="px-3 py-1.5 bg-surface-soft hover:bg-primary/10 dark:bg-white/5 dark:hover:bg-accent-teal/15 rounded text-[11px] font-mono cursor-pointer transition-colors border border-hairline dark:border-white/10"
-                                                :class="selectedSession === s ? 'border-primary dark:border-accent-teal text-primary dark:text-accent-teal bg-primary/5 dark:bg-accent-teal/5 font-bold' : ''">
+                                                :disabled="isSessionDisabled(s)"
+                                                class="px-3 py-1.5 rounded text-[11px] font-mono cursor-pointer transition-colors border border-hairline dark:border-white/10"
+                                                :class="isSessionDisabled(s) 
+                                                    ? 'opacity-40 cursor-not-allowed bg-gray-200 dark:bg-zinc-800 text-gray-400 dark:text-zinc-500'
+                                                    : (selectedSession === s 
+                                                        ? 'border-primary dark:border-accent-teal text-primary dark:text-accent-teal bg-primary/5 dark:bg-accent-teal/5 font-bold' 
+                                                        : 'bg-surface-soft hover:bg-primary/10 dark:bg-white/5 dark:hover:bg-accent-teal/15')">
                                             <span x-text="s"></span>
                                         </button>
                                     </template>

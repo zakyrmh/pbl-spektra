@@ -19,11 +19,9 @@ class CustomVerifyEmail extends BaseVerifyEmail
 
         return (new MailMessage)
             ->subject('Verifikasi Alamat Email Anda - '.config('app.name'))
-            ->greeting('Halo, '.$notifiable->name.'!')
-            ->line('Terima kasih telah mendaftar di '.config('app.name').'.')
-            ->line('Silakan klik tombol di bawah ini untuk memverifikasi alamat email Anda dan mengaktifkan akun Anda.')
-            ->action('Verifikasi Alamat Email', $verificationUrl)
-            ->line('Jika Anda tidak melakukan pendaftaran ini, silakan abaikan email ini.')
-            ->salutation('Salam hangat,'."\n".'Tim '.config('app.name'));
+            ->view('emails.auth.verify', [
+                'url' => $verificationUrl,
+                'name' => $notifiable->name,
+            ]);
     }
 }

@@ -9,17 +9,12 @@ use App\Events\QueueCreated;
 use App\Models\ActivityLog;
 use App\Models\Queue;
 use App\Models\Setting;
-use App\Repositories\AdminFO\CheckInRepository;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class ScanQrCodeService
 {
-    public function __construct(
-        protected CheckInRepository $repository
-    ) {}
-
     /**
      * Process scanned QR Code to update queue status to 'hadir' (Checked-In) or 'diproses' (Serving).
      *
@@ -27,7 +22,20 @@ class ScanQrCodeService
      */
     public function processQrCode(string $code, string $targetStatus = 'Checked-In'): Queue
     {
-        $queue = $this->repository->findByBookingCode($code);
+        $code = trim($code);
+
+        // NIK is 16 digits
+        if (preg_match('/^\d{16}$/', $code)) {
+            $queue = Queue::whereHas('user', function ($query) use ($code) {
+                $query->where('nik', $code);
+            })
+                ->with(['user', 'department'])
+                ->first();
+        } else {
+            $queue = Queue::where('booking_code', $code)
+                ->with(['user', 'department'])
+                ->first();
+        }
 
         if (! $queue) {
             throw new \Exception('Tiket/booking tidak ditemukan.');
@@ -54,7 +62,10 @@ class ScanQrCodeService
 
                 // 1. Validasi kuota harian (REQ-2.3 & BR 5)
                 $maxQuota = (int) (Setting::getVal('daily_quota') ?? Setting::getVal('daily_quota_limit') ?? 100);
-                $todayActiveCount = $this->repository->getActiveCountByDepartment($queue->department_id, $today);
+                $todayActiveCount = Queue::where('department_id', $queue->department_id)
+                    ->whereDate('booking_date', $today)
+                    ->whereNotNull('queue_number')
+                    ->count();
 
                 if ($todayActiveCount >= $maxQuota) {
                     throw new \Exception('Kuota layanan untuk hari ini telah penuh');
@@ -62,12 +73,14 @@ class ScanQrCodeService
 
                 // 2. Validasi 1 NIK 1 Antrean Aktif (REQ-1.5 & BR 5)
                 if ($queue->user && $queue->user->nik) {
-                    $hasActive = $this->repository->hasActiveQueueToday(
-                        $queue->user->nik,
-                        $queue->department_id,
-                        $today,
-                        $queue->id
-                    );
+                    $hasActive = Queue::whereHas('user', function ($query) use ($queue) {
+                        $query->where('nik', $queue->user->nik);
+                    })
+                        ->where('department_id', $queue->department_id)
+                        ->whereDate('booking_date', $today)
+                        ->whereIn('status', ['Checked-In', 'Serving'])
+                        ->where('id', '!=', $queue->id)
+                        ->exists();
 
                     if ($hasActive) {
                         throw new \Exception('Warga dengan NIK ini sudah memiliki antrean aktif hari ini untuk instansi yang sama.');
@@ -83,7 +96,7 @@ class ScanQrCodeService
                 $queue->queue_number = $queueNumber;
                 $queue->booking_date = Carbon::parse($today);
 
-                $this->repository->save($queue);
+                $queue->save();
 
                 ActivityLog::record(
                     action: 'VERIFY_CHECKIN_QR',
@@ -102,7 +115,7 @@ class ScanQrCodeService
                 }
 
                 $queue->status = QueueStatus::Serving;
-                $this->repository->save($queue);
+                $queue->save();
 
                 ActivityLog::record(
                     action: 'SERVE_QUEUE_QR',
@@ -124,7 +137,10 @@ class ScanQrCodeService
      */
     protected function generateQueueNumberForDept(int $departmentId, string $prefix, string $today): string
     {
-        $queueNumbers = $this->repository->getTodayQueueNumbers($departmentId, $today);
+        $queueNumbers = Queue::where('department_id', $departmentId)
+            ->whereDate('booking_date', $today)
+            ->whereNotNull('queue_number')
+            ->pluck('queue_number');
 
         $nums = $queueNumbers->map(function ($num) {
             $parts = explode('-', $num);

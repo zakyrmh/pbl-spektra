@@ -91,11 +91,6 @@ class QueueMonitorService
         );
     }
 
-    /**
-     * Get all departments with their current serving queue for the public display.
-     *
-     * @return Collection<int, Department>
-     */
     public function getPublicDisplayDepartments(): Collection
     {
         $today = Carbon::today();
@@ -103,6 +98,13 @@ class QueueMonitorService
         return Department::with(['queues' => function ($query) use ($today) {
             $query->whereDate('booking_date', $today)
                 ->where('status', QueueStatus::Serving->value);
-        }])->get();
+        }])
+            ->get()
+            ->sortByDesc(function ($dept) {
+                $activeQueue = $dept->queues->first();
+
+                return $activeQueue && $activeQueue->called_at ? $activeQueue->called_at->timestamp : 0;
+            })
+            ->values();
     }
 }

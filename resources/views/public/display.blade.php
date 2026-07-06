@@ -39,38 +39,38 @@
         @php
             $activeQueue = $department->queues->first();
         @endphp
-        <div class="bg-surface-dark-elevated rounded-xl border border-white/5 p-6 flex flex-col justify-between shadow-lg relative overflow-hidden transition-all duration-500 hover:border-white/15" data-counter-id="{{ $department->id }}">
+        <div class="counter-card bg-surface-dark-elevated rounded-xl border border-white/5 p-6 flex flex-col justify-between shadow-lg relative overflow-hidden transition-all duration-500 hover:border-white/15" data-counter-id="{{ $department->id }}">
             
             <!-- Loket Meta -->
             <div>
                 <div class="flex items-center justify-between">
-                    <span class="text-xs font-bold text-on-dark-soft uppercase tracking-wider">{{ $department->name }}</span>
+                    <span class="dept-name text-xs font-bold text-on-dark-soft uppercase tracking-wider">{{ $department->name }}</span>
                     @if($department->status->value === 'istirahat')
-                        <span class="px-2 py-0.5 bg-amber-500/10 text-amber-400 border border-amber-500/20 text-[9px] font-bold rounded-md">Istirahat</span>
+                        <span class="status-badge px-2 py-0.5 bg-amber-500/10 text-amber-400 border border-amber-500/20 text-[9px] font-bold rounded-md">Istirahat</span>
                     @elseif($department->status->value === 'tutup' || $department->status->value === 'nonaktif')
-                        <span class="px-2 py-0.5 bg-rose-500/10 text-rose-400 border border-rose-500/20 text-[9px] font-bold rounded-md">Tutup</span>
+                        <span class="status-badge px-2 py-0.5 bg-rose-500/10 text-rose-400 border border-rose-500/20 text-[9px] font-bold rounded-md">Tutup</span>
                     @else
-                        <span class="px-2 py-0.5 bg-green-500/10 text-green-400 border border-green-500/20 text-[9px] font-bold rounded-md">Aktif</span>
+                        <span class="status-badge px-2 py-0.5 bg-green-500/10 text-green-400 border border-green-500/20 text-[9px] font-bold rounded-md">Aktif</span>
                     @endif
                 </div>
-                <h3 class="text-base font-bold text-white mt-1">Loket {{ $department->nomor_loket }}</h3>
+                <h3 class="loket-title text-base font-bold text-white mt-1">Loket {{ $department->nomor_loket }}</h3>
             </div>
 
             <!-- Giant Active Number -->
-            <div class="py-6 flex flex-col items-center justify-center text-center">
+            <div class="active-number-container py-6 flex flex-col items-center justify-center text-center">
                 <span class="text-[10px] font-bold text-on-dark-soft uppercase tracking-wider">Nomor Antrean</span>
                 <span class="text-5xl md:text-6xl font-extrabold text-accent-teal font-mono tracking-tight my-2 active-number" 
                       data-current-val="{{ $activeQueue ? $activeQueue->queue_number : '-' }}"
                       data-called-at="{{ $activeQueue && $activeQueue->called_at ? $activeQueue->called_at->toIso8601String() : '' }}">
                     {{ $activeQueue ? $activeQueue->queue_number : '-' }}
                 </span>
-                <span class="text-[9px] px-2 py-0.5 rounded-md bg-white/5 text-on-dark-soft border border-white/5 uppercase font-semibold">
+                <span class="status-pill text-[9px] px-2 py-0.5 rounded-md bg-white/5 text-on-dark-soft border border-white/5 uppercase font-semibold">
                     {{ $activeQueue ? 'Sedang Dilayani' : 'Kosong' }}
                 </span>
             </div>
 
             <!-- Background subtle watermark -->
-            <div class="absolute -right-4 -bottom-4 opacity-[0.02] pointer-events-none">
+            <div class="watermark absolute -right-4 -bottom-4 opacity-[0.02] pointer-events-none">
                 <svg class="w-32 h-32" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-6h2v6zm0-8h-2V7h2v2z" />
                 </svg>
@@ -112,6 +112,96 @@
     @keyframes glowPulse {
         0%, 100% { text-shadow: 0 0 0px rgba(41, 171, 226, 0); transform: scale(1); }
         50% { text-shadow: 0 0 15px rgba(41, 171, 226, 0.6); transform: scale(1.08); color: #FFFFFF; }
+    }
+
+    /* CSS Grid Layout for TV Monitor (Fit viewport, no scrollbar) */
+    @media (min-width: 1024px) {
+        #monitorGrid {
+            display: grid !important;
+            grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
+            grid-template-rows: repeat(5, minmax(0, 1fr)) !important;
+            gap: 0.75rem !important;
+            height: calc(100vh - 165px) !important;
+            overflow: hidden !important;
+            padding-top: 0.5rem !important;
+            padding-bottom: 0.5rem !important;
+        }
+
+        /* Default Card Styling for compact grid */
+        .counter-card {
+            padding: 0.75rem !important;
+            border-radius: 0.75rem !important;
+            height: 100% !important;
+        }
+
+        .counter-card .dept-name {
+            font-size: 0.65rem !important;
+            display: -webkit-box;
+            -webkit-line-clamp: 1;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .counter-card .loket-title {
+            font-size: 0.85rem !important;
+            margin-top: 0.125rem !important;
+        }
+
+        .counter-card .active-number-container {
+            padding: 0.5rem 0 !important;
+        }
+
+        .counter-card .active-number {
+            font-size: 2.25rem !important;
+            margin: 0.25rem 0 !important;
+        }
+
+        .counter-card .status-pill {
+            font-size: 8px !important;
+            padding: 0.125rem 0.375rem !important;
+        }
+
+        .counter-card .watermark {
+            display: none !important;
+        }
+
+        /* Featured (First Child) Card Styling */
+        #monitorGrid > :first-child {
+            grid-column: span 2 !important;
+            grid-row: span 2 !important;
+            padding: 1.25rem !important;
+            background-color: rgba(15, 23, 42, 0.95) !important;
+            border-color: rgba(41, 171, 226, 0.5) !important;
+            box-shadow: 0 0 25px rgba(41, 171, 226, 0.25) !important;
+        }
+
+        #monitorGrid > :first-child .dept-name {
+            font-size: 0.85rem !important;
+            -webkit-line-clamp: 2 !important;
+        }
+
+        #monitorGrid > :first-child .loket-title {
+            font-size: 1.25rem !important;
+            margin-top: 0.25rem !important;
+        }
+
+        #monitorGrid > :first-child .active-number-container {
+            padding: 1.5rem 0 !important;
+        }
+
+        #monitorGrid > :first-child .active-number {
+            font-size: 5rem !important;
+            margin: 0.5rem 0 !important;
+        }
+
+        #monitorGrid > :first-child .status-pill {
+            font-size: 10px !important;
+            padding: 0.25rem 0.75rem !important;
+        }
+
+        #monitorGrid > :first-child .watermark {
+            display: block !important;
+        }
     }
 </style>
 
@@ -219,18 +309,18 @@
                     
                     if (card) {
                         const numSpan = card.querySelector('.active-number');
-                        const statusBadge = card.querySelector('span[class*="border-"]');
-                        const statusPill = card.querySelector('span[class*="bg-white/5"]');
+                        const statusBadge = card.querySelector('.status-badge') || card.querySelector('span[class*="border-"]');
+                        const statusPill = card.querySelector('.status-pill') || card.querySelector('span[class*="bg-white/5"]');
                         
                         // Check if status changed
                         if (c.status === 'istirahat') {
-                            statusBadge.className = 'px-2 py-0.5 bg-amber-500/10 text-amber-400 border border-amber-500/20 text-[9px] font-bold rounded-md';
+                            statusBadge.className = 'status-badge px-2 py-0.5 bg-amber-500/10 text-amber-400 border border-amber-500/20 text-[9px] font-bold rounded-md';
                             statusBadge.textContent = 'Istirahat';
                         } else if (c.status === 'nonaktif') {
-                            statusBadge.className = 'px-2 py-0.5 bg-rose-500/10 text-rose-400 border border-rose-500/20 text-[9px] font-bold rounded-md';
+                            statusBadge.className = 'status-badge px-2 py-0.5 bg-rose-500/10 text-rose-400 border border-rose-500/20 text-[9px] font-bold rounded-md';
                             statusBadge.textContent = 'Tutup';
                         } else {
-                            statusBadge.className = 'px-2 py-0.5 bg-green-500/10 text-green-400 border border-green-500/20 text-[9px] font-bold rounded-md';
+                            statusBadge.className = 'status-badge px-2 py-0.5 bg-green-500/10 text-green-400 border border-green-500/20 text-[9px] font-bold rounded-md';
                             statusBadge.textContent = 'Aktif';
                         }
 
@@ -276,6 +366,9 @@
                                 statusPill.textContent = 'Kosong';
                             }
                         }
+
+                        // Reorder DOM card: append to end of grid to maintain dynamic sorted order
+                        grid.appendChild(card);
                     }
                 });
             })

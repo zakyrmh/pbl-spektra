@@ -1,6 +1,6 @@
 @extends('layouts.private')
 
-@section('title', 'Dashboard - MPP Kota Sawahlunto')
+@section('title', request()->routeIs('admin_gerai.papan-panggil') ? 'Papan Panggil & Layanan Gerai - MPP Kota Sawahlunto' : 'Dashboard - MPP Kota Sawahlunto')
 
 @section('content')
     @php

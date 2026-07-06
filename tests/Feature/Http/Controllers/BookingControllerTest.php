@@ -98,7 +98,7 @@ class BookingControllerTest extends TestCase
         $response = $this->actingAs($user)->post(route('booking.store'), [
             'department_id' => $department->id,
             'keperluan' => 'Pengurusan izin praktik apoteker',
-            'booking_date' => now()->toDateString(),
+            'booking_date' => now()->addDay()->toDateString(),
             'session_name' => 'Sesi 1',
         ]);
 

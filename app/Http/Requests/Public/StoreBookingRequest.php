@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Public;
 
+use Carbon\Carbon;
 use Illuminate\Foundation\Http\FormRequest;
 
 final class StoreBookingRequest extends FormRequest
@@ -27,7 +28,29 @@ final class StoreBookingRequest extends FormRequest
             'department_id' => ['required', 'exists:departments,id'],
             'keperluan' => ['required', 'string', 'min:5', 'max:255'],
             'booking_date' => ['required', 'date', 'after_or_equal:today'],
-            'session_name' => ['required', 'string', 'in:Sesi 1,Sesi 2'],
+            'session_name' => [
+                'required',
+                'string',
+                'in:Sesi 1,Sesi 2',
+                function ($attribute, $value, $fail) {
+                    $date = $this->input('booking_date');
+                    if ($date) {
+                        try {
+                            $parsedDate = Carbon::parse($date);
+                            if ($parsedDate->isToday()) {
+                                $now = Carbon::now();
+                                if ($value === 'Sesi 1' && $now->hour >= 12) {
+                                    $fail('Sesi 1 tidak dapat dipilih karena waktu pelayanan sesi pagi (sebelum jam 12:00) untuk hari ini telah berakhir.');
+                                } elseif ($value === 'Sesi 2' && $now->hour >= 15) {
+                                    $fail('Sesi 2 tidak dapat dipilih karena batas waktu pelayanan hari ini (15:00) telah berakhir.');
+                                }
+                            }
+                        } catch (\Exception $e) {
+                            // Let general date validation handle invalid dates
+                        }
+                    }
+                },
+            ],
         ];
     }
 

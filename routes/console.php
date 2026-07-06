@@ -8,4 +8,5 @@ Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
 
+Schedule::command('bookings:move-session')->dailyAt('12:00');
 Schedule::command('bookings:cancel-expired')->dailyAt('23:59');

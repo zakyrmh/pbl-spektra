@@ -874,6 +874,7 @@
                     completedCount: {{ $completedCount }},
                     status: '{{ $status }}', // 'aktif', 'istirahat', 'nonaktif'
                     activeQueueId: {{ $activeQueue ? $activeQueue->id : 'null' }},
+                    isSubmitting: false,
                     queueList: [
                         @foreach ($waitingQueues as $q)
                             {
@@ -923,6 +924,8 @@
 
                 // Toggle Instansi status via AJAX
                 function toggleInstansiStatus() {
+                    if (geraiState.isSubmitting) return;
+                    geraiState.isSubmitting = true;
                     fetch('{{ route('admin_gerai.department.toggle') }}', {
                             method: 'POST',
                             headers: {
@@ -933,6 +936,7 @@
                         })
                         .then(response => response.json())
                         .then(data => {
+                            geraiState.isSubmitting = false;
                             if (data.success) {
                                 const btn = document.getElementById('btnInstansiStatus');
                                 const badge = document.getElementById('instansiStatusBadge');
@@ -967,6 +971,7 @@
                             }
                         })
                         .catch(err => {
+                            geraiState.isSubmitting = false;
                             console.error(err);
                             createToast('Eror', 'Terjadi kesalahan sistem.', 'danger');
                         });
@@ -974,6 +979,8 @@
 
                 // Set Loket status via AJAX
                 function setLoketStatus(newStatus) {
+                    if (geraiState.isSubmitting) return;
+                    geraiState.isSubmitting = true;
                     fetch('{{ route('admin_gerai.status') }}', {
                             method: 'POST',
                             headers: {
@@ -987,6 +994,7 @@
                         })
                         .then(response => response.json())
                         .then(data => {
+                            geraiState.isSubmitting = false;
                             if (data.success) {
                                 geraiState.status = data.status;
 
@@ -1043,6 +1051,7 @@
                             }
                         })
                         .catch(err => {
+                            geraiState.isSubmitting = false;
                             console.error(err);
                             createToast('Koneksi Error', 'Terjadi masalah jaringan.', 'warning');
                         });
@@ -1075,6 +1084,8 @@
                 }
 
                 function executeCallNext(notes) {
+                    if (geraiState.isSubmitting) return;
+                    geraiState.isSubmitting = true;
                     fetch('{{ route('admin_gerai.call-next') }}', {
                             method: 'POST',
                             headers: {
@@ -1088,6 +1099,7 @@
                         })
                         .then(response => response.json())
                         .then(data => {
+                            geraiState.isSubmitting = false;
                             if (data.success) {
                                 const q = data.queue;
                                 const hadActive = !!geraiState.activeQueueId;
@@ -1126,6 +1138,7 @@
                             }
                         })
                         .catch(err => {
+                            geraiState.isSubmitting = false;
                             console.error(err);
                             createToast('Error', 'Gagal memanggil antrean berikutnya.', 'warning');
                         });
@@ -1133,11 +1146,13 @@
 
                 // Recall Active Queue via AJAX
                 function recallActiveQueue() {
+                    if (geraiState.isSubmitting) return;
                     if (!geraiState.activeQueueId) {
                         createToast('Gagal', 'Tidak ada antrean aktif untuk dipanggil ulang.', 'warning');
                         return;
                     }
 
+                    geraiState.isSubmitting = true;
                     fetch(`/api/queues/${geraiState.activeQueueId}/call`, {
                             method: 'POST',
                             headers: {
@@ -1148,6 +1163,7 @@
                         })
                         .then(response => response.json())
                         .then(data => {
+                            geraiState.isSubmitting = false;
                             if (data.success) {
                                 playBeep();
                                 const activeNum = document.getElementById('activeCallNumber').innerText;
@@ -1159,6 +1175,7 @@
                             }
                         })
                         .catch(err => {
+                            geraiState.isSubmitting = false;
                             console.error(err);
                             createToast('Error', 'Gagal memproses panggilan ulang.', 'warning');
                         });
@@ -1238,12 +1255,15 @@
 
                 // Selesaikan Pelayanan (Complete) via AJAX
                 function completeActiveService() {
+                    if (geraiState.isSubmitting) return;
                     if (!geraiState.activeQueueId) {
                         createToast('Gagal', 'Tidak ada pelayanan aktif untuk diselesaikan.', 'warning');
                         return;
                     }
 
                     askVisitNotes((notes) => {
+                        if (geraiState.isSubmitting) return;
+                        geraiState.isSubmitting = true;
                         const activeNum = document.getElementById('activeCallNumber').innerText;
                         const name = document.getElementById('citizenName').innerText;
 
@@ -1260,6 +1280,7 @@
                             })
                             .then(response => response.json())
                             .then(data => {
+                                geraiState.isSubmitting = false;
                                 if (data.success) {
                                     createToast('Pelayanan Selesai', `Tiket ${activeNum} (${name}) dinyatakan SUKSES dilayani.`,
                                         'success');
@@ -1281,6 +1302,7 @@
                                 }
                             })
                             .catch(err => {
+                                geraiState.isSubmitting = false;
                                 console.error(err);
                                 createToast('Error', 'Gagal memproses penyelesaian layanan.', 'warning');
                             });
@@ -1289,11 +1311,13 @@
 
                 // Panggil Balik antrean yang diskipped via AJAX
                 function recallSkipped(queueId, code, name, service) {
+                    if (geraiState.isSubmitting) return;
                     if (geraiState.status !== 'aktif') {
                         alert("Status loket sedang istirahat/tutup! Silakan ubah ke Buka terlebih dahulu.");
                         return;
                     }
 
+                    geraiState.isSubmitting = true;
                     fetch(`/api/queues/${queueId}/call`, {
                             method: 'POST',
                             headers: {
@@ -1304,6 +1328,7 @@
                         })
                         .then(response => response.json())
                         .then(data => {
+                            geraiState.isSubmitting = false;
                             if (data.success) {
                                 const q = data.queue;
                                 geraiState.activeQueueId = q.id;
@@ -1343,6 +1368,7 @@
                             }
                         })
                         .catch(err => {
+                            geraiState.isSubmitting = false;
                             console.error(err);
                             createToast('Error', 'Gagal memanggil balik antrean.', 'warning');
                         });
@@ -1384,6 +1410,7 @@
                 }
 
                 async function confirmForwardQueue() {
+                    if (geraiState.isSubmitting) return;
                     const queueId = geraiState.activeQueueId;
                     const deptId = document.getElementById('forwardDeptSelect').value;
                     if (!deptId) {
@@ -1395,6 +1422,7 @@
                     btn.disabled = true;
                     btn.textContent = 'Memproses...';
 
+                    geraiState.isSubmitting = true;
                     try {
                         const res = await fetch(`/api/queues/${queueId}/forward`, {
                             method: 'POST',
@@ -1408,6 +1436,7 @@
                             }),
                         });
                         const data = await res.json();
+                        geraiState.isSubmitting = false;
                         if (data.success) {
                             closeForwardModal();
                             createToast('Antrean Dioper', data.message, 'success');
@@ -1418,6 +1447,7 @@
                             btn.textContent = 'Konfirmasi Oper';
                         }
                     } catch (e) {
+                        geraiState.isSubmitting = false;
                         createToast('Error', 'Terjadi kesalahan jaringan.', 'error');
                         btn.disabled = false;
                         btn.textContent = 'Konfirmasi Oper';

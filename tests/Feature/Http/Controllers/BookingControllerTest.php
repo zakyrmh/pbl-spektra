@@ -157,4 +157,31 @@ class BookingControllerTest extends TestCase
         $response = $this->actingAs($superAdmin)->get(route('booking.show', $booking));
         $response->assertStatus(200);
     }
+
+    public function test_booking_inherits_user_priority_status(): void
+    {
+        Mail::fake();
+
+        $user = User::factory()->create([
+            'role' => UserRole::Pengunjung,
+            'is_priority' => true,
+        ]);
+        $department = Department::create([
+            'name' => 'Dinas Kesehatan',
+            'inisial' => 'DK',
+            'nomor_loket' => '01',
+            'is_open' => true,
+        ]);
+
+        $response = $this->actingAs($user)->post(route('booking.store'), [
+            'department_id' => $department->id,
+            'keperluan' => 'Pengurusan izin praktik apoteker',
+            'booking_date' => now()->addDay()->toDateString(),
+            'session_name' => 'Sesi 1',
+        ]);
+
+        $booking = Queue::first();
+        $this->assertNotNull($booking);
+        $this->assertTrue((bool) $booking->is_priority);
+    }
 }

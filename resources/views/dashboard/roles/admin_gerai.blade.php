@@ -709,6 +709,13 @@
                         <!-- Citizen Metadata Panel -->
                         <div
                             class="space-y-3 bg-surface-soft dark:bg-white/5 border border-hairline dark:border-white/5 rounded-lg p-4 text-xs">
+                            <div class="grid grid-cols-3 gap-1" id="citizenPriorityRow" style="{{ ($activeQueue && $activeQueue->is_priority) ? '' : 'display: none;' }}">
+                                <span class="text-muted dark:text-on-dark-soft">Tipe Antrean:</span>
+                                <span id="citizenPriorityBadge"
+                                    class="col-span-2 text-right font-extrabold text-amber-600 dark:text-accent-gold uppercase tracking-wider">
+                                    🌟 PRIORITAS (KELOMPOK RENTAN)
+                                </span>
+                            </div>
                             <div class="grid grid-cols-3 gap-1">
                                 <span class="text-muted dark:text-on-dark-soft">Nama Warga:</span>
                                 <span id="citizenName"
@@ -883,6 +890,7 @@
                                 name: '{{ $q->user ? $q->user->name : 'Warga' }}',
                                 nik: '{{ $q->user ? $q->user->nik : '-' }}',
                                 service: '{{ $q->purpose }}',
+                                is_priority: {{ $q->is_priority ? 'true' : 'false' }},
                                 docs: {!! $q->purpose && str_contains(strtolower($q->purpose), 'kk')
                                     ? '["KK", "Pengantar"]'
                                     : ($q->purpose && str_contains(strtolower($q->purpose), 'ktp')
@@ -1113,13 +1121,17 @@
                                 // Play chime
                                 playBeep();
 
-                                // Update DOM
+                                 // Update DOM
                                 document.getElementById('activeCallNumber').innerText = q.queue_number;
                                 document.getElementById('activeCallStatus').innerText = 'Sedang Dilayani';
                                 document.getElementById('citizenName').innerText = q.user ? q.user.name : 'Warga';
                                 document.getElementById('citizenNik').innerText = q.user ? q.user.nik : '-';
                                 document.getElementById('citizenService').innerText = q.purpose || '';
                                 document.getElementById('geraiStatRemaining').innerText = geraiState.remainingQueues;
+                                const priorityRow = document.getElementById('citizenPriorityRow');
+                                if (priorityRow) {
+                                    priorityRow.style.display = q.is_priority ? '' : 'none';
+                                }
 
                                 // If previous was completed, increment completed count
                                 if (hadActive) {
@@ -1336,12 +1348,16 @@
 
                                 playBeep();
 
-                                // Update DOM active display
+                                 // Update DOM active display
                                 document.getElementById('activeCallNumber').innerText = q.queue_number;
                                 document.getElementById('activeCallStatus').innerText = 'Sedang Dilayani';
                                 document.getElementById('citizenName').innerText = q.user ? q.user.name : 'Warga';
                                 document.getElementById('citizenNik').innerText = q.user ? q.user.nik : '-';
                                 document.getElementById('citizenService').innerText = q.purpose || '';
+                                const priorityRow = document.getElementById('citizenPriorityRow');
+                                if (priorityRow) {
+                                    priorityRow.style.display = q.is_priority ? '' : 'none';
+                                }
 
                                 // Hapus baris dari skipped table
                                 const row = document.querySelector(`tr[data-skipped-ticket="${q.queue_number}"]`);
@@ -1382,6 +1398,10 @@
                     document.getElementById('citizenName').innerText = 'Tidak ada pengunjung';
                     document.getElementById('citizenNik').innerText = '-';
                     document.getElementById('citizenService').innerText = '-';
+                    const priorityRow = document.getElementById('citizenPriorityRow');
+                    if (priorityRow) {
+                        priorityRow.style.display = 'none';
+                    }
                     
                     updateNextButtonState();
                 }

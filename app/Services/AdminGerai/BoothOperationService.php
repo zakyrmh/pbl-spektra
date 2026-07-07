@@ -55,6 +55,7 @@ final class BoothOperationService
             ->whereDate('booking_date', $today)
             ->where('status', QueueStatus::CheckedIn->value)
             ->with(['user'])
+            ->orderBy('is_priority', 'desc')
             ->orderBy('id', 'asc')
             ->get();
 
@@ -149,6 +150,7 @@ final class BoothOperationService
         $nextQueue = Queue::where('department_id', $user->departments_id)
             ->whereDate('booking_date', Carbon::today())
             ->where('status', QueueStatus::CheckedIn->value)
+            ->orderBy('is_priority', 'desc')
             ->orderBy('id', 'asc')
             ->first();
 
@@ -246,8 +248,10 @@ final class BoothOperationService
 
             // Generate new queue number for the target department
             $today = Carbon::today()->toDateString();
+            $isPriority = (bool) $queue->is_priority;
             $queueNumbers = Queue::where('department_id', $targetDepartment->id)
                 ->whereDate('booking_date', $today)
+                ->where('is_priority', $isPriority)
                 ->whereNotNull('queue_number')
                 ->lockForUpdate()
                 ->pluck('queue_number')
@@ -258,7 +262,7 @@ final class BoothOperationService
                 });
 
             $nextNumber = $queueNumbers->isEmpty() ? 1 : $queueNumbers->max() + 1;
-            $prefix = $targetDepartment->inisial ?: 'Q';
+            $prefix = $isPriority ? 'P' : ($targetDepartment->inisial ?: 'Q');
             $newQueueNumber = $prefix.'-'.str_pad((string) $nextNumber, 3, '0', STR_PAD_LEFT);
 
             // Update queue record directly

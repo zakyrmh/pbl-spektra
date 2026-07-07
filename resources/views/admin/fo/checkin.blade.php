@@ -302,8 +302,18 @@
                         </button>
 
                         {{-- Button Setujui --}}
-                        <form action="{{ route('admin.fo.checkin.approve', $bk) }}" method="POST">
+                        <form action="{{ route('admin.fo.checkin.approve', $bk) }}" method="POST" class="w-full sm:w-auto flex flex-col sm:flex-row items-center gap-4">
                             @csrf
+                            
+                            {{-- Checkbox prioritas yang di-verify FO --}}
+                            <div class="flex items-center gap-2 bg-surface-soft dark:bg-white/5 border border-hairline dark:border-white/10 px-4 py-2.5 rounded-lg select-none">
+                                <input type="checkbox" id="is_priority" name="is_priority" value="1" {{ old('is_priority', $bk->user->is_priority) ? 'checked' : '' }}
+                                       class="w-4.5 h-4.5 text-primary dark:text-accent-teal border-hairline rounded focus:ring-primary dark:focus:ring-accent-teal cursor-pointer">
+                                <label for="is_priority" class="text-xs font-bold text-ink dark:text-white cursor-pointer select-none">
+                                    Verifikasi Pengunjung Prioritas
+                                </label>
+                            </div>
+
                             <button type="submit"
                                 class="w-full sm:w-auto h-11 px-8 bg-status-serving hover:bg-green-700 text-white font-bold rounded-pill text-xs shadow-md transition-all cursor-pointer flex items-center justify-center gap-2">
                                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
@@ -360,6 +370,11 @@
                         <div class="text-5xl sm:text-6xl font-extrabold text-primary dark:text-accent-teal tracking-tight font-mono">
                             {{ $queue->queue_number ?? '-' }}
                         </div>
+                        @if($queue && $queue->is_priority)
+                            <div class="mt-2 text-xs font-extrabold text-amber-600 dark:text-accent-gold uppercase tracking-wider font-display">
+                                LOKET PRIORITAS - RAMAH LANSIA &amp; DISABILITAS
+                            </div>
+                        @endif
                         <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 rounded-full text-xs font-bold border border-green-200/50 print:hidden">
                             <span class="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
                             Waiting (Menunggu)

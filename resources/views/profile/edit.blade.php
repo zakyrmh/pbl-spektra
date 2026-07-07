@@ -143,6 +143,22 @@
                                class="w-full h-12 px-4 bg-surface-soft dark:bg-white/5 text-muted dark:text-on-dark-soft/50 border border-hairline dark:border-white/10 rounded-md text-body-md cursor-not-allowed">
                         <p class="text-[11px] text-muted dark:text-on-dark-soft font-body">Email digunakan sebagai identitas akun masuk (login) Anda.</p>
                     </div>
+
+                    <!-- Priority Checkbox -->
+                    <div class="col-span-1 md:col-span-2 space-y-2 pt-2">
+                        <div class="flex items-start gap-3 p-4 bg-amber-500/5 dark:bg-amber-500/10 border border-amber-500/20 rounded-lg">
+                            <input type="checkbox" id="is_priority" name="is_priority" value="1" {{ old('is_priority', $user->is_priority) ? 'checked' : '' }}
+                                   class="w-5 h-5 text-primary dark:text-accent-teal border-hairline rounded focus:ring-primary dark:focus:ring-accent-teal cursor-pointer mt-0.5">
+                            <div>
+                                <label for="is_priority" class="block text-title-sm font-bold text-ink dark:text-white cursor-pointer select-none">
+                                    Saya adalah Pengunjung Kelompok Rentan (Lansia, Ibu Hamil, & Disabilitas)
+                                </label>
+                                <p class="text-xs text-muted dark:text-on-dark-soft mt-1">
+                                    Centang opsi ini jika Anda berusia ≥60 tahun (Lansia), sedang hamil, atau memiliki disabilitas fisik/sensorik. Anda akan mendapatkan prioritas pelayanan antrean. Status ini akan diverifikasi oleh petugas saat check-in.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Foto KTP Upload Widget (Spans full width) -->

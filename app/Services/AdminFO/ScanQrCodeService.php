@@ -88,7 +88,7 @@ class ScanQrCodeService
                 }
 
                 // Generate Queue Number
-                $queueNumber = $this->generateQueueNumberForDept($department->id, $department->inisial ?: 'Q', $today);
+                $queueNumber = $this->generateQueueNumberForDept($department->id, $department->inisial ?: 'Q', $today, (bool) $queue->is_priority);
 
                 // Update queue
                 $queue->status = QueueStatus::CheckedIn;
@@ -135,10 +135,11 @@ class ScanQrCodeService
     /**
      * Generate queue number berdasarkan department & date.
      */
-    protected function generateQueueNumberForDept(int $departmentId, string $prefix, string $today): string
+    protected function generateQueueNumberForDept(int $departmentId, string $prefix, string $today, bool $isPriority = false): string
     {
         $queueNumbers = Queue::where('department_id', $departmentId)
             ->whereDate('booking_date', $today)
+            ->where('is_priority', $isPriority)
             ->whereNotNull('queue_number')
             ->pluck('queue_number');
 
@@ -149,7 +150,8 @@ class ScanQrCodeService
         });
 
         $nextNumber = $nums->isEmpty() ? 1 : $nums->max() + 1;
+        $finalPrefix = $isPriority ? 'P' : $prefix;
 
-        return $prefix.'-'.str_pad((string) $nextNumber, 3, '0', STR_PAD_LEFT);
+        return $finalPrefix.'-'.str_pad((string) $nextNumber, 3, '0', STR_PAD_LEFT);
     }
 }

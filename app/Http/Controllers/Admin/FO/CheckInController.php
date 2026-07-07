@@ -118,6 +118,14 @@ final class CheckInController extends Controller
         }
 
         try {
+            $isPriority = $request->has('is_priority');
+            if ($booking->user) {
+                $booking->user->is_priority = $isPriority;
+                $booking->user->save();
+            }
+            $booking->is_priority = $isPriority;
+            $booking->save();
+
             $queue = $this->checkInService->approveCheckIn($booking);
 
             // Simpan hanya ID queue ke session (bukan Eloquent object),

@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "77670ac2b9444bf0e2f59b38a5305e14",
+    "content-hash": "17fd6a9a4096467db88adcb7bee74336",
     "packages": [
         {
             "name": "barryvdh/laravel-dompdf",
@@ -8238,6 +8238,58 @@
                 }
             ],
             "time": "2026-04-26T05:33:54+00:00"
+        },
+        {
+            "name": "xul/laravel-project-map",
+            "version": "v1.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/Xultech-LTD/laravel-project-map.git",
+                "reference": "fb420ac91b48192815779305ad6663bcfd79a879"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/Xultech-LTD/laravel-project-map/zipball/fb420ac91b48192815779305ad6663bcfd79a879",
+                "reference": "fb420ac91b48192815779305ad6663bcfd79a879",
+                "shasum": ""
+            },
+            "require": {
+                "illuminate/support": "^11.0|^12.0|^13.0",
+                "php": "^8.2"
+            },
+            "require-dev": {
+                "orchestra/testbench": "^9.0|^10.0|^11.0",
+                "pestphp/pest": "3.8.6",
+                "phpunit/phpunit": "11.5.50"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "Xul\\ProjectMap\\ProjectMapServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Xul\\ProjectMap\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Michael Erastus"
+                }
+            ],
+            "description": "Laravel package for generating project structure maps",
+            "support": {
+                "issues": "https://github.com/Xultech-LTD/laravel-project-map/issues",
+                "source": "https://github.com/Xultech-LTD/laravel-project-map/tree/v1.0.0"
+            },
+            "time": "2026-03-24T11:28:04+00:00"
         }
     ],
     "packages-dev": [

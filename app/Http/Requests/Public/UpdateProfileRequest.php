@@ -28,6 +28,7 @@ final class UpdateProfileRequest extends FormRequest
             'phone_number' => ['required', 'string', 'regex:/^08[0-9]{8,13}$/'],
             'avatar' => ['nullable', 'image', 'mimes:jpeg,jpg,png', 'max:2048'],
             'ktp_photo' => ['nullable', 'image', 'mimes:jpeg,jpg,png', 'max:2048'],
+            'is_priority' => ['nullable', 'boolean'],
         ];
     }
 

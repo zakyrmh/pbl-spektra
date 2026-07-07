@@ -140,8 +140,12 @@
                                             class="px-4 py-4 font-mono font-bold text-primary dark:text-accent-teal text-title-sm shrink-0">
                                             {{ $bk->booking_code }}</td>
                                         <td class="px-4 py-4">
-                                            <div class="font-semibold text-ink dark:text-white text-body-sm">
-                                                {{ $bk->user ? $bk->user->name : 'Warga' }}</div>
+                                            <div class="font-semibold text-ink dark:text-white text-body-sm flex items-center gap-1.5">
+                                                {{ $bk->user ? $bk->user->name : 'Warga' }}
+                                                @if($bk->is_priority)
+                                                    <span class="inline-flex items-center gap-0.5 px-2 py-0.5 rounded bg-amber-500/10 text-amber-800 dark:text-accent-gold text-[10px] font-extrabold border border-amber-500/20 uppercase tracking-wider">Prioritas</span>
+                                                @endif
+                                            </div>
                                             <div class="text-caption text-muted dark:text-on-dark-soft font-mono mt-0.5">
                                                 NIK: {{ $bk->user ? $bk->user->nik : '-' }}</div>
                                         </td>
@@ -200,8 +204,12 @@
                                             class="px-4 py-4 font-mono font-bold text-primary dark:text-accent-teal text-title-sm shrink-0">
                                             {{ $bk->booking_code }}</td>
                                         <td class="px-4 py-4">
-                                            <div class="font-semibold text-ink dark:text-white text-body-sm">
-                                                {{ $bk->user ? $bk->user->name : 'Warga' }}</div>
+                                            <div class="font-semibold text-ink dark:text-white text-body-sm flex items-center gap-1.5">
+                                                {{ $bk->user ? $bk->user->name : 'Warga' }}
+                                                @if($bk->is_priority)
+                                                    <span class="inline-flex items-center gap-0.5 px-2 py-0.5 rounded bg-amber-500/10 text-amber-800 dark:text-accent-gold text-[10px] font-extrabold border border-amber-500/20 uppercase tracking-wider">Prioritas</span>
+                                                @endif
+                                            </div>
                                             <div class="text-caption text-muted dark:text-on-dark-soft font-mono mt-0.5">
                                                 NIK: {{ $bk->user ? $bk->user->nik : '-' }}</div>
                                         </td>

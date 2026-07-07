@@ -11,6 +11,7 @@
              keperluan: '{{ old('keperluan', '') }}',
              selectedDate: '{{ old('booking_date', '') }}',
              selectedSession: '{{ old('session_name', '') }}',
+             isPriority: @js($isUserPriority ?? false),
              
              get availableDates() {
                  if (!this.selectedDepartmentId) return [];
@@ -283,6 +284,11 @@
 
                         <template x-if="selectedDepartmentId">
                             <div class="space-y-4 text-sm font-body">
+                                <div x-show="isPriority" class="p-2.5 bg-amber-500/10 text-amber-800 dark:text-accent-gold border border-amber-500/20 rounded font-bold text-xs flex items-center gap-1.5 uppercase">
+                                    <svg class="w-4.5 h-4.5 text-amber-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                                    Layanan Prioritas Kelompok Rentan
+                                </div>
+
                                 <div>
                                     <span class="text-[10px] font-bold text-muted dark:text-on-dark-soft uppercase tracking-wider block font-display">Instansi</span>
                                     <span class="font-bold text-ink dark:text-white" x-text="selectedDepartment ? selectedDepartment.name : ''"></span>

@@ -26,6 +26,7 @@ class CalledQueueResource extends JsonResource
                 'nik' => $this->user?->nik ?? '-',
             ],
             'purpose' => $this->purpose ?? 'Layanan Umum',
+            'is_priority' => (bool) $this->is_priority,
         ];
     }
 }

@@ -409,4 +409,29 @@ class CheckInControllerTest extends TestCase
             'message' => 'Tiket ini sudah melakukan check-in.',
         ]);
     }
+
+    public function test_fo_admin_can_approve_checkin_and_update_priority(): void
+    {
+        $uuid = '550e8400-e29b-41d4-a716-446655440000';
+        $booking = Queue::create([
+            'user_id' => $this->citizen->id,
+            'department_id' => $this->department->id,
+            'booking_code' => $uuid,
+            'booking_date' => now()->toDateString(),
+            'status' => QueueStatus::Booked->value,
+            'purpose' => 'Cetak KTP-el',
+            'session_name' => 'Sesi 1',
+        ]);
+
+        $response = $this->actingAs($this->adminFo)->post(route('admin.fo.checkin.approve', $booking), [
+            'is_priority' => '1',
+        ]);
+
+        $response->assertRedirect(route('admin.fo.checkin'));
+        $booking->refresh();
+        $this->assertEquals(QueueStatus::CheckedIn->value, $booking->status->value ?? $booking->status);
+        $this->assertTrue((bool) $booking->is_priority);
+        $this->assertEquals('P-001', $booking->queue_number);
+        $this->assertTrue((bool) $this->citizen->fresh()->is_priority);
+    }
 }

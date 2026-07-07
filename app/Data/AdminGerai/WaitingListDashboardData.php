@@ -20,7 +20,8 @@ class WaitingListDashboardData
         public ?Carbon $checked_in_at,
         public ?Carbon $called_at,
         public ?string $cancel_reason,
-        public ?object $user
+        public ?object $user,
+        public bool $is_priority = false
     ) {}
 
     /**
@@ -47,7 +48,8 @@ class WaitingListDashboardData
             checked_in_at: $queue->checked_in_at ? Carbon::parse($queue->checked_in_at) : null,
             called_at: $queue->called_at ? Carbon::parse($queue->called_at) : null,
             cancel_reason: $queue->cancel_reason,
-            user: $userObj
+            user: $userObj,
+            is_priority: (bool) $queue->is_priority
         );
     }
 }

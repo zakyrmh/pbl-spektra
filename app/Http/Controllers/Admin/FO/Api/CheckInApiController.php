@@ -92,7 +92,8 @@ final class CheckInApiController extends Controller
                 nik: $request->input('nik'),
                 phone: $request->input('phone', '00000000000'),
                 purpose: $request->input('purpose'),
-                departmentId: (int) $request->input('department_id')
+                departmentId: (int) $request->input('department_id'),
+                isPriority: (bool) $request->input('is_priority', false)
             );
 
             $queue = $this->ticketService->issueTicket($dto);

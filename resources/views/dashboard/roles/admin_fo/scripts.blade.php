@@ -580,6 +580,8 @@
         phoneInput.disabled = true;
         document.getElementById('selWalkInDept').value = '';
         document.getElementById('txtWalkInPurpose').value = '';
+        const chkPriority = document.getElementById('chkWalkInPriority');
+        if (chkPriority) chkPriority.checked = false;
     }
 
     async function printWalkInTicket() {
@@ -628,7 +630,8 @@
                     name: name,
                     phone: phone,
                     department_id: deptId,
-                    purpose: purpose
+                    purpose: purpose,
+                    is_priority: document.getElementById('chkWalkInPriority').checked ? 1 : 0
                 })
             });
 

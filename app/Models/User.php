@@ -16,7 +16,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-#[Fillable(['name', 'nik', 'email', 'no_telp', 'phone_number', 'avatar_path', 'ktp_photo_path', 'password', 'role', 'department_id', 'is_active', 'last_login_at'])]
+#[Fillable(['name', 'nik', 'email', 'no_telp', 'phone_number', 'avatar_path', 'ktp_photo_path', 'password', 'role', 'is_priority', 'department_id', 'is_active', 'last_login_at'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable implements MustVerifyEmail
 {
@@ -38,6 +38,7 @@ class User extends Authenticatable implements MustVerifyEmail
             'last_login_at' => 'datetime',
             'password' => 'hashed',
             'is_active' => 'boolean',
+            'is_priority' => 'boolean',
             'role' => UserRole::class,
         ];
     }

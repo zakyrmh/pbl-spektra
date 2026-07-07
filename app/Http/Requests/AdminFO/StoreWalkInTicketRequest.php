@@ -30,6 +30,7 @@ class StoreWalkInTicketRequest extends FormRequest
             'nik' => ['nullable', 'string', 'digits:16'],
             'phone' => ['required', 'string', 'min:8', 'max:15'],
             'purpose' => ['required', 'string', 'min:5', 'max:500'],
+            'is_priority' => ['nullable', 'boolean'],
         ];
     }
 

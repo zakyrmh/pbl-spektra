@@ -376,7 +376,7 @@ Bebas Bug: Pengunjung tidak dapat mengirim ulasan ganda untuk satu tiket pelayan
     [x] Mendesain form rating interaktif bintang (1-5) dan komentar ulasan bagi pengunjung.
     [x] Menyusun dashboard analitik ulasan rata-rata kepuasan per instansi.
 
-## PWF-14: Sistem Antrean Prioritas untuk Kelompok Rentan (Lansia, Ibu Hamil, & Disabilitas) [USULAN BACKLOG]
+## PWF-14: Sistem Antrean Prioritas untuk Kelompok Rentan (Lansia, Ibu Hamil, & Disabilitas)
 
 ### Label: Backend, Frontend, Feature, Accessibility
 
@@ -394,40 +394,15 @@ Bebas Bug: Antrean prioritas terpanggil lebih dulu secara otomatis di atas nomor
 
 1. Database & Logic
 
-    [ ] Tambahkan kolom `is_priority` pada tabel queues dan model Queue.
-    [ ] Sesuaikan logika `callNext` di BoothOperationService.php agar memprioritaskan antrean kelompok rentan terlebih dahulu.
+    [x] Tambahkan kolom `is_priority` pada tabel queues dan model Queue.
+    [x] Sesuaikan logika `callNext` di BoothOperationService.php agar memprioritaskan antrean kelompok rentan terlebih dahulu.
 
 2. UI & Tiket
 
-    [ ] Tambahkan opsi pilihan "Kelompok Rentan/Prioritas" pada form pendaftaran online & walk-in.
-    [ ] Desain visual tiket thermal khusus prioritas dengan penanda teks tebal (contoh: "LOKET PRIORITAS - RAMAH LANSIA & DISABILITAS").
+    [x] Tambahkan opsi pilihan "Kelompok Rentan/Prioritas" pada form pendaftaran online & walk-in.
+    [x] Desain visual tiket thermal khusus prioritas dengan penanda teks tebal (contoh: "LOKET PRIORITAS - RAMAH LANSIA & DISABILITAS").
 
-## PWF-15: Integrasi WhatsApp Gateway untuk Pengiriman Tiket & Pengingat Panggilan [USULAN BACKLOG]
-
-### Label: Backend, Feature, Notification, Integration
-
-### Description:
-
-```
-Assignee: Zahwa Rahmadhania
-Description (DoD):
-Teknis: Mengintegrasikan gateway WA pihak ketiga untuk pengiriman detail karcis antrean dan notifikasi real-time ke HP warga.
-Bukti Fisik: Pesan WhatsApp masuk berisi kode booking ketika mendaftar, serta pesan saat nomor antrean hampir dipanggil.
-Bebas Bug: API gateway menangani kegagalan pengiriman (retry mechanism) dan tidak membebani performa request.
-```
-
-### Checklist Task
-
-1. API Integration
-
-    [ ] Hubungkan API WhatsApp Gateway pihak ketiga (misal: Fonnte, Wablas, atau Twilio).
-    [ ] Kirim pesan otomatis berisi kode booking & tautan tiket digital setelah registrasi berhasil.
-
-2. Caller Alert System
-
-    [ ] Mengirimkan pengingat WhatsApp otomatis saat nomor antrean terpaut 3 urutan sebelum dipanggil loket gerai.
-
-## PWF-16: Otomatisasi Penutupan Loket Harian (Auto-Reset Command) [USULAN BACKLOG]
+## PWF-15: Otomatisasi Penutupan Loket Harian (Auto-Reset Command) [USULAN BACKLOG]
 
 ### Label: Backend, Infrastructure, Automation
 
@@ -445,10 +420,10 @@ Bebas Bug: Seluruh status loket gerai di cache berhasil di-reset menjadi 'nonakt
 
 1. Console Command & Schedule
 
-    [ ] Buat Laravel Artisan Command `app:reset-booths-status` untuk mereset seluruh status loket di cache ke "nonaktif".
-    [ ] Daftarkan command di schedule harian (routes/console.php atau Kernel.php) untuk dijalankan setiap pukul 18.00 WIB.
+    [x] Buat Laravel Artisan Command `app:reset-booths-status` untuk mereset seluruh status loket di cache ke "nonaktif".
+    [x] Daftarkan command di schedule harian (routes/console.php atau Kernel.php) untuk dijalankan setiap pukul 18.00 WIB.
 
-## PWF-17: Monitor Antrean Multi-Bahasa & Suara Panggilan Inklusif [USULAN BACKLOG]
+## PWF-16: Monitor Antrean Multi-Bahasa & Suara Panggilan Inklusif [USULAN BACKLOG]
 
 ### Label: Frontend, Multimedia, Accessibility
 

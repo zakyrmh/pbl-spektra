@@ -261,6 +261,22 @@
                                     <span class="text-muted">Email</span>
                                     <span class="font-bold text-ink dark:text-white">{{ $bk->user->email }}</span>
                                 </div>
+                                <div class="flex justify-between items-center pt-2 border-t border-hairline-soft dark:border-white/5">
+                                    <span class="text-muted">Status Prioritas</span>
+                                    <div class="flex items-center gap-2">
+                                        @if($bk->user->is_priority)
+                                            <span class="px-2 py-0.5 bg-amber-500/10 text-amber-600 dark:text-amber-400 rounded-pill text-[11px] font-bold border border-amber-500/20">Prioritas</span>
+                                        @else
+                                            <span class="px-2 py-0.5 bg-slate-500/10 text-slate-600 dark:text-slate-400 rounded-pill text-[11px] font-bold border border-slate-500/10">Biasa (Non-Prioritas)</span>
+                                        @endif
+                                        <form action="{{ route('admin.fo.checkin.toggle-priority', $bk) }}" method="POST" class="inline">
+                                            @csrf
+                                            <button type="submit" class="text-xs text-primary hover:text-primary-hover dark:text-accent-teal dark:hover:text-accent-teal/80 font-semibold underline cursor-pointer ml-1">
+                                                Ubah
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 

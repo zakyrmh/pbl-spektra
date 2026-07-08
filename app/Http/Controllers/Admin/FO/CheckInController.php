@@ -164,4 +164,27 @@ final class CheckInController extends Controller
                 ->with('error', 'Gagal memproses penolakan: '.$e->getMessage());
         }
     }
+
+    /**
+     * Ubah status prioritas akun pengunjung secara instan.
+     * POST /fo/check-in/{booking}/toggle-priority
+     */
+    public function togglePriority(Queue $booking): RedirectResponse
+    {
+        $booking->loadMissing('user');
+
+        if ($booking->user) {
+            $booking->user->is_priority = ! $booking->user->is_priority;
+            $booking->user->save();
+
+            $booking->is_priority = $booking->user->is_priority;
+            $booking->save();
+        }
+
+        $statusLabel = $booking->is_priority ? 'Prioritas' : 'Biasa (Non-Prioritas)';
+
+        return redirect()->route('admin.fo.checkin')
+            ->with('booking_code_pending', $booking->booking_code)
+            ->with('success', "Status prioritas pengunjung berhasil diubah menjadi <strong>{$statusLabel}</strong>.");
+    }
 }

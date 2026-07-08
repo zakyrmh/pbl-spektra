@@ -175,6 +175,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/fo/check-in/verify', [CheckInController::class, 'verify'])->name('admin.fo.checkin.verify');
         Route::post('/fo/check-in/{booking}/approve', [CheckInController::class, 'approve'])->name('admin.fo.checkin.approve');
         Route::post('/fo/check-in/{booking}/reject', [CheckInController::class, 'reject'])->name('admin.fo.checkin.reject');
+        Route::post('/fo/check-in/{booking}/toggle-priority', [CheckInController::class, 'togglePriority'])->name('admin.fo.checkin.toggle-priority');
 
         // Pembatalan Booking
         Route::get('/fo/bookings', [BookingCancellationController::class, 'index'])->name('admin.fo.bookings.index');

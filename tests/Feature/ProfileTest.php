@@ -81,7 +81,7 @@ test('user can update profile and upload photos successfully', function () {
     ]);
 
     $response->assertRedirect(route('profile.edit'));
-    $response->assertSessionHas('status', 'Data profil berhasil diperbarui.');
+    $response->assertSessionHas('success', 'Data profil berhasil diperbarui.');
 
     $user->refresh();
     expect($user->name)->toBe('New Name');

@@ -12,32 +12,7 @@
         </div>
     </div>
 
-    <!-- Alert Success -->
-    @if(session('status'))
-        <div class="p-4 rounded-lg bg-green-50 dark:bg-green-950/20 text-green-700 dark:text-green-400 border border-green-200/50 flex items-center gap-3 animate-fade-in">
-            <svg class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <p class="text-sm font-semibold">{{ session('status') }}</p>
-        </div>
-    @endif
 
-    <!-- Alert Validation Errors -->
-    @if($errors->any())
-        <div class="p-4 rounded-lg bg-rose-50 dark:bg-rose-950/20 text-rose-700 dark:text-rose-400 border border-rose-200/50 space-y-2">
-            <div class="flex items-center gap-3">
-                <svg class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                </svg>
-                <p class="text-sm font-semibold">Terdapat beberapa kesalahan input:</p>
-            </div>
-            <ul class="list-disc list-inside text-xs pl-8 space-y-1">
-                @foreach ($errors->all() as $error)
-                    <li>{{ $error }}</li>
-                @endforeach
-            </ul>
-        </div>
-    @endif
 
     <!-- Main Content Grid -->
     <form action="{{ route('profile.update') }}" method="POST" enctype="multipart/form-data" class="grid grid-cols-1 lg:grid-cols-12 gap-6">
@@ -210,4 +185,16 @@
         </div>
     </form>
 </div>
+
+@if($errors->any())
+    @push('scripts')
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                @foreach ($errors->all() as $error)
+                    showToast('Gagal', "{{ $error }}", 'error');
+                @endforeach
+            });
+        </script>
+    @endpush
+@endif
 @endsection

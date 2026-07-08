@@ -40,6 +40,6 @@ final class ProfileController extends Controller
 
         return redirect()
             ->route('profile.edit')
-            ->with('status', 'Data profil berhasil diperbarui.');
+            ->with('success', 'Data profil berhasil diperbarui.');
     }
 }

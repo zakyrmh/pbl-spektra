@@ -19,11 +19,11 @@ class DashboardController extends Controller
     {
         $today = Carbon::today()->toDateString();
 
-        $departments = Department::with('counters')->get();
+        $departments = Department::all();
 
         $recentQueues = QueueModel::query()
-            ->whereDate('queue_date', $today)
-            ->with(['booking.user', 'visitor', 'service.department', 'counter.department'])
+            ->whereDate('booking_date', $today)
+            ->with(['user', 'department'])
             ->latest()
             ->take(8)
             ->get();

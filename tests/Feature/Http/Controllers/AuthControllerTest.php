@@ -35,7 +35,7 @@ test('user can log in with valid credentials', function () {
         'password' => $password,
     ]);
 
-    $response->assertRedirect('/dashboard');
+    $response->assertRedirect(route('admin_fo.dashboard'));
 
     // Assert authentication
     expect(Auth::check())->toBeTrue();
@@ -72,7 +72,7 @@ test('user can log in with valid NIK', function () {
         'password' => $password,
     ]);
 
-    $response->assertRedirect('/dashboard');
+    $response->assertRedirect(route('admin_fo.dashboard'));
 
     // Assert authentication
     expect(Auth::check())->toBeTrue();

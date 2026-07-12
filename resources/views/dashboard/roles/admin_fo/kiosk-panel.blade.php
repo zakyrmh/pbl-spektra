@@ -74,6 +74,15 @@
                 class="w-full bg-surface-soft dark:bg-white/5 border border-hairline dark:border-white/10 text-ink dark:text-white rounded-md p-3 text-sm focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-accent-teal"></textarea>
         </div>
 
+        <!-- Priority Checkbox -->
+        <div class="flex items-center gap-2 py-1.5 select-none">
+            <input type="checkbox" id="chkWalkInPriority" value="1"
+                   class="w-4.5 h-4.5 text-primary dark:text-accent-teal border-hairline rounded focus:ring-primary dark:focus:ring-accent-teal cursor-pointer">
+            <label for="chkWalkInPriority" class="text-xs font-bold text-ink dark:text-white cursor-pointer select-none">
+                Pengunjung Prioritas (Kelompok Rentan)
+            </label>
+        </div>
+
         <div class="pt-2">
             <button type="button" onclick="printWalkInTicket()"
                 class="w-full h-11 bg-primary hover:bg-primary-hover text-white font-semibold rounded-pill text-xs transition-all focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-accent-teal cursor-pointer shadow-md">

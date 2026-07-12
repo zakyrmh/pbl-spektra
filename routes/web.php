@@ -2,7 +2,7 @@
 
 use App\Http\Controllers\Admin\ComplaintController;
 use App\Http\Controllers\Admin\FO\Api\CheckInApiController;
-use App\Http\Controllers\Admin\FO\Api\ScanQrCodeAction;
+use App\Http\Controllers\Admin\FO\Api\ScanQrCodeController;
 use App\Http\Controllers\Admin\FO\BookingCancellationController;
 use App\Http\Controllers\Admin\FO\CheckInController;
 use App\Http\Controllers\Admin\FO\ReportController;
@@ -10,11 +10,9 @@ use App\Http\Controllers\Admin\FO\WalkInTicketController;
 use App\Http\Controllers\AdminGerai\CounterController;
 use App\Http\Controllers\AdminGerai\DaftarTungguController;
 use App\Http\Controllers\AdminGerai\LogPelayananController;
-// PapanPanggilController deprecated — functionality merged into CounterController/admin_gerai dashboard
-// ScheduleController deprecated — Schedule model deleted
-use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Public\AuthController;
 use App\Http\Controllers\Public\BookingController;
+use App\Http\Controllers\Public\DashboardController;
 use App\Http\Controllers\Public\FeedbackController;
 use App\Http\Controllers\Public\GuideController;
 use App\Http\Controllers\Public\HelpCenterController;
@@ -79,9 +77,14 @@ Route::post('/email/verification-notification', [AuthController::class, 'resend'
 Route::middleware('auth')->group(function () {
 
     // Dashboard Utama (dispatcher ke controller per-role)
-    Route::get('/dashboard', [DashboardController::class, 'index'])
-        ->middleware('verified')
-        ->name('dashboard');
+    Route::get('/dashboard', function () {
+        return redirect()->to(get_dashboard_url());
+    })->middleware('verified')->name('dashboard');
+
+    // Dashboard Pengunjung
+    Route::middleware('role:pengunjung')->group(function () {
+        Route::get('/visitor/dashboard', [DashboardController::class, 'index'])->name('visitor.dashboard');
+    });
 
     // Pusat Notifikasi
     Route::get('/notifikasi', [NotificationController::class, 'index'])
@@ -117,6 +120,7 @@ Route::middleware('auth')->group(function () {
     // Super Admin Routes
     // ─────────────────────────────────────────────────────────────────────────
     Route::middleware('role:super_admin')->group(function () {
+        Route::get('/superadmin/dashboard', [App\Http\Controllers\SuperAdmin\DashboardController::class, 'index'])->name('superadmin.dashboard');
 
         // ── Manajemen Pengguna ────────────────────────────────────────────
         Route::get('/manajemen-pengguna', [UserController::class, 'index'])->name('users.index');
@@ -161,6 +165,7 @@ Route::middleware('auth')->group(function () {
     // Admin FO Routes
     // ─────────────────────────────────────────────────────────────────────────
     Route::middleware('role:admin_fo')->group(function () {
+        Route::get('/fo/dashboard', [App\Http\Controllers\Admin\FO\DashboardController::class, 'index'])->name('admin_fo.dashboard');
 
         // Monitor FO
         Route::get('/fo/monitor', [QueueMonitorController::class, 'index'])->name('admin.fo.monitor');
@@ -170,6 +175,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/fo/check-in/verify', [CheckInController::class, 'verify'])->name('admin.fo.checkin.verify');
         Route::post('/fo/check-in/{booking}/approve', [CheckInController::class, 'approve'])->name('admin.fo.checkin.approve');
         Route::post('/fo/check-in/{booking}/reject', [CheckInController::class, 'reject'])->name('admin.fo.checkin.reject');
+        Route::post('/fo/check-in/{booking}/toggle-priority', [CheckInController::class, 'togglePriority'])->name('admin.fo.checkin.toggle-priority');
 
         // Pembatalan Booking
         Route::get('/fo/bookings', [BookingCancellationController::class, 'index'])->name('admin.fo.bookings.index');
@@ -189,7 +195,7 @@ Route::middleware('auth')->group(function () {
         // ── API Endpoints FO (AJAX/Fetch) ─────────────────────────────────
         Route::get('/api/fo/bookings/verify', [CheckInApiController::class, 'verify'])->name('api.fo.bookings.verify');
         Route::post('/api/fo/bookings/{booking}/checkin', [CheckInApiController::class, 'checkIn'])->name('api.fo.bookings.checkin');
-        Route::post('/api/fo/scan-qr', ScanQrCodeAction::class)->name('api.fo.scan-qr');
+        Route::post('/api/fo/scan-qr', ScanQrCodeController::class)->name('api.fo.scan-qr');
         Route::post('/api/fo/queues/walkin', [CheckInApiController::class, 'walkIn'])->name('api.fo.queues.walkin');
         Route::get('/api/fo/visitors/check-nik', [CheckInApiController::class, 'checkNik'])->name('api.fo.visitors.check-nik');
         Route::get('/api/fo/notifications', [CheckInApiController::class, 'notifications'])->name('api.fo.notifications.index');
@@ -200,25 +206,29 @@ Route::middleware('auth')->group(function () {
     // Admin Gerai Routes
     // ─────────────────────────────────────────────────────────────────────────
     Route::middleware('role:admin_gerai')->group(function () {
+        Route::get('/admin/dashboard', [App\Http\Controllers\AdminGerai\DashboardController::class, 'index'])->name('admin_gerai.dashboard');
 
         // ── Daftar Tunggu ─────────────────────────────────────────────────
-        Route::get('/admin/daftar-tunggu', [DaftarTungguController::class, 'index'])->name('admin.daftar-tunggu');
-        Route::post('/admin/daftar-tunggu/{booking}/check-in', [DaftarTungguController::class, 'checkIn'])->name('admin.daftar-tunggu.check-in');
-        Route::post('/admin/daftar-tunggu/{booking}/restore', [DaftarTungguController::class, 'restore'])->name('admin.daftar-tunggu.restore');
-        Route::post('/admin/daftar-tunggu/{booking}/cancel', [DaftarTungguController::class, 'cancel'])->name('admin.daftar-tunggu.cancel');
+        Route::get('/admin/daftar-tunggu', [DaftarTungguController::class, 'index'])->name('admin_gerai.daftar-tunggu');
+        Route::post('/admin/daftar-tunggu/{booking}/check-in', [DaftarTungguController::class, 'checkIn'])->name('admin_gerai.daftar-tunggu.check-in');
+        Route::post('/admin/daftar-tunggu/{booking}/restore', [DaftarTungguController::class, 'restore'])->name('admin_gerai.daftar-tunggu.restore');
+        Route::post('/admin/daftar-tunggu/{booking}/cancel', [DaftarTungguController::class, 'cancel'])->name('admin_gerai.daftar-tunggu.cancel');
 
         // ── Log Pelayanan ─────────────────────────────────────────────────
-        Route::get('/admin/log-pelayanan', [LogPelayananController::class, 'index'])->name('admin.log-pelayanan');
-        Route::get('/admin/log-pelayanan/export', [LogPelayananController::class, 'export'])->name('admin.log-pelayanan.export');
+        Route::get('/admin/log-pelayanan', [LogPelayananController::class, 'index'])->name('admin_gerai.log-pelayanan');
+        Route::get('/admin/log-pelayanan/export', [LogPelayananController::class, 'export'])->name('admin_gerai.log-pelayanan.export');
+
+        // ── Papan Panggil ─────────────────────────────────────────────────
+        Route::get('/admin/papan-panggil', [CounterController::class, 'dashboard'])->name('admin_gerai.papan-panggil');
 
         // ── API Endpoints Gerai ───────────────────────────────────────────
-        Route::post('/api/counter/status', [CounterController::class, 'updateStatus'])->name('gerai.status');
-        Route::post('/api/department/toggle-status', [CounterController::class, 'toggleDepartmentStatus'])->name('gerai.department.toggle');
-        Route::post('/api/queues/call-next', [CounterController::class, 'callNext'])->name('gerai.call-next');
-        Route::post('/api/queues/{queue}/call', [CounterController::class, 'callQueue'])->name('gerai.call');
-        Route::post('/api/queues/{queue}/finish', [CounterController::class, 'finishService'])->name('gerai.finish');
-        Route::post('/api/queues/{queue}/skip', [CounterController::class, 'skipQueue'])->name('gerai.skip');
-        Route::post('/api/queues/{queue}/forward', [CounterController::class, 'forwardQueue'])->name('gerai.forward');
+        Route::post('/api/counter/status', [CounterController::class, 'updateStatus'])->name('admin_gerai.status');
+        Route::post('/api/department/toggle-status', [CounterController::class, 'toggleDepartmentStatus'])->name('admin_gerai.department.toggle');
+        Route::post('/api/queues/call-next', [CounterController::class, 'callNext'])->name('admin_gerai.call-next');
+        Route::post('/api/queues/{queue}/call', [CounterController::class, 'callQueue'])->name('admin_gerai.call');
+        Route::post('/api/queues/{queue}/finish', [CounterController::class, 'finishService'])->name('admin_gerai.finish');
+        Route::post('/api/queues/{queue}/skip', [CounterController::class, 'skipQueue'])->name('admin_gerai.skip');
+        Route::post('/api/queues/{queue}/forward', [CounterController::class, 'forwardQueue'])->name('admin_gerai.forward');
     });
 
     // Logout
@@ -230,8 +240,13 @@ Route::middleware('auth')->group(function () {
 | Test Email Route (Hanya untuk testing lokal)
 |--------------------------------------------------------------------------
 */
-Route::get('/test-mail', function () {
-    Mail::to('zaxxyyramadhan@gmail.com')->send(new TestEmail);
+if (app()->environment('local')) {
+    Route::get('/test-mail', function () {
+        // Gunakan config daripada hardcoded email
+        $recipient = config('mail.test_recipient', config('mail.from.address'));
 
-    return 'Email terkirim!';
-});
+        Mail::to($recipient)->send(new TestEmail);
+
+        return 'Test email berhasil dikirim ke: '.$recipient;
+    })->name('test.mail');
+}

@@ -19,7 +19,9 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
     'booking_date',
     'queue_number',
     'status',
+    'is_priority',
     'cancel_reason',
+    'visit_notes',
     'checked_in_at',
     'called_at',
     'cancelled_at',
@@ -36,6 +38,7 @@ class Queue extends Model
             'called_at' => 'datetime',
             'cancelled_at' => 'datetime',
             'completed_at' => 'datetime',
+            'is_priority' => 'boolean',
         ];
     }
 

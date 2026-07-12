@@ -7,13 +7,11 @@
 
     <title>@yield('title', config('app.name', 'MPP Kota Sawahlunto'))</title>
 
-    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Geist:wght@100..900&family=Geist+Mono:wght@100..900&display=swap"
         rel="stylesheet">
 
-    <!-- Styles / Scripts -->
     <script>
         if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
             document.documentElement.classList.add('dark');
@@ -77,7 +75,7 @@
             document.body.removeChild(textArea);
         }
 
-        function showSuccessToast(message) {
+        function showToast(title, message, type = 'success') {
             let container = document.getElementById('custom-toast-container');
             if (!container) {
                 container = document.createElement('div');
@@ -85,42 +83,57 @@
                 container.className = 'fixed bottom-6 right-6 z-50 flex flex-col gap-3 max-w-sm w-full pointer-events-none';
                 document.body.appendChild(container);
             }
-            
+
             const toast = document.createElement('div');
-            toast.className = 'flex items-center gap-3 p-4 rounded-lg shadow-xl border border-hairline dark:border-white/10 bg-white dark:bg-gray-800 border-l-4 border-green-500 max-w-sm pointer-events-auto transition-all duration-300 transform translate-y-2 opacity-0';
+            let borderClr = '';
+            let bgClr = 'bg-slate-900 text-white';
+            let iconHtml = '';
+
+            if (type === 'success') {
+                borderClr = 'border-l-4 border-emerald-500';
+                iconHtml = `<svg class="w-5 h-5 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>`;
+            } else if (type === 'warning') {
+                borderClr = 'border-l-4 border-amber-500';
+                iconHtml = `<svg class="w-5 h-5 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>`;
+            } else if (type === 'danger' || type === 'error') {
+                borderClr = 'border-l-4 border-red-500';
+                iconHtml = `<svg class="w-5 h-5 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>`;
+            } else {
+                borderClr = 'border-l-4 border-blue-500';
+                iconHtml = `<svg class="w-5 h-5 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>`;
+            }
+
+            toast.className = `flex items-start gap-3 p-4 rounded-xl shadow-2xl border border-white/10 ${bgClr} ${borderClr} max-w-sm pointer-events-auto transition-all duration-300 transform translate-y-2 opacity-0`;
             toast.innerHTML = `
-                <div class="shrink-0">
-                    <svg class="w-5 h-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                </div>
+                <div class="shrink-0">${iconHtml}</div>
                 <div class="flex-grow">
-                    <p class="text-xs font-bold text-ink dark:text-white font-display">${message}</p>
+                    <p class="text-xs font-bold font-display">${title}</p>
+                    <p class="text-[11px] text-gray-300 mt-1 font-body leading-relaxed">${message}</p>
                 </div>
-                <button onclick="this.parentElement.remove()" class="shrink-0 text-gray-400 hover:text-gray-600 dark:hover:text-white transition-colors">
+                <button onclick="this.parentElement.remove()" class="shrink-0 text-gray-400 hover:text-white transition-colors cursor-pointer">
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
                 </button>
             `;
             container.appendChild(toast);
-            
-            // Animate in
+
             setTimeout(() => {
                 if (toast.isConnected) {
                     toast.classList.remove('translate-y-2', 'opacity-0');
                 }
             }, 50);
-            
-            // Auto remove
+
             setTimeout(() => {
                 if (toast.isConnected) {
                     toast.classList.add('opacity-0', 'translate-y-[-10px]');
                     setTimeout(() => {
-                        if (toast.isConnected) {
-                            toast.remove();
-                        }
+                        if (toast.isConnected) toast.remove();
                     }, 300);
                 }
-            }, 3000);
+            }, 4000);
+        }
+
+        function showSuccessToast(message) {
+            showToast('Sukses', message, 'success');
         }
 
         // Pull to Refresh feature for mobile/touch devices
@@ -141,7 +154,6 @@
 
             if (!ptr || !ptrIndicator || !ptrIcon || !ptrSpinner || !ptrText) return;
 
-            // Find the active scroll container dynamically based on touch event target
             function getScrollContainer(target) {
                 let el = target;
                 while (el && el !== document.body && el !== document.documentElement) {
@@ -190,7 +202,7 @@
 
                     if (y >= threshold) {
                         ptrText.innerText = 'Lepaskan untuk memperbarui';
-                        ptrIcon.style.color = '#10B981'; // Green color when trigger is reached
+                        ptrIcon.style.color = '#10B981';
                     } else {
                         ptrText.innerText = 'Tarik untuk memperbarui';
                         ptrIcon.style.color = '';
@@ -226,6 +238,76 @@
             });
         });
     </script>
+
+    @if(session('success') || session('status') || session('error') || session('warning') || session('info'))
+    @php
+        $toastType = 'info';
+        $toastMessage = '';
+        
+        if (session('success')) {
+            $toastType = 'success';
+            $toastMessage = session('success');
+        } elseif (session('status')) {
+            $toastType = 'success';
+            $toastMessage = session('status');
+        } elseif (session('error')) {
+            $toastType = 'error';
+            $toastMessage = session('error');
+        } elseif (session('warning')) {
+            $toastType = 'warning';
+            $toastMessage = session('warning');
+        } elseif (session('info')) {
+            $toastType = 'info';
+            $toastMessage = session('info');
+        }
+    @endphp
+    <div
+        x-data="{ show: true }"
+        x-init="setTimeout(() => show = false, 4000)"
+        x-show="show"
+        x-transition:enter="transition ease-out duration-300"
+        x-transition:enter-start="opacity-0 translate-y-2 sm:translate-y-0 sm:translate-x-2"
+        x-transition:enter-end="opacity-100 translate-y-0 sm:translate-x-0"
+        x-transition:leave="transition ease-in duration-200"
+        x-transition:leave-start="opacity-100"
+        x-transition:leave-end="opacity-0"
+        class="fixed bottom-5 right-5 z-9999 max-w-sm w-full bg-canvas dark:bg-surface-dark-elevated border border-hairline dark:border-white/10 text-ink dark:text-white rounded-lg shadow-lg p-4 flex items-start gap-3"
+        style="display: none;"
+    >
+        <div class="shrink-0 mt-0.5">
+            @if($toastType === 'success')
+                <svg class="w-5 h-5 text-accent-teal" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+            @elseif($toastType === 'error')
+                <svg class="w-5 h-5 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+            @elseif($toastType === 'warning')
+                <svg class="w-5 h-5 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+            @else
+                <svg class="w-5 h-5 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+            @endif
+        </div>
+
+        <div class="flex-1">
+            <p class="text-xs font-semibold leading-relaxed">
+                {!! $toastMessage !!}
+            </p>
+        </div>
+
+        <button @click="show = false" class="text-muted hover:text-ink dark:text-on-dark-soft dark:hover:text-white transition-colors cursor-pointer shrink-0">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+        </button>
+    </div>
+    @endif
+
     @stack('scripts')
 </body>
 

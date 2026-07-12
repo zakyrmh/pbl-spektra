@@ -5,6 +5,14 @@
 @section('base_content')
 <div class="min-h-screen bg-surface-dark text-white flex flex-col justify-between overflow-hidden p-6 font-display">
     
+    <!-- Floating Audio Status Banner -->
+    <div id="audio-status-banner" onclick="enableAudio()" class="fixed top-6 left-1/2 -translate-x-1/2 z-50 bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs md:text-sm px-6 py-3 rounded-full shadow-lg border border-amber-400 flex items-center gap-3 cursor-pointer transition-all active:scale-95 animate-pulse">
+        <svg class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19.114 5.636a9 9 0 010 12.728M16.463 8.288a5.25 5.25 0 010 7.424M6.75 8.25l4.72-4.72a.75.75 0 011.28.53v15.88a.75.75 0 01-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.01 9.01 0 012.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75z" />
+        </svg>
+        <span>Klik untuk Mengaktifkan Suara Panggilan</span>
+    </div>
+
     <!-- Header Monitor -->
     <div class="flex items-center justify-between border-b border-white/10 pb-4">
         <div class="flex items-center gap-4">
@@ -31,36 +39,38 @@
         @php
             $activeQueue = $department->queues->first();
         @endphp
-        <div class="bg-surface-dark-elevated rounded-xl border border-white/5 p-6 flex flex-col justify-between shadow-lg relative overflow-hidden transition-all duration-500 hover:border-white/15" data-counter-id="{{ $department->id }}">
+        <div class="counter-card bg-surface-dark-elevated rounded-xl border border-white/5 p-6 flex flex-col justify-between shadow-lg relative overflow-hidden transition-all duration-500 hover:border-white/15" data-counter-id="{{ $department->id }}">
             
             <!-- Loket Meta -->
             <div>
                 <div class="flex items-center justify-between">
-                    <span class="text-xs font-bold text-on-dark-soft uppercase tracking-wider">{{ $department->name }}</span>
+                    <span class="dept-name text-xs font-bold text-on-dark-soft uppercase tracking-wider">{{ $department->name }}</span>
                     @if($department->status->value === 'istirahat')
-                        <span class="px-2 py-0.5 bg-amber-500/10 text-amber-400 border border-amber-500/20 text-[9px] font-bold rounded-md">Istirahat</span>
+                        <span class="status-badge px-2 py-0.5 bg-amber-500/10 text-amber-400 border border-amber-500/20 text-[9px] font-bold rounded-md">Istirahat</span>
                     @elseif($department->status->value === 'tutup' || $department->status->value === 'nonaktif')
-                        <span class="px-2 py-0.5 bg-rose-500/10 text-rose-400 border border-rose-500/20 text-[9px] font-bold rounded-md">Tutup</span>
+                        <span class="status-badge px-2 py-0.5 bg-rose-500/10 text-rose-400 border border-rose-500/20 text-[9px] font-bold rounded-md">Tutup</span>
                     @else
-                        <span class="px-2 py-0.5 bg-green-500/10 text-green-400 border border-green-500/20 text-[9px] font-bold rounded-md">Aktif</span>
+                        <span class="status-badge px-2 py-0.5 bg-green-500/10 text-green-400 border border-green-500/20 text-[9px] font-bold rounded-md">Aktif</span>
                     @endif
                 </div>
-                <h3 class="text-base font-bold text-white mt-1">Loket {{ $department->nomor_loket }}</h3>
+                <h3 class="loket-title text-base font-bold text-white mt-1">Loket {{ $department->nomor_loket }}</h3>
             </div>
 
             <!-- Giant Active Number -->
-            <div class="py-6 flex flex-col items-center justify-center text-center">
+            <div class="active-number-container py-6 flex flex-col items-center justify-center text-center">
                 <span class="text-[10px] font-bold text-on-dark-soft uppercase tracking-wider">Nomor Antrean</span>
-                <span class="text-5xl md:text-6xl font-extrabold text-accent-teal font-mono tracking-tight my-2 active-number" data-current-val="{{ $activeQueue ? $activeQueue->queue_number : '-' }}">
+                <span class="text-5xl md:text-6xl font-extrabold text-accent-teal font-mono tracking-tight my-2 active-number" 
+                      data-current-val="{{ $activeQueue ? $activeQueue->queue_number : '-' }}"
+                      data-called-at="{{ $activeQueue && $activeQueue->called_at ? $activeQueue->called_at->toIso8601String() : '' }}">
                     {{ $activeQueue ? $activeQueue->queue_number : '-' }}
                 </span>
-                <span class="text-[9px] px-2 py-0.5 rounded-md bg-white/5 text-on-dark-soft border border-white/5 uppercase font-semibold">
+                <span class="status-pill text-[9px] px-2 py-0.5 rounded-md bg-white/5 text-on-dark-soft border border-white/5 uppercase font-semibold">
                     {{ $activeQueue ? 'Sedang Dilayani' : 'Kosong' }}
                 </span>
             </div>
 
             <!-- Background subtle watermark -->
-            <div class="absolute -right-4 -bottom-4 opacity-[0.02] pointer-events-none">
+            <div class="watermark absolute -right-4 -bottom-4 opacity-[0.02] pointer-events-none">
                 <svg class="w-32 h-32" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-6h2v6zm0-8h-2V7h2v2z" />
                 </svg>
@@ -102,6 +112,96 @@
     @keyframes glowPulse {
         0%, 100% { text-shadow: 0 0 0px rgba(41, 171, 226, 0); transform: scale(1); }
         50% { text-shadow: 0 0 15px rgba(41, 171, 226, 0.6); transform: scale(1.08); color: #FFFFFF; }
+    }
+
+    /* CSS Grid Layout for TV Monitor (Fit viewport, no scrollbar) */
+    @media (min-width: 1024px) {
+        #monitorGrid {
+            display: grid !important;
+            grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
+            grid-template-rows: repeat(5, minmax(0, 1fr)) !important;
+            gap: 0.75rem !important;
+            height: calc(100vh - 165px) !important;
+            overflow: hidden !important;
+            padding-top: 0.5rem !important;
+            padding-bottom: 0.5rem !important;
+        }
+
+        /* Default Card Styling for compact grid */
+        .counter-card {
+            padding: 0.75rem !important;
+            border-radius: 0.75rem !important;
+            height: 100% !important;
+        }
+
+        .counter-card .dept-name {
+            font-size: 0.65rem !important;
+            display: -webkit-box;
+            -webkit-line-clamp: 1;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .counter-card .loket-title {
+            font-size: 0.85rem !important;
+            margin-top: 0.125rem !important;
+        }
+
+        .counter-card .active-number-container {
+            padding: 0.5rem 0 !important;
+        }
+
+        .counter-card .active-number {
+            font-size: 2.25rem !important;
+            margin: 0.25rem 0 !important;
+        }
+
+        .counter-card .status-pill {
+            font-size: 8px !important;
+            padding: 0.125rem 0.375rem !important;
+        }
+
+        .counter-card .watermark {
+            display: none !important;
+        }
+
+        /* Featured (First Child) Card Styling */
+        #monitorGrid > :first-child {
+            grid-column: span 2 !important;
+            grid-row: span 2 !important;
+            padding: 1.25rem !important;
+            background-color: rgba(15, 23, 42, 0.95) !important;
+            border-color: rgba(41, 171, 226, 0.5) !important;
+            box-shadow: 0 0 25px rgba(41, 171, 226, 0.25) !important;
+        }
+
+        #monitorGrid > :first-child .dept-name {
+            font-size: 0.85rem !important;
+            -webkit-line-clamp: 2 !important;
+        }
+
+        #monitorGrid > :first-child .loket-title {
+            font-size: 1.25rem !important;
+            margin-top: 0.25rem !important;
+        }
+
+        #monitorGrid > :first-child .active-number-container {
+            padding: 1.5rem 0 !important;
+        }
+
+        #monitorGrid > :first-child .active-number {
+            font-size: 5rem !important;
+            margin: 0.5rem 0 !important;
+        }
+
+        #monitorGrid > :first-child .status-pill {
+            font-size: 10px !important;
+            padding: 0.25rem 0.75rem !important;
+        }
+
+        #monitorGrid > :first-child .watermark {
+            display: block !important;
+        }
     }
 </style>
 
@@ -146,19 +246,18 @@
     function announceQueue(queueNumber, counterName) {
         if (!('speechSynthesis' in window)) return;
 
-        // Clean queue number reading (e.g. read "A-005" as "A kosong kosong lima" or "A lima")
-        // Separate letters and numbers for clearer speech
+        // Clean queue number reading (e.g. BNR-001 -> B N R, kosong kosong satu)
         const parts = queueNumber.split('-');
         let numberText = '';
         if (parts.length > 1) {
-            const letter = parts[0];
+            const letter = parts[0].split('').join(' '); // B N R
             const digits = parts[1].split('').map(d => d === '0' ? 'kosong' : d).join(' ');
             numberText = `${letter}, ${digits}`;
         } else {
             numberText = queueNumber;
         }
 
-        // Format: "Nomor antrean A, kosong kosong lima. Silakan menuju Loket 01"
+        // Format: "Nomor antrean B N R, kosong kosong satu. Silakan menuju Loket 01"
         const cleanCounterName = counterName.replace('Loket', 'Loket ');
         const text = `Nomor antrean. ${numberText}. Silakan menuju. ${cleanCounterName}.`;
 
@@ -187,7 +286,8 @@
         const id = card.getAttribute('data-counter-id');
         const numSpan = card.querySelector('.active-number');
         const numberVal = numSpan ? numSpan.getAttribute('data-current-val') : '-';
-        lastServingState[id] = numberVal;
+        const calledAtVal = numSpan ? numSpan.getAttribute('data-called-at') : null;
+        lastServingState[id] = { number: numberVal, called_at: calledAtVal };
     });
 
     // AJAX Polling
@@ -209,45 +309,66 @@
                     
                     if (card) {
                         const numSpan = card.querySelector('.active-number');
-                        const statusBadge = card.querySelector('span[class*="border-"]');
-                        const statusPill = card.querySelector('span[class*="bg-white/5"]');
+                        const statusBadge = card.querySelector('.status-badge') || card.querySelector('span[class*="border-"]');
+                        const statusPill = card.querySelector('.status-pill') || card.querySelector('span[class*="bg-white/5"]');
                         
                         // Check if status changed
                         if (c.status === 'istirahat') {
-                            statusBadge.className = 'px-2 py-0.5 bg-amber-500/10 text-amber-400 border border-amber-500/20 text-[9px] font-bold rounded-md';
+                            statusBadge.className = 'status-badge px-2 py-0.5 bg-amber-500/10 text-amber-400 border border-amber-500/20 text-[9px] font-bold rounded-md';
                             statusBadge.textContent = 'Istirahat';
                         } else if (c.status === 'nonaktif') {
-                            statusBadge.className = 'px-2 py-0.5 bg-rose-500/10 text-rose-400 border border-rose-500/20 text-[9px] font-bold rounded-md';
+                            statusBadge.className = 'status-badge px-2 py-0.5 bg-rose-500/10 text-rose-400 border border-rose-500/20 text-[9px] font-bold rounded-md';
                             statusBadge.textContent = 'Tutup';
                         } else {
-                            statusBadge.className = 'px-2 py-0.5 bg-green-500/10 text-green-400 border border-green-500/20 text-[9px] font-bold rounded-md';
+                            statusBadge.className = 'status-badge px-2 py-0.5 bg-green-500/10 text-green-400 border border-green-500/20 text-[9px] font-bold rounded-md';
                             statusBadge.textContent = 'Aktif';
                         }
 
-                        // Check if queue number changed
-                        const oldNum = lastServingState[c.counter_id] || '-';
+                        // Check if queue number or called_at changed
+                        const oldState = lastServingState[c.counter_id] || { number: '-', called_at: null };
                         const newNum = c.active_number;
+                        const newCalledAt = c.called_at;
 
-                        if (oldNum !== newNum) {
-                            lastServingState[c.counter_id] = newNum;
+                        const isNewCall = oldState.number !== newNum;
+                        const isRecall = oldState.number === newNum && newNum !== '-' && oldState.called_at !== newCalledAt;
+
+                        if (isNewCall || isRecall) {
+                            lastServingState[c.counter_id] = { number: newNum, called_at: newCalledAt };
                             numSpan.textContent = newNum;
                             numSpan.setAttribute('data-current-val', newNum);
+                            numSpan.setAttribute('data-called-at', newCalledAt || '');
                             
                             if (newNum !== '-') {
                                 statusPill.textContent = 'Sedang Dilayani';
                                 
-                                // Glow animation
+                                // Glow animation (force restart)
+                                numSpan.classList.remove('glow-pulse');
+                                void numSpan.offsetWidth; // force reflow
                                 numSpan.classList.add('glow-pulse');
                                 setTimeout(() => {
                                     numSpan.classList.remove('glow-pulse');
                                 }, 8000); // Pulse for 8 seconds
 
-                                // Announce newly called number!
+                                // Announce newly called/recalled number!
                                 announceQueue(newNum, c.counter_name);
                             } else {
                                 statusPill.textContent = 'Kosong';
                             }
+                        } else {
+                            // Ensure display stays in sync even if not announced
+                            if (numSpan.textContent !== newNum) {
+                                numSpan.textContent = newNum;
+                                numSpan.setAttribute('data-current-val', newNum);
+                            }
+                            if (newNum !== '-') {
+                                statusPill.textContent = 'Sedang Dilayani';
+                            } else {
+                                statusPill.textContent = 'Kosong';
+                            }
                         }
+
+                        // Reorder DOM card: append to end of grid to maintain dynamic sorted order
+                        grid.appendChild(card);
                     }
                 });
             })
@@ -262,12 +383,54 @@
         }
     }
 
-    // Click anywhere to enable Web Audio (browsers block autoplay sounds/speech until click)
+    function enableAudio() {
+        // Play chime sound once to unlock
+        playSound();
+        
+        // Hide banner
+        const banner = document.getElementById('audio-status-banner');
+        if (banner) {
+            banner.remove();
+        }
+        
+        // Synthesize confirmation voice
+        if ('speechSynthesis' in window) {
+            const utterance = new SpeechSynthesisUtterance('Suara panggilan aktif');
+            utterance.lang = 'id-ID';
+            utterance.rate = 1.0;
+            const voices = window.speechSynthesis.getVoices();
+            const idVoice = voices.find(voice => voice.lang.includes('id'));
+            if (idVoice) utterance.voice = idVoice;
+            window.speechSynthesis.speak(utterance);
+        }
+    }
+
+    // Click anywhere on body also enables audio
     document.body.addEventListener('click', () => {
-        console.log("Audio contexts enabled.");
+        enableAudio();
     }, { once: true });
 
-    // Poll every 5 seconds (REQ-6.2)
-    setInterval(pollDisplayData, 5000);
+    // Listen to real-time WebSocket events using Laravel Echo
+    if (window.Echo) {
+        window.Echo.channel('queue-tracker')
+            .listen('.queue.called', (e) => {
+                console.log('Real-time: Queue called event received', e);
+                pollDisplayData();
+            })
+            .listen('.queue.created', (e) => {
+                console.log('Real-time: Queue created event received', e);
+                pollDisplayData();
+            })
+            .listen('.queue.finished', (e) => {
+                console.log('Real-time: Queue finished event received', e);
+                pollDisplayData();
+            });
+        console.log("WebSockets active: listening on 'queue-tracker' channel.");
+    } else {
+        console.warn("Laravel Echo not found. Falling back to polling.");
+    }
+
+    // Poll every 3 seconds as a fallback
+    setInterval(pollDisplayData, 3000);
 </script>
 @endpush

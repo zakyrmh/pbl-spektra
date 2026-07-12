@@ -111,7 +111,7 @@ class CheckInService
                 }
             }
 
-            $queueNumber = $this->generateQueueNumber($department, $today);
+            $queueNumber = $this->generateQueueNumber($department, $today, (bool) $booking->is_priority);
 
             // Update status + set booking_date ke hari ini (tanggal check-in sebenarnya)
             // agar query gerai (whereDate('booking_date', today)) dapat menemukan antrean ini.
@@ -174,10 +174,11 @@ class CheckInService
     /**
      * Generate queue number berdasarkan department & tanggal.
      */
-    public function generateQueueNumber(Department $department, string $today): string
+    public function generateQueueNumber(Department $department, string $today, bool $isPriority = false): string
     {
         $queueNumbers = Queue::where('department_id', $department->id)
             ->whereDate('booking_date', $today)
+            ->where('is_priority', $isPriority)
             ->whereNotNull('queue_number')
             ->lockForUpdate()
             ->pluck('queue_number')
@@ -188,7 +189,7 @@ class CheckInService
             });
 
         $nextNumber = $queueNumbers->isEmpty() ? 1 : $queueNumbers->max() + 1;
-        $prefix = $department->inisial ?: 'Q';
+        $prefix = $isPriority ? 'P' : ($department->inisial ?: 'Q');
 
         return $prefix.'-'.str_pad((string) $nextNumber, 3, '0', STR_PAD_LEFT);
     }

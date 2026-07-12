@@ -21,6 +21,7 @@ class ProfileService
             'phone_number' => $user->phone_number,
             'avatar_path' => $user->avatar_path,
             'ktp_photo_path' => $user->ktp_photo_path,
+            'is_priority' => $user->is_priority,
         ];
 
         // Update fields if provided
@@ -31,6 +32,9 @@ class ProfileService
         if (isset($data['phone_number'])) {
             $user->phone_number = $data['phone_number'];
         }
+
+        // Update priority status
+        $user->is_priority = (bool) ($data['is_priority'] ?? false);
 
         // Handle Avatar upload
         if (isset($data['avatar']) && $data['avatar'] instanceof UploadedFile) {
@@ -59,6 +63,7 @@ class ProfileService
             'phone_number' => $user->phone_number,
             'avatar_path' => $user->avatar_path,
             'ktp_photo_path' => $user->ktp_photo_path,
+            'is_priority' => $user->is_priority,
         ];
 
         // Audit Trail logging

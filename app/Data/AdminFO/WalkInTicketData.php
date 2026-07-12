@@ -13,7 +13,8 @@ class WalkInTicketData
         public string $name,
         public ?string $nik,
         public string $phone,
-        public string $purpose
+        public string $purpose,
+        public bool $isPriority = false
     ) {}
 
     /**
@@ -26,7 +27,8 @@ class WalkInTicketData
             name: trim($request->string('name')->toString()),
             nik: $request->filled('nik') ? trim($request->string('nik')->toString()) : null,
             phone: trim($request->string('phone')->toString()),
-            purpose: trim($request->string('purpose')->toString())
+            purpose: trim($request->string('purpose')->toString()),
+            isPriority: (bool) $request->input('is_priority', false)
         );
     }
 }

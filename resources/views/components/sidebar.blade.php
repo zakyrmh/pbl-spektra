@@ -4,7 +4,7 @@
     $menu = [];
     if ($role === 'pengunjung') {
         $menu = [
-            ['title' => 'Dashboard', 'url' => route('dashboard'), 'icon' => 'home'],
+            ['title' => 'Dashboard', 'url' => route('visitor.dashboard'), 'icon' => 'home'],
             ['title' => 'Ambil Antrean', 'url' => route('booking.create'), 'icon' => 'ticket'],
             ['title' => 'Riwayat Antrean', 'url' => route('booking.index'), 'icon' => 'clock'],
             ['title' => 'Panduan Layanan', 'url' => '#', 'icon' => 'book-open'],
@@ -12,7 +12,7 @@
         ];
     } elseif ($role === 'admin_fo') {
         $menu = [
-            ['title' => 'Dashboard', 'url' => route('dashboard'), 'icon' => 'home'],
+            ['title' => 'Dashboard', 'url' => route('admin_fo.dashboard'), 'icon' => 'home'],
             ['title' => 'Monitor Antrean', 'url' => route('admin.fo.monitor'), 'icon' => 'tv'],
             ['title' => 'Pencetakan Tiket', 'url' => route('admin.fo.ticket.create'), 'icon' => 'printer'],
             ['title' => 'Verifikasi & Check-In', 'url' => route('admin.fo.checkin'), 'icon' => 'check-circle'],
@@ -20,13 +20,14 @@
         ];
     } elseif ($role === 'admin_gerai') {
         $menu = [
-            ['title' => 'Dashboard Gerai', 'url' => route('dashboard'), 'icon' => 'home'],
-            ['title' => 'Daftar Tunggu Gerai', 'url' => route('admin.daftar-tunggu'), 'icon' => 'users'],
-            ['title' => 'Log Pelayanan', 'url' => route('admin.log-pelayanan'), 'icon' => 'clipboard-list'],
+            ['title' => 'Dashboard Gerai', 'url' => route('admin_gerai.dashboard'), 'icon' => 'home'],
+            ['title' => 'Papan Panggil (Loket)', 'url' => route('admin_gerai.papan-panggil'), 'icon' => 'tv'],
+            ['title' => 'Daftar Tunggu Gerai', 'url' => route('admin_gerai.daftar-tunggu'), 'icon' => 'users'],
+            ['title' => 'Log Pelayanan', 'url' => route('admin_gerai.log-pelayanan'), 'icon' => 'clipboard-list'],
         ];
     } elseif ($role === 'super_admin') {
         $menu = [
-            ['title' => 'Dashboard Utama', 'url' => route('dashboard'), 'icon' => 'home'],
+            ['title' => 'Dashboard Utama', 'url' => route('superadmin.dashboard'), 'icon' => 'home'],
             ['title' => 'Manajemen Pengguna', 'url' => route('users.index'), 'icon' => 'users'],
             ['title' => 'Konfigurasi Gerai', 'url' => route('config.index'), 'icon' => 'settings'],
             ['title' => 'Pengaduan Warga', 'url' => route('admin.complaints.index'), 'icon' => 'clipboard-list'],
@@ -53,7 +54,7 @@
     
     {{-- Brand & Toggle Header --}}
     <div class="flex items-center mb-8 shrink-0" :class="sidebarMinimized ? 'flex-col gap-4 justify-center' : 'justify-between px-3'">
-        <a href="{{ route('dashboard') }}"
+        <a href="{{ get_dashboard_url() }}"
             class="flex items-center gap-2.5 hover:opacity-90 transition-opacity focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-accent-teal rounded-md">
             <img x-show="!sidebarMinimized" src="{{ asset('images/Logo Mal Pelayanan Publik Kota Sawahlunto.webp') }}" alt="Logo MPP Sawahlunto"
                 class="h-8 object-contain">

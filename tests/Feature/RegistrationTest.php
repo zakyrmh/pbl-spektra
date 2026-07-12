@@ -185,7 +185,9 @@ test('verified user can access dashboard', function () {
 
     $response = $this->actingAs($user)->get(route('dashboard'));
 
-    $response->assertStatus(200);
+    $response->assertRedirect(route('visitor.dashboard'));
+
+    $this->actingAs($user)->get(route('visitor.dashboard'))->assertStatus(200);
 });
 
 test('unverified user is rejected during login', function () {
@@ -222,7 +224,7 @@ test('verified user can login successfully', function () {
         'password' => 'password123',
     ]);
 
-    $response->assertRedirect('/dashboard');
+    $response->assertRedirect(route('visitor.dashboard'));
     expect(Auth::check())->toBeTrue();
 });
 
@@ -239,7 +241,7 @@ test('user can verify email with valid signed url', function () {
 
     $response = $this->get($verificationUrl);
 
-    $response->assertRedirect('/dashboard');
+    $response->assertRedirect(route('visitor.dashboard'));
 
     // Assert user is verified in DB
     $user->refresh();

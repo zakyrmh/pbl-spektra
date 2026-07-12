@@ -15,8 +15,8 @@
         </div>
         <div class="flex flex-wrap items-center gap-3">
             <button onclick="window.location.reload()" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-pill text-xs font-semibold border border-hairline dark:border-white/10 bg-canvas dark:bg-surface-dark-elevated hover:bg-surface-soft dark:hover:bg-white/5 text-ink dark:text-white transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-accent-teal">
-                <svg class="w-4 h-4 text-primary dark:text-accent-teal" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.21 7.89H18" />
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4 shrink-0 text-primary dark:text-accent-teal">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
                 </svg>
                 <span>Refresh Data</span>
             </button>
@@ -125,7 +125,7 @@
                     <p class="text-[10px] font-bold text-muted dark:text-on-dark-soft uppercase tracking-wider font-display">Total Gerai Aktif</p>
                     <h3 id="statGeraiAktif" class="text-3xl font-extrabold text-ink dark:text-white mt-2 transition-all font-mono">{{ $activeGerai }} <span class="text-lg font-medium text-muted">/ {{ $totalGerai }}</span></h3>
                 </div>
-                <div class="p-3 bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 rounded-lg border border-purple-200/50">
+                <div class="p-3 bg-accent-teal/10 text-accent-teal rounded-lg border border-accent-teal/20">
                     <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                     </svg>
@@ -133,9 +133,9 @@
             </div>
             <div class="mt-4 flex items-center gap-1.5 text-xs text-muted dark:text-on-dark-soft relative z-10">
                 <div class="w-full bg-surface-soft dark:bg-gray-700 h-1.5 rounded-full overflow-hidden">
-                    <div class="bg-purple-600 h-full rounded-full" style="width: {{ $geraiPercentage }}%"></div>
+                    <div class="bg-accent-teal h-full rounded-full" style="width: {{ $geraiPercentage }}%"></div>
                 </div>
-                <span class="shrink-0 text-[10px] font-bold text-purple-600 dark:text-purple-400">{{ $geraiPercentage }}% Buka</span>
+                <span class="shrink-0 text-[10px] font-bold text-accent-teal">{{ $geraiPercentage }}% Buka</span>
             </div>
         </div>
     </div>
@@ -143,7 +143,7 @@
     <!-- Charts Section -->
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
         <!-- Line Chart: Tren Kedatangan -->
-        <div class="lg:col-span-7 bg-canvas dark:bg-surface-dark-elevated p-6 rounded-lg border border-hairline dark:border-white/10 shadow-sm flex flex-col justify-between">
+        <div class="lg:col-span-7 bg-canvas dark:bg-surface-dark-elevated p-6 rounded-lg border border-hairline dark:border-white/10 shadow-sm flex flex-col justify-between min-w-0">
             <div class="flex items-center justify-between mb-4">
                 <div>
                     <h3 class="font-bold text-ink dark:text-white font-display">Tren Kedatangan Pengunjung</h3>
@@ -151,26 +151,28 @@
                 </div>
                 <div class="flex items-center gap-3">
                     <div class="flex items-center gap-1">
-                        <span class="w-2.5 h-2.5 rounded-full inline-block" style="background:#1B4FA8"></span>
+                        <span class="w-2.5 h-2.5 rounded-full inline-block bg-primary dark:bg-blue-500"></span>
                         <span class="text-[10px] text-muted font-bold uppercase font-display">Online</span>
                     </div>
                     <div class="flex items-center gap-1">
-                        <span class="w-2.5 h-2.5 rounded-full inline-block" style="background:#29ABE2"></span>
+                        <span class="w-2.5 h-2.5 rounded-full inline-block bg-accent-teal"></span>
                         <span class="text-[10px] text-muted font-bold uppercase font-display">On-site</span>
                     </div>
                 </div>
             </div>
-            <div id="chartTrenKedatangan" class="w-full h-80 min-h-[320px]"></div>
+            <div class="relative w-full h-80 min-h-[320px] overflow-hidden">
+                <div id="chartTrenKedatangan" class="absolute inset-0 w-full h-full"></div>
+            </div>
         </div>
 
         <!-- Bar Chart: Top Gerai -->
-        <div class="lg:col-span-5 bg-canvas dark:bg-surface-dark-elevated p-6 rounded-lg border border-hairline dark:border-white/10 shadow-sm flex flex-col">
+        <div class="lg:col-span-5 bg-canvas dark:bg-surface-dark-elevated p-6 rounded-lg border border-hairline dark:border-white/10 shadow-sm flex flex-col min-w-0">
             <div>
                 <h3 class="font-bold text-ink dark:text-white font-display">Top Gerai Terpadat</h3>
                 <p class="text-xs text-muted dark:text-on-dark-soft mt-0.5 font-body">Instansi dengan volume antrean tertinggi hari ini</p>
             </div>
-            <div class="flex-1 flex items-center justify-center">
-                <div id="chartTopGerai" class="w-full h-80 min-h-[320px]"></div>
+            <div class="flex-1 flex items-center justify-center relative w-full h-80 min-h-[320px] overflow-hidden">
+                <div id="chartTopGerai" class="absolute inset-0 w-full h-full"></div>
             </div>
         </div>
     </div>
@@ -238,12 +240,12 @@
                                 // Status kepadatan loket
                                 if ($totalLiveAntrean >= 15) {
                                     $statusLabel = 'Padat';
-                                    $statusClass = 'bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400 border border-rose-200/50';
-                                    $dotClass    = 'bg-rose-500 animate-pulse';
+                                    $statusClass = 'bg-status-skipped/10 dark:bg-status-skipped/25 text-status-skipped border border-status-skipped/25';
+                                    $dotClass    = 'bg-status-skipped animate-pulse';
                                   } elseif ($totalLiveAntrean >= 4) {
                                       $statusLabel = 'Lancar';
-                                      $statusClass = 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 border border-emerald-200/50';
-                                      $dotClass    = 'bg-emerald-500';
+                                      $statusClass = 'bg-status-serving/10 dark:bg-status-serving/25 text-status-serving border border-status-serving/25';
+                                      $dotClass    = 'bg-status-serving';
                                   } else {
                                       $statusLabel = 'Kosong';
                                       $statusClass = 'bg-surface-soft dark:bg-white/5 text-muted dark:text-on-dark-soft border border-hairline dark:border-white/5';
@@ -393,6 +395,27 @@
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         // Apex Chart: Tren Kedatangan Pengunjung
+        const onlineData = @json($chartTrenData['online']);
+        const onsiteData = @json($chartTrenData['onsite']);
+        
+        // Filter out null/undefined values to compute max robustly
+        const validValues = [...onlineData, ...onsiteData].filter(v => v !== null && v !== undefined);
+        const maxVal = validValues.length > 0 ? Math.max(...validValues) : 0;
+        
+        let tickAmount = 5;
+        let yaxisMax = undefined;
+        
+        if (maxVal === 0) {
+            yaxisMax = 5;
+            tickAmount = 5;
+        } else if (maxVal <= 5) {
+            yaxisMax = maxVal + 1;
+            tickAmount = maxVal + 1;
+        } else {
+            yaxisMax = Math.ceil((maxVal + 1) / 5) * 5;
+            tickAmount = 5;
+        }
+
         const chartTrenOptions = {
             chart: {
                 type: 'area',
@@ -415,14 +438,17 @@
                     stops: [0, 90, 100]
                 }
             },
-            colors: ['#1B4FA8', '#29ABE2'], // primary, accent-teal
+            colors: [
+                document.documentElement.classList.contains('dark') ? '#3b82f6' : '#1B4FA8', 
+                '#29ABE2'
+            ], // primary (or blue-500 in dark mode), accent-teal
             dataLabels: { enabled: false },
             series: [{
                 name: 'Booking Online',
-                data: @json($chartTrenData['online'])
+                data: onlineData
             }, {
                 name: 'On-site (Langsung)',
-                data: @json($chartTrenData['onsite'])
+                data: onsiteData
             }],
             xaxis: {
                 categories: @json($chartTrenData['categories']),
@@ -437,28 +463,64 @@
                 }
             },
             yaxis: {
+                min: 0,
+                max: yaxisMax,
+                tickAmount: tickAmount,
                 labels: {
                     style: {
                         colors: '#9ca3af',
                         fontSize: '11px',
                         fontWeight: 600
+                    },
+                    formatter: function(val) {
+                        return Math.round(val);
                     }
+                }
+            },
+            markers: {
+                size: 4,
+                colors: [
+                    document.documentElement.classList.contains('dark') ? '#3b82f6' : '#1B4FA8', 
+                    '#29ABE2'
+                ],
+                strokeColors: '#fff',
+                strokeWidth: 2,
+                hover: {
+                    size: 6,
                 }
             },
             grid: {
                 borderColor: document.documentElement.classList.contains('dark') ? '#374151' : '#f1f5f9',
                 strokeDashArray: 4,
-                xaxis: { lines: { show: true } }
+                xaxis: { lines: { show: true } },
+                padding: {
+                    right: 45,
+                    left: 10
+                }
             },
             legend: { show: false },
             theme: {
                 mode: document.documentElement.classList.contains('dark') ? 'dark' : 'light'
+            },
+            tooltip: {
+                theme: document.documentElement.classList.contains('dark') ? 'dark' : 'light',
+                shared: true,
+                intersect: false,
+                y: {
+                    formatter: function (val) {
+                        return val + " Pengunjung";
+                    }
+                }
             }
         };
         const chartTren = new ApexCharts(document.querySelector("#chartTrenKedatangan"), chartTrenOptions);
         chartTren.render();
 
         // Apex Chart: Top Gerai Terpadat
+        const topValues = @json($chartTopGeraiData['values']);
+        const topLabels = @json($chartTopGeraiData['labels']);
+        const maxTopVal = Math.max(...topValues);
+
         const chartTopOptions = {
             chart: {
                 type: 'bar',
@@ -471,35 +533,50 @@
                 bar: {
                     horizontal: true,
                     borderRadius: 6,
+                    borderRadiusApplication: 'end',
                     barHeight: '55%',
-                    distributed: true
+                    distributed: false
                 }
             },
-            colors: ['#DC2626', '#D97706', '#1B4FA8', '#059669', '#29ABE2'], // skipped, waiting, primary, serving, teal
+            colors: ['#1B4FA8'], // Base color
+            fill: {
+                type: 'gradient',
+                gradient: {
+                    shade: 'dark',
+                    type: 'horizontal',
+                    shadeIntensity: 0.5,
+                    gradientToColors: ['#29ABE2'], // Gradient end color (accent-teal)
+                    inverseColors: false,
+                    opacityFrom: 0.95,
+                    opacityTo: 0.85,
+                    stops: [0, 100]
+                }
+            },
             dataLabels: {
                 enabled: true,
                 textAnchor: 'start',
+                offsetX: 12,
                 style: {
-                    colors: ['#fff'],
+                    colors: [document.documentElement.classList.contains('dark') ? '#ffffff' : '#111827'],
                     fontWeight: 700,
                     fontSize: '11px'
                 },
                 formatter: function (val, opt) {
-                    return val + " Antrean";
-                },
-                offsetX: 8
+                    return val > 0 ? val + " Antrean" : "";
+                }
             },
             series: [{
                 name: 'Volume Antrean',
-                data: @json($chartTopGeraiData['values'])
+                data: topValues
             }],
             xaxis: {
-                categories: @json($chartTopGeraiData['labels']),
+                categories: topLabels,
                 axisBorder: { show: false },
                 axisTicks: { show: false },
                 labels: {
                     show: false
-                }
+                },
+                max: Math.max(maxTopVal, 5) // Set dynamic max to avoid giant bars for small numbers
             },
             yaxis: {
                 labels: {
@@ -515,7 +592,15 @@
                 strokeDashArray: 4,
                 yaxis: { lines: { show: false } }
             },
-            legend: { show: false }
+            legend: { show: false },
+            tooltip: {
+                theme: document.documentElement.classList.contains('dark') ? 'dark' : 'light',
+                y: {
+                    formatter: function(val) {
+                        return val + " Antrean";
+                    }
+                }
+            }
         };
         const chartTop = new ApexCharts(document.querySelector("#chartTopGerai"), chartTopOptions);
         chartTop.render();
@@ -525,11 +610,22 @@
             const isDark = document.documentElement.classList.contains('dark');
             chartTren.updateOptions({
                 theme: { mode: isDark ? 'dark' : 'light' },
-                grid: { borderColor: isDark ? '#374151' : '#f1f5f9' }
+                grid: { borderColor: isDark ? '#374151' : '#f1f5f9' },
+                tooltip: { theme: isDark ? 'dark' : 'light' },
+                colors: [isDark ? '#3b82f6' : '#1B4FA8', '#29ABE2'],
+                markers: {
+                    colors: [isDark ? '#3b82f6' : '#1B4FA8', '#29ABE2']
+                }
             });
             chartTop.updateOptions({
                 theme: { mode: isDark ? 'dark' : 'light' },
-                grid: { borderColor: isDark ? '#374151' : '#f1f5f9' }
+                grid: { borderColor: isDark ? '#374151' : '#f1f5f9' },
+                tooltip: { theme: isDark ? 'dark' : 'light' },
+                dataLabels: {
+                    style: {
+                        colors: [isDark ? '#ffffff' : '#111827']
+                    }
+                }
             });
         });
         observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });

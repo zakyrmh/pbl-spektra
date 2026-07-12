@@ -77,7 +77,7 @@
                         <td class="py-3 px-6 text-right">
                             @if ($status === 'Waiting' || $status === 'Checked-In' || $status === 'Booked')
                                 <button type="button"
-                                    @click="openCancelModal('{{ route('admin.fo.bookings.cancel', $q->id) }}', '{{ $q->booking_code ?? $q->queue_number }}', '{{ $q->user ? addslashes($q->user->name) : 'Walk-In Citizen' }}', '{{ addslashes($q->service?->name ?? ($q->counter?->name ?? '-')) }}')"
+                                    @click="openCancelModal('{{ route('admin.fo.bookings.cancel', $q->id) }}', '{{ $q->booking_code ?? $q->queue_number }}', '{{ $q->user ? addslashes($q->user->name) : 'Walk-In Citizen' }}', '{{ addslashes($q->purpose) }}')"
                                     class="h-8 px-3.5 bg-red-50 hover:bg-red-100 text-red-600 dark:bg-red-950/20 dark:hover:bg-red-950/40 dark:text-red-400 border border-red-200/60 dark:border-red-900/40 text-[10px] font-bold rounded-pill inline-flex items-center gap-1 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-red-500/20 transition-all cursor-pointer">
                                     <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24"
                                         stroke="currentColor" stroke-width="2.5">

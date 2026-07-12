@@ -22,11 +22,7 @@
         @endif
         <div class="flex items-center justify-end gap-3 border-t border-hairline-soft dark:border-white/5 pt-3">
             <button onclick="openEditGeraiModal({{ json_encode($dept) }})" class="inline-flex items-center justify-center h-10 px-4 text-xs font-semibold text-primary dark:text-accent-teal bg-primary/5 hover:bg-primary/10 dark:bg-accent-teal/5 dark:hover:bg-accent-teal/10 rounded-pill transition-all cursor-pointer">Edit</button>
-            <form action="{{ route('config.departments.destroy', $dept) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus Gerai ini? Semua loket dan layanan terkait akan ikut terhapus.')">
-                @csrf
-                @method('DELETE')
-                <button type="submit" class="inline-flex items-center justify-center h-10 px-4 text-xs font-semibold text-status-skipped bg-status-skipped/5 hover:bg-status-skipped/10 rounded-pill transition-all cursor-pointer border-0">Hapus</button>
-            </form>
+            <button type="button" onclick="openDeleteGeraiModal('{{ route('config.departments.destroy', $dept) }}', '{{ addslashes($dept->name) }}')" class="inline-flex items-center justify-center h-10 px-4 text-xs font-semibold text-red-500 bg-red-500/5 hover:bg-red-500/10 rounded-pill transition-all cursor-pointer">Hapus</button>
         </div>
     </div>
     @empty

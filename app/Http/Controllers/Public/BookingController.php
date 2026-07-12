@@ -52,6 +52,7 @@ final class BookingController extends Controller
             'schedules' => [],
             'sessions' => ['Sesi 1', 'Sesi 2'],
             'hasActiveBooking' => $hasActiveBooking,
+            'isUserPriority' => (bool) Auth::user()->is_priority,
         ]);
     }
 

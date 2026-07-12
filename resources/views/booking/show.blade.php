@@ -62,12 +62,22 @@
                         <div class="text-queue-number font-bold text-primary dark:text-accent-teal font-mono tracking-tight leading-none my-1">
                             {{ $booking->queue_number }}
                         </div>
+                        @if($booking->is_priority)
+                            <div class="mb-2.5 text-xs font-extrabold text-amber-600 dark:text-accent-gold uppercase tracking-wider font-display">
+                                🌟 Antrean Prioritas Kelompok Rentan
+                            </div>
+                        @endif
                         <div class="inline-flex items-center gap-1.5 px-3 py-1 bg-status-serving/12 text-[#065F46] dark:text-green-400 rounded-pill text-[13px] font-medium border border-status-serving/20">
                             <span class="w-2 h-2 rounded-full bg-status-serving animate-ping"></span>
                             Telah Terkonfirmasi FO
                         </div>
                     @else
                         <span class="text-[10px] font-bold text-muted dark:text-on-dark-soft uppercase tracking-wider block font-display">Status Booking</span>
+                        @if($booking->is_priority)
+                            <div class="mb-2.5 text-xs font-extrabold text-amber-600 dark:text-accent-gold uppercase tracking-wider font-display">
+                                🌟 Booking Prioritas Kelompok Rentan
+                            </div>
+                        @endif
                         <div class="inline-flex items-center gap-1.5 px-3 py-1 bg-status-waiting/12 text-[#92400E] dark:text-amber-400 rounded-pill text-[13px] font-medium border border-status-waiting/20">
                             <span class="w-2 h-2 rounded-full bg-status-waiting animate-pulse"></span>
                             Menunggu Check-In FO

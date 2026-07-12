@@ -30,6 +30,7 @@ class ApiStoreWalkInTicketRequest extends FormRequest
             'purpose' => ['required', 'string', 'max:255'],
             'department_id' => ['required', 'exists:departments,id'],
             'phone' => ['required', 'string', 'regex:/^(08[0-9]{8,13}|\+628[0-9]{8,11})$/'],
+            'is_priority' => ['nullable', 'boolean'],
         ];
     }
 }

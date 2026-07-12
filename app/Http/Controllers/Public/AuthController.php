@@ -59,7 +59,7 @@ final class AuthController extends Controller
             return back()->withErrors($e->errors())->onlyInput('email');
         }
 
-        return redirect()->intended('/dashboard');
+        return redirect()->intended(get_dashboard_url());
     }
 
     /**
@@ -150,7 +150,7 @@ final class AuthController extends Controller
             /** @var User $user */
             $user = Auth::user();
             if ($user->hasVerifiedEmail()) {
-                return redirect('/dashboard');
+                return redirect(get_dashboard_url());
             }
             $email = $user->email;
             session(['unverified_email' => $email]);
@@ -177,7 +177,7 @@ final class AuthController extends Controller
 
         $this->authService->verify($user, $hash);
 
-        return redirect('/dashboard')->with('success', 'Email Anda berhasil diverifikasi. Selamat datang di dashboard!');
+        return redirect(get_dashboard_url())->with('success', 'Email Anda berhasil diverifikasi. Selamat datang di dashboard!');
     }
 
     /**
@@ -192,7 +192,7 @@ final class AuthController extends Controller
         } catch (ValidationException $e) {
             return redirect()->route('login')->withErrors($e->errors());
         } catch (\RuntimeException $e) {
-            return redirect('/dashboard')->with('success', $e->getMessage());
+            return redirect(get_dashboard_url())->with('success', $e->getMessage());
         }
 
         return back()->with('status', 'verification-link-sent');

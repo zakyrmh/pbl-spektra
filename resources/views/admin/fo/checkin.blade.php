@@ -38,49 +38,7 @@
          FLASH ALERTS
     ═══════════════════════════════════════════════════════════════ --}}
 
-        {{-- Success --}}
-        @if (session('success'))
-            <div class="flex items-start gap-3 p-4 bg-status-serving/10 border border-status-serving/30 rounded-lg"
-                role="alert" id="alert-success">
-                <svg class="w-5 h-5 text-status-serving shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24"
-                    stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round"
-                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <div class="flex-1 min-w-0">
-                    <p class="text-sm font-semibold text-status-serving font-display">Check-In Berhasil</p>
-                    <p class="text-sm text-green-800 dark:text-green-300 font-body mt-0.5">{!! session('success') !!}</p>
-                </div>
-                <button onclick="this.closest('[role=alert]').remove()"
-                    class="shrink-0 text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-200 transition-colors cursor-pointer">
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                </button>
-            </div>
-        @endif
 
-        {{-- Error --}}
-        @if (session('error'))
-            <div class="flex items-start gap-3 p-4 bg-status-skipped/10 border border-status-skipped/30 rounded-lg"
-                role="alert" id="alert-error">
-                <svg class="w-5 h-5 text-status-skipped shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24"
-                    stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round"
-                        d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <div class="flex-1 min-w-0">
-                    <p class="text-sm font-semibold text-status-skipped font-display">Data Tidak Ditemukan</p>
-                    <p class="text-sm text-red-800 dark:text-red-300 font-body mt-0.5">{!! session('error') !!}</p>
-                </div>
-                <button onclick="this.closest('[role=alert]').remove()"
-                    class="shrink-0 text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-200 transition-colors cursor-pointer">
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                </button>
-            </div>
-        @endif
 
         {{-- Warning (status sudah diproses) --}}
         @if (session('warning'))
@@ -303,6 +261,22 @@
                                     <span class="text-muted">Email</span>
                                     <span class="font-bold text-ink dark:text-white">{{ $bk->user->email }}</span>
                                 </div>
+                                <div class="flex justify-between items-center pt-2 border-t border-hairline-soft dark:border-white/5">
+                                    <span class="text-muted">Status Prioritas</span>
+                                    <div class="flex items-center gap-2">
+                                        @if($bk->user->is_priority)
+                                            <span class="px-2 py-0.5 bg-amber-500/10 text-amber-600 dark:text-amber-400 rounded-pill text-[11px] font-bold border border-amber-500/20">Prioritas</span>
+                                        @else
+                                            <span class="px-2 py-0.5 bg-slate-500/10 text-slate-600 dark:text-slate-400 rounded-pill text-[11px] font-bold border border-slate-500/10">Biasa (Non-Prioritas)</span>
+                                        @endif
+                                        <form action="{{ route('admin.fo.checkin.toggle-priority', $bk) }}" method="POST" class="inline">
+                                            @csrf
+                                            <button type="submit" class="text-xs text-primary hover:text-primary-hover dark:text-accent-teal dark:hover:text-accent-teal/80 font-semibold underline cursor-pointer ml-1">
+                                                Ubah
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
@@ -344,8 +318,18 @@
                         </button>
 
                         {{-- Button Setujui --}}
-                        <form action="{{ route('admin.fo.checkin.approve', $bk) }}" method="POST">
+                        <form action="{{ route('admin.fo.checkin.approve', $bk) }}" method="POST" class="w-full sm:w-auto flex flex-col sm:flex-row items-center gap-4">
                             @csrf
+                            
+                            {{-- Checkbox prioritas yang di-verify FO --}}
+                            <div class="flex items-center gap-2 bg-surface-soft dark:bg-white/5 border border-hairline dark:border-white/10 px-4 py-2.5 rounded-lg select-none">
+                                <input type="checkbox" id="is_priority" name="is_priority" value="1" {{ old('is_priority', $bk->user->is_priority) ? 'checked' : '' }}
+                                       class="w-4.5 h-4.5 text-primary dark:text-accent-teal border-hairline rounded focus:ring-primary dark:focus:ring-accent-teal cursor-pointer">
+                                <label for="is_priority" class="text-xs font-bold text-ink dark:text-white cursor-pointer select-none">
+                                    Verifikasi Pengunjung Prioritas
+                                </label>
+                            </div>
+
                             <button type="submit"
                                 class="w-full sm:w-auto h-11 px-8 bg-status-serving hover:bg-green-700 text-white font-bold rounded-pill text-xs shadow-md transition-all cursor-pointer flex items-center justify-center gap-2">
                                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
@@ -402,6 +386,11 @@
                         <div class="text-5xl sm:text-6xl font-extrabold text-primary dark:text-accent-teal tracking-tight font-mono">
                             {{ $queue->queue_number ?? '-' }}
                         </div>
+                        @if($queue && $queue->is_priority)
+                            <div class="mt-2 text-xs font-extrabold text-amber-600 dark:text-accent-gold uppercase tracking-wider font-display">
+                                LOKET PRIORITAS - RAMAH LANSIA &amp; DISABILITAS
+                            </div>
+                        @endif
                         <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 rounded-full text-xs font-bold border border-green-200/50 print:hidden">
                             <span class="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
                             Waiting (Menunggu)

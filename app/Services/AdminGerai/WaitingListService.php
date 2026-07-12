@@ -56,6 +56,12 @@ class WaitingListService
             });
         }
 
+        if (in_array(QueueStatus::CheckedIn->value, $statuses)) {
+            $query->orderBy('is_priority', 'desc')->orderBy('id', 'asc');
+        } else {
+            $query->orderBy('id', 'asc');
+        }
+
         return $query->get();
     }
 

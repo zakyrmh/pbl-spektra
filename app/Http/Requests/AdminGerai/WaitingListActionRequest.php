@@ -16,7 +16,7 @@ class WaitingListActionRequest extends FormRequest
     public function authorize(): bool
     {
         $user = auth()->user();
-        if (! $user || ! in_array($user->role->value ?? $user->role, ['admin_gerai', 'super_admin'])) {
+        if (! $user || (! $user->hasRole('admin_gerai') && ! $user->hasRole('super_admin'))) {
             return false;
         }
 
@@ -35,7 +35,7 @@ class WaitingListActionRequest extends FormRequest
      */
     public function rules(): array
     {
-        if ($this->routeIs('admin.daftar-tunggu.cancel')) {
+        if ($this->routeIs('admin_gerai.daftar-tunggu.cancel')) {
             return [
                 'reason' => ['required', 'string', 'min:5'],
             ];

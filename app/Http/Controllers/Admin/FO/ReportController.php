@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Admin\FO;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\AdminFO\StoreReportRequest;
+use App\Jobs\ExportReportExcelJob;
 use App\Models\Report;
 use App\Services\AdminFO\ReportAnalyticsService;
 use Illuminate\Http\RedirectResponse;
@@ -154,9 +155,16 @@ final class ReportController extends Controller
      * Ekspor riwayat antrean laporan ke Excel.
      * GET /laporan-analitik/{report}/export/excel
      */
-    public function exportExcel(Report $report): mixed
+    public function exportExcel(Report $report): RedirectResponse
     {
-        return $this->analyticsService->exportExcel($report);
+        $user = auth()->user();
+        if ($user) {
+            ExportReportExcelJob::dispatch($report, $user);
+
+            return redirect()->back()->with('success', 'Ekspor Excel untuk laporan "'.$report->title.'" sedang diproses di latar belakang. Silakan periksa Pusat Notifikasi Anda beberapa saat lagi untuk mengunduhnya.');
+        }
+
+        return redirect()->back()->with('error', 'Gagal melakukan ekspor laporan.');
     }
 
     /**

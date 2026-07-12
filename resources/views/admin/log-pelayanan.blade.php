@@ -13,7 +13,7 @@
             </p>
         </div>
         <div class="flex items-center gap-3 shrink-0">
-            <a href="{{ route('admin.log-pelayanan.export', request()->all()) }}" 
+            <a href="{{ route('admin_gerai.log-pelayanan.export', request()->all()) }}" 
                class="h-11 px-5 bg-canvas dark:bg-white/5 border border-hairline text-ink dark:text-white dark:border-white/15 hover:bg-surface-soft dark:hover:bg-white/10 font-semibold rounded-pill flex items-center gap-2 text-sm focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-accent-teal transition-all cursor-pointer">
                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
@@ -55,7 +55,7 @@
     </div>
 
     {{-- Filters and Search Form --}}
-    <form method="GET" action="{{ route('admin.log-pelayanan') }}" class="bg-canvas dark:bg-surface-dark-elevated p-6 rounded-lg border border-hairline dark:border-white/10 space-y-4 font-body">
+    <form method="GET" action="{{ route('admin_gerai.log-pelayanan') }}" class="bg-canvas dark:bg-surface-dark-elevated p-6 rounded-lg border border-hairline dark:border-white/10 space-y-4 font-body">
         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
             <!-- Search -->
             <div class="col-span-1 sm:col-span-2 md:col-span-1">
@@ -111,7 +111,7 @@
         </div>
 
         <div class="flex justify-end gap-3 pt-2">
-            <a href="{{ route('admin.log-pelayanan') }}" class="h-11 px-5 text-button font-semibold text-muted dark:text-on-dark-soft hover:bg-black/5 dark:hover:bg-white/5 rounded-pill border border-hairline dark:border-white/10 flex items-center transition-all cursor-pointer">
+            <a href="{{ route('admin_gerai.log-pelayanan') }}" class="h-11 px-5 text-button font-semibold text-muted dark:text-on-dark-soft hover:bg-black/5 dark:hover:bg-white/5 rounded-pill border border-hairline dark:border-white/10 flex items-center transition-all cursor-pointer">
                 Reset
             </a>
             <button type="submit" class="h-11 px-6 bg-primary hover:bg-primary-hover text-white font-semibold rounded-pill flex items-center gap-2 text-sm focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-accent-teal transition-all cursor-pointer">
@@ -190,8 +190,8 @@
                                     </span>
                                 @endif
                             </td>
-                            <td class="p-4 max-w-xs truncate text-xs text-muted dark:text-on-dark-soft" title="{{ $log->cancel_reason }}">
-                                {{ $log->cancel_reason ?? '—' }}
+                            <td class="p-4 max-w-xs truncate text-xs text-muted dark:text-on-dark-soft" title="{{ $log->status === 'Completed' ? $log->visit_notes : $log->cancel_reason }}">
+                                {{ ($log->status === 'Completed' ? $log->visit_notes : $log->cancel_reason) ?? '—' }}
                             </td>
                         </tr>
                     @empty

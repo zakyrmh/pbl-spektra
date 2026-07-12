@@ -23,6 +23,7 @@ final class LogPelayananData
         public readonly ?string $duration_label,
         public readonly string $status,
         public readonly ?string $cancel_reason,
+        public readonly ?string $visit_notes,
         public readonly ?string $booking_date_formatted,
     ) {}
 
@@ -56,6 +57,7 @@ final class LogPelayananData
             duration_label: $durationLabel,
             status: $queue->status->value ?? $queue->status,
             cancel_reason: $queue->cancel_reason,
+            visit_notes: $queue->visit_notes,
             booking_date_formatted: $queue->booking_date
                 ? Carbon::parse($queue->booking_date)->format('d M Y')
                 : '-',

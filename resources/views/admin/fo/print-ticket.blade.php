@@ -7,6 +7,7 @@
          x-data="{
              departments: @js($departments),
              selectedDepartmentId: '{{ old('department_id', '') }}',
+             isPriority: {{ old('is_priority') ? 'true' : 'false' }},
              
              get selectedDepartment() {
                  return this.departments.find(d => d.id == this.selectedDepartmentId) || null;
@@ -28,23 +29,7 @@
             </div>
         </div>
 
-        {{-- Alerts --}}
-        @if (session('success'))
-            <div class="flex items-start gap-3 p-4 bg-status-serving/10 border border-status-serving/30 rounded-lg print:hidden animate-pulse" role="alert">
-                <svg class="w-5 h-5 text-status-serving shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <div class="flex-1 min-w-0">
-                    <p class="text-sm font-semibold text-status-serving font-display">Penerbitan Berhasil</p>
-                    <p class="text-sm text-green-800 dark:text-green-300 font-body mt-0.5">{!! session('success') !!}</p>
-                </div>
-                <button onclick="this.closest('[role=alert]').remove()" class="shrink-0 text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-200 transition-colors cursor-pointer">
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                </button>
-            </div>
-        @endif
+
 
         @if ($errors->any())
             <div class="flex items-start gap-3 p-4 bg-status-skipped/10 border border-status-skipped/30 rounded-lg print:hidden" role="alert">
@@ -102,6 +87,11 @@
                         <div class="text-5xl sm:text-6xl font-extrabold text-primary dark:text-accent-teal tracking-tight font-mono">
                             {{ data_get($ticket, 'queue_number') }}
                         </div>
+                        @if(data_get($ticket, 'is_priority'))
+                            <div class="mt-2 text-xs font-extrabold text-amber-600 dark:text-accent-gold uppercase tracking-wider font-display">
+                                LOKET PRIORITAS - RAMAH LANSIA &amp; DISABILITAS
+                            </div>
+                        @endif
                         <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 rounded-full text-xs font-bold border border-green-200/50 print:hidden mt-2">
                             <span class="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
                             Waiting (Menunggu)
@@ -202,6 +192,16 @@
                                           placeholder="Tulis alasan kedatangan warga secara rinci..."
                                           class="w-full text-sm bg-canvas dark:bg-white/5 border border-hairline dark:border-white/15 text-ink dark:text-white rounded-md p-3 focus:border-primary dark:focus:border-accent-teal focus:outline-none focus:ring-3 focus:ring-primary/12 dark:focus:ring-accent-teal/20 transition-all">{{ old('purpose') }}</textarea>
                             </div>
+
+                            <!-- Priority Checkbox -->
+                            <div class="flex items-center gap-2 py-1.5 select-none pt-2">
+                                <input type="checkbox" id="is_priority" name="is_priority" value="1" {{ old('is_priority') ? 'checked' : '' }}
+                                       x-model="isPriority"
+                                       class="w-4.5 h-4.5 text-primary dark:text-accent-teal border-hairline rounded focus:ring-primary dark:focus:ring-accent-teal cursor-pointer">
+                                <label for="is_priority" class="text-xs font-bold text-ink dark:text-white cursor-pointer select-none">
+                                    Pengunjung Prioritas (Kelompok Rentan)
+                                </label>
+                            </div>
                         </div>
 
                         {{-- Service Destination Section --}}
@@ -265,6 +265,10 @@
  
                         <template x-if="selectedDepartmentId">
                             <div class="space-y-4">
+                                <div x-show="isPriority" class="p-2.5 bg-amber-500/10 text-amber-800 dark:text-accent-gold border border-amber-500/20 rounded font-bold text-xs flex items-center gap-1.5 uppercase">
+                                    <svg class="w-4.5 h-4.5 text-amber-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                                    Karcis Prioritas Kelompok Rentan
+                                </div>
                                 <div>
                                     <span class="text-[10px] font-bold text-muted dark:text-on-dark-soft uppercase tracking-wider block font-display">Instansi Tujuan</span>
                                     <span class="font-bold text-ink dark:text-white" x-text="selectedDepartment ? selectedDepartment.name : ''"></span>

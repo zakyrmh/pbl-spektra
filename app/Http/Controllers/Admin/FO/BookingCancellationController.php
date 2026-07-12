@@ -41,9 +41,7 @@ final class BookingCancellationController extends Controller
     {
         /** @var User $actor */
         $actor = Auth::user();
-        $userRole = $actor->role instanceof \BackedEnum ? $actor->role->value : $actor->role;
-
-        if (! in_array($userRole, ['admin_fo', 'super_admin'])) {
+        if (! $actor->hasRole('admin_fo') && ! $actor->hasRole('super_admin')) {
             abort(403, 'Anda tidak memiliki hak akses untuk membatalkan booking ini.');
         }
 

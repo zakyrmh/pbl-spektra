@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\SuperAdmin;
 
+use App\Enums\QueueStatus;
 use App\Http\Controllers\Controller;
 use App\Models\ActivityLog;
-use App\Models\Booking;
 use App\Models\Department;
 use App\Models\Queue as QueueModel;
 use Carbon\Carbon;
@@ -22,31 +22,29 @@ class DashboardController extends Controller
         $today = Carbon::today()->toDateString();
 
         // 1. Total Kunjungan Hari Ini
-        $todayKunjunganCount = QueueModel::query()->whereDate('queue_date', $today)->count('*');
+        $todayKunjunganCount = QueueModel::query()->whereDate('booking_date', $today)->count('*');
         $kunjunganPercentage = $this->calculateKunjunganPercentage($todayKunjunganCount, $today);
 
-        // 2. Menunggu Konfirmasi FO (Booking online berstatus Pending hari ini)
-        $menungguFoCount = Booking::query()
+        // 2. Menunggu Konfirmasi FO (Booking online berstatus Booked hari ini)
+        $menungguFoCount = QueueModel::query()
             ->whereDate('booking_date', $today)
-            ->where('status', 'Pending')
+            ->where('status', QueueStatus::Booked->value)
             ->count('*');
         $foStatus = $this->getFoConfirmationStatus($menungguFoCount);
 
         // 3. Sedang Dilayani di Gerai (Total antrean aktif: Waiting + Serving)
-        $waitingCount = QueueModel::query()->whereDate('queue_date', $today)->where('status', 'Waiting')->count('*');
-        $servingCount = QueueModel::query()->whereDate('queue_date', $today)->where('status', 'Serving')->count('*');
+        $waitingCount = QueueModel::query()->whereDate('booking_date', $today)->where('status', 'Waiting')->count('*');
+        $servingCount = QueueModel::query()->whereDate('booking_date', $today)->where('status', 'Serving')->count('*');
         $totalAntreanGerai = $waitingCount + $servingCount;
 
         // 4. Total Gerai Aktif
         $totalGerai = Department::query()->count('*');
-        $activeGerai = Department::query()->whereHas('counters', function ($query) {
-            $query->where('status', 'aktif');
-        })->count('*');
+        $activeGerai = Department::query()->where('is_open', true)->count('*');
         $geraiPercentage = $totalGerai > 0 ? (int) round(($activeGerai / $totalGerai) * 100) : 0;
 
         // 5. Data Live Gerai
-        $liveDepartments = Department::query()->with(['counters', 'queues' => function ($query) use ($today) {
-            $query->whereDate('queue_date', $today);
+        $liveDepartments = Department::query()->with(['queues' => function ($query) use ($today) {
+            $query->whereDate('booking_date', $today);
         }])->get();
 
         // 6. Live Activity Feed
@@ -57,7 +55,7 @@ class DashboardController extends Controller
         $chartTopGeraiData = $this->getTopGeraiData($today);
 
         // 8. Average FO Check-In Time
-        $checkedInBookingsCount = Booking::query()
+        $checkedInBookingsCount = QueueModel::query()
             ->whereDate('booking_date', $today)
             ->where('status', 'Checked-In')
             ->whereNotNull('checked_in_at')
@@ -95,15 +93,15 @@ class DashboardController extends Controller
         $yesterday = Carbon::yesterday()->toDateString();
 
         $pastDaysCount = QueueModel::query()
-            ->whereDate('queue_date', '>=', $thirtyDaysAgo)
-            ->whereDate('queue_date', '<=', $yesterday)
+            ->whereDate('booking_date', '>=', $thirtyDaysAgo)
+            ->whereDate('booking_date', '<=', $yesterday)
             ->count('*');
 
         $pastDaysUnique = QueueModel::query()
-            ->whereDate('queue_date', '>=', $thirtyDaysAgo)
-            ->whereDate('queue_date', '<=', $yesterday)
+            ->whereDate('booking_date', '>=', $thirtyDaysAgo)
+            ->whereDate('booking_date', '<=', $yesterday)
             ->distinct()
-            ->count('queue_date');
+            ->count('booking_date');
 
         $avgDaily = $pastDaysUnique > 0 ? $pastDaysCount / $pastDaysUnique : 0;
 
@@ -151,16 +149,16 @@ class DashboardController extends Controller
      */
     private function getTrenKedatanganData(string $today): array
     {
-        $queuesToday = QueueModel::query()->whereDate('queue_date', $today)->get();
+        $queuesToday = QueueModel::query()->whereDate('booking_date', $today)->get();
         $hours = ['08', '09', '10', '11', '12', '13', '14', '15', '16'];
         $onlineData = [];
         $onsiteData = [];
 
         foreach ($hours as $h) {
-            $onlineData[] = $queuesToday->filter(fn ($q) => Carbon::parse($q->created_at)->format('H') === $h && $q->booking_id !== null
+            $onlineData[] = $queuesToday->filter(fn ($q) => Carbon::parse($q->created_at)->format('H') === $h && $q->session_name !== 'Walk-In'
             )->count();
 
-            $onsiteData[] = $queuesToday->filter(fn ($q) => Carbon::parse($q->created_at)->format('H') === $h && $q->booking_id === null
+            $onsiteData[] = $queuesToday->filter(fn ($q) => Carbon::parse($q->created_at)->format('H') === $h && $q->session_name === 'Walk-In'
             )->count();
         }
 
@@ -182,10 +180,10 @@ class DashboardController extends Controller
     private function getTopGeraiData(string $today): array
     {
         $departments = Department::all();
-        $queuesToday = QueueModel::query()->whereDate('queue_date', $today)->with('counter')->get();
+        $queuesToday = QueueModel::query()->whereDate('booking_date', $today)->get();
 
         $data = $departments->map(function ($dept) use ($queuesToday) {
-            $count = $queuesToday->filter(fn ($q) => $q->counter && $q->counter->department_id === $dept->id
+            $count = $queuesToday->filter(fn ($q) => $q->department_id === $dept->id
             )->count();
 
             return [

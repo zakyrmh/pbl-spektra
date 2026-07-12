@@ -303,3 +303,32 @@ test('walk-in API assigns queue numbers sequentially without conflict', function
     ]);
     $response2->assertJson(['queue_number' => 'LK-002']);
 });
+
+test('admin fo can issue priority walk-in ticket and get prefix P', function () {
+    $user = User::factory()->create([
+        'role' => 'admin_fo',
+    ]);
+
+    $department = Department::create([
+        'name' => 'Layanan Kependudukan',
+        'inisial' => 'LK',
+        'nomor_loket' => '01',
+        'description' => 'Layanan Dukcapil',
+        'is_open' => true,
+    ]);
+
+    $response = $this->actingAs($user)->postJson(route('api.fo.queues.walkin'), [
+        'nik' => '9999888877776666',
+        'name' => 'John Doe',
+        'phone' => '081234567890',
+        'department_id' => $department->id,
+        'purpose' => 'Permohonan Layanan Baru',
+        'is_priority' => '1',
+    ]);
+
+    $response->assertStatus(200);
+    $response->assertJson([
+        'success' => true,
+        'queue_number' => 'P-001',
+    ]);
+});

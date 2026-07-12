@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Http\Controllers;
 
+use App\Enums\QueueStatus;
 use App\Enums\UserRole;
 use App\Mail\BookingSuccessMail;
 use App\Models\Department;
@@ -97,7 +98,7 @@ class BookingControllerTest extends TestCase
         $response = $this->actingAs($user)->post(route('booking.store'), [
             'department_id' => $department->id,
             'keperluan' => 'Pengurusan izin praktik apoteker',
-            'booking_date' => now()->toDateString(),
+            'booking_date' => now()->addDay()->toDateString(),
             'session_name' => 'Sesi 1',
         ]);
 
@@ -107,11 +108,11 @@ class BookingControllerTest extends TestCase
         $response->assertRedirect(route('booking.show', $booking));
         $this->assertEquals($user->id, $booking->user_id);
         $this->assertEquals($department->id, $booking->department_id);
-        $this->assertEquals('Booked', $booking->status->value ?? $booking->status);
+        $this->assertEquals(QueueStatus::Booked, $booking->status);
         $this->assertEquals('Sesi 1', $booking->session_name);
         $this->assertStringStartsWith('BK-DK-', $booking->booking_code);
 
-        Mail::assertSent(BookingSuccessMail::class, function ($mail) use ($user, $booking) {
+        Mail::assertQueued(BookingSuccessMail::class, function ($mail) use ($user, $booking) {
             return $mail->hasTo($user->email) && $mail->booking->id === $booking->id;
         });
     }
@@ -155,5 +156,32 @@ class BookingControllerTest extends TestCase
         $superAdmin = User::factory()->create(['role' => UserRole::SuperAdmin]);
         $response = $this->actingAs($superAdmin)->get(route('booking.show', $booking));
         $response->assertStatus(200);
+    }
+
+    public function test_booking_inherits_user_priority_status(): void
+    {
+        Mail::fake();
+
+        $user = User::factory()->create([
+            'role' => UserRole::Pengunjung,
+            'is_priority' => true,
+        ]);
+        $department = Department::create([
+            'name' => 'Dinas Kesehatan',
+            'inisial' => 'DK',
+            'nomor_loket' => '01',
+            'is_open' => true,
+        ]);
+
+        $response = $this->actingAs($user)->post(route('booking.store'), [
+            'department_id' => $department->id,
+            'keperluan' => 'Pengurusan izin praktik apoteker',
+            'booking_date' => now()->addDay()->toDateString(),
+            'session_name' => 'Sesi 1',
+        ]);
+
+        $booking = Queue::first();
+        $this->assertNotNull($booking);
+        $this->assertTrue((bool) $booking->is_priority);
     }
 }

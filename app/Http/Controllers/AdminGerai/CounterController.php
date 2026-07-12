@@ -4,11 +4,14 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\AdminGerai;
 
+use App\Enums\QueueStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\AdminGerai\ForwardQueueRequest;
+use App\Http\Resources\AdminGerai\CalledQueueResource;
 use App\Models\Department;
 use App\Models\Queue;
 use App\Services\AdminGerai\BoothOperationService;
+use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -33,6 +36,12 @@ final class CounterController extends Controller
             return view('dashboard.dashboard', ['noCounter' => true]);
         }
 
+        $completedCount = Queue::excludeCancelled()
+            ->where('department_id', $data->department->id)
+            ->whereDate('booking_date', Carbon::today())
+            ->where('status', QueueStatus::Completed->value)
+            ->count();
+
         return view('dashboard.dashboard', [
             'department' => $data->department,
             'activeQueue' => $data->activeQueue,
@@ -41,6 +50,7 @@ final class CounterController extends Controller
             'remainingCount' => $data->remainingCount,
             'avgServiceTime' => $data->avgServiceTime,
             'activeDepartments' => $data->activeDepartments,
+            'completedCount' => $completedCount,
         ]);
     }
 
@@ -91,14 +101,18 @@ final class CounterController extends Controller
      * Memanggil antrean berikutnya secara otomatis (Next Queue).
      * POST /api/queues/call-next
      */
-    public function callNext(): JsonResponse
+    public function callNext(Request $request): JsonResponse
     {
         $user = Auth::user();
         if (! $user->departments_id) {
             return response()->json(['message' => 'Anda belum ditugaskan ke instansi mana pun.'], 403);
         }
 
-        $nextQueue = $this->boothService->callNext($user);
+        $request->validate([
+            'visit_notes' => ['nullable', 'string', 'max:5000'],
+        ]);
+
+        $nextQueue = $this->boothService->callNext($user, $request->input('visit_notes'));
 
         if (! $nextQueue) {
             return response()->json([
@@ -109,17 +123,7 @@ final class CounterController extends Controller
 
         return response()->json([
             'success' => true,
-            'queue' => [
-                'id' => $nextQueue->id,
-                'queue_number' => $nextQueue->queue_number,
-                'status' => $nextQueue->status->value ?? $nextQueue->status,
-                'called_at' => $nextQueue->called_at?->toIso8601String(),
-                'user' => [
-                    'name' => $nextQueue->user?->name ?? 'Warga',
-                    'nik' => $nextQueue->user?->nik ?? '-',
-                ],
-                'purpose' => $nextQueue->purpose ?? 'Layanan Umum',
-            ],
+            'queue' => new CalledQueueResource($nextQueue),
         ]);
     }
 
@@ -134,21 +138,18 @@ final class CounterController extends Controller
             abort(403);
         }
 
+        if (! in_array(($queue->status->value ?? $queue->status), ['Checked-In', 'Skipped', 'Serving'], true)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Hanya antrean berstatus Checked-In, Skipped, atau Serving yang dapat dipanggil.',
+            ], 422);
+        }
+
         $calledQueue = $this->boothService->callQueue($queue, $user);
 
         return response()->json([
             'success' => true,
-            'queue' => [
-                'id' => $calledQueue->id,
-                'queue_number' => $calledQueue->queue_number,
-                'status' => $calledQueue->status->value ?? $calledQueue->status,
-                'called_at' => $calledQueue->called_at?->toIso8601String(),
-                'user' => [
-                    'name' => $calledQueue->user?->name ?? 'Warga',
-                    'nik' => $calledQueue->user?->nik ?? '-',
-                ],
-                'purpose' => $calledQueue->purpose ?? 'Layanan Umum',
-            ],
+            'queue' => new CalledQueueResource($calledQueue),
         ]);
     }
 
@@ -156,7 +157,7 @@ final class CounterController extends Controller
      * Menyelesaikan pelayanan antrean.
      * POST /api/queues/{queue}/finish
      */
-    public function finishService(Queue $queue): JsonResponse
+    public function finishService(Request $request, Queue $queue): JsonResponse
     {
         $user = Auth::user();
         if ($queue->department_id !== $user->departments_id) {
@@ -170,7 +171,11 @@ final class CounterController extends Controller
             ], 422);
         }
 
-        $this->boothService->finishService($queue, $user);
+        $request->validate([
+            'visit_notes' => ['nullable', 'string', 'max:5000'],
+        ]);
+
+        $this->boothService->finishService($queue, $user, $request->input('visit_notes'));
 
         return response()->json([
             'success' => true,

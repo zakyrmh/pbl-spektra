@@ -11,7 +11,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 uses(RefreshDatabase::class);
 
 test('guest is redirected to login when trying to access daftar tunggu page', function () {
-    $response = $this->get(route('admin.daftar-tunggu'));
+    $response = $this->get(route('admin_gerai.daftar-tunggu'));
     $response->assertRedirect(route('login'));
 });
 
@@ -20,7 +20,7 @@ test('non-admin_gerai user cannot access daftar tunggu page', function () {
         'role' => 'admin_fo',
     ]);
 
-    $response = $this->actingAs($user)->get(route('admin.daftar-tunggu'));
+    $response = $this->actingAs($user)->get(route('admin_gerai.daftar-tunggu'));
     $response->assertStatus(403);
 });
 
@@ -30,7 +30,7 @@ test('admin_gerai without department receives 403 on daftar tunggu page', functi
         'department_id' => null,
     ]);
 
-    $response = $this->actingAs($user)->get(route('admin.daftar-tunggu'));
+    $response = $this->actingAs($user)->get(route('admin_gerai.daftar-tunggu'));
     $response->assertStatus(403);
 });
 
@@ -62,7 +62,7 @@ test('admin_gerai with department can view the daftar tunggu page', function () 
         'status' => QueueStatus::Booked->value,
     ]);
 
-    $response = $this->actingAs($user)->get(route('admin.daftar-tunggu'));
+    $response = $this->actingAs($user)->get(route('admin_gerai.daftar-tunggu'));
 
     $response->assertStatus(200);
     $response->assertViewIs('admin.daftar-tunggu');
@@ -98,7 +98,7 @@ test('operator can check-in a pending queue', function () {
         'status' => QueueStatus::Booked->value,
     ]);
 
-    $response = $this->actingAs($user)->post(route('admin.daftar-tunggu.check-in', $queue->id));
+    $response = $this->actingAs($user)->post(route('admin_gerai.daftar-tunggu.check-in', $queue->id));
 
     $response->assertRedirect();
     $response->assertSessionHas('success');
@@ -138,7 +138,7 @@ test('operator can restore a cancelled queue', function () {
         'checked_in_at' => now(),
     ]);
 
-    $response = $this->actingAs($user)->post(route('admin.daftar-tunggu.restore', $queue->id));
+    $response = $this->actingAs($user)->post(route('admin_gerai.daftar-tunggu.restore', $queue->id));
 
     $response->assertRedirect();
     $response->assertSessionHas('success');

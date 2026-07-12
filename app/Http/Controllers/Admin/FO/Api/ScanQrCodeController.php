@@ -6,10 +6,11 @@ namespace App\Http\Controllers\Admin\FO\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\AdminFO\VerifyQrCodeRequest;
+use App\Http\Resources\AdminFO\ScanQrCodeResource;
 use App\Services\AdminFO\ScanQrCodeService;
 use Illuminate\Http\JsonResponse;
 
-class ScanQrCodeAction extends Controller
+class ScanQrCodeController extends Controller
 {
     public function __construct(
         protected ScanQrCodeService $service
@@ -30,15 +31,7 @@ class ScanQrCodeAction extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Status antrean berhasil diperbarui.',
-                'data' => [
-                    'id' => $queue->id,
-                    'queue_number' => $queue->queue_number,
-                    'status' => $queue->status->value ?? $queue->status,
-                    'booking_code' => $queue->booking_code,
-                    'purpose' => $queue->purpose,
-                    'user_name' => $queue->user?->name ?? 'Walk-In Citizen',
-                    'department_name' => $queue->department?->name ?? '-',
-                ],
+                'data' => new ScanQrCodeResource($queue),
             ]);
         } catch (\Exception $e) {
             return response()->json([

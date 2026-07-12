@@ -94,18 +94,21 @@ class WalkInTicketService
                     'password' => Hash::make('password'),
                     'role' => UserRole::Pengunjung,
                     'email_verified_at' => now(),
+                    'is_priority' => $data->isPriority,
                 ]);
             } else {
                 // Perbarui profil dengan nama/telepon terbaru
                 $user->update([
                     'name' => $data->name,
                     'no_telp' => $data->phone,
+                    'is_priority' => $data->isPriority,
                 ]);
             }
 
             // 3. Dapatkan nomor urut tertinggi hari ini dengan lockForUpdate untuk mencegah race condition
             $queueNumbers = Queue::where('department_id', $department->id)
                 ->whereDate('booking_date', $today)
+                ->where('is_priority', $data->isPriority)
                 ->whereNotNull('queue_number')
                 ->lockForUpdate()
                 ->pluck('queue_number')
@@ -116,7 +119,7 @@ class WalkInTicketService
                 });
 
             $nextNumber = $queueNumbers->isEmpty() ? 1 : $queueNumbers->max() + 1;
-            $prefix = $department->inisial ?: 'Q';
+            $prefix = $data->isPriority ? 'P' : ($department->inisial ?: 'Q');
 
             // Format: [INISIAL]-[001], contoh: DDK-001
             $queueNumber = $prefix.'-'.str_pad((string) $nextNumber, 3, '0', STR_PAD_LEFT);
@@ -135,6 +138,7 @@ class WalkInTicketService
                 'booking_date' => $today,
                 'queue_number' => $queueNumber,
                 'status' => QueueStatus::CheckedIn->value,
+                'is_priority' => $data->isPriority,
                 'checked_in_at' => now(),
             ]);
 

@@ -26,28 +26,7 @@
         </button>
     </div>
 
-    {{-- ══════════════════════════════════════════
-         FLASH MESSAGES
-    ══════════════════════════════════════════ --}}
-    @if(session('success'))
-        <div id="flash-success" class="flex items-start gap-3 bg-status-serving/10 border border-status-serving/20 text-green-800 dark:text-green-300 rounded-lg px-5 py-4 text-sm font-medium shadow-sm">
-            <svg class="w-5 h-5 shrink-0 text-status-serving mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-            <span>{{ session('success') }}</span>
-            <button onclick="document.getElementById('flash-success').remove()" class="ml-auto text-green-500 hover:text-green-700 dark:text-green-400 dark:hover:text-green-200 transition-colors cursor-pointer">
-                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
-            </button>
-        </div>
-    @endif
 
-    @if(session('error'))
-        <div id="flash-error" class="flex items-start gap-3 bg-status-skipped/10 border border-status-skipped/20 text-status-skipped dark:text-red-300 rounded-lg px-5 py-4 text-sm font-medium shadow-sm">
-            <svg class="w-5 h-5 shrink-0 text-status-skipped mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-            <span>{{ session('error') }}</span>
-            <button onclick="document.getElementById('flash-error').remove()" class="ml-auto text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-200 transition-colors cursor-pointer">
-                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
-            </button>
-        </div>
-    @endif
 
     {{-- Reset Password Flash (tampilkan password sementara) --}}
     @if(session('temp_password'))
@@ -60,7 +39,7 @@
                     <p class="text-xs text-muted dark:text-on-dark-soft mt-1">Sampaikan password di bawah ini kepada pengguna secara langsung. Password ini hanya ditampilkan sekali.</p>
                 </div>
             </div>
-            <div class="bg-canvas dark:bg-surface-dark-elevated border border-hairline rounded-lg px-4 py-2 text-center shrink-0">
+            <div class="bg-canvas dark:bg-surface-dark-elevated border border-hairline dark:border-white/10 rounded-lg px-4 py-2 text-center shrink-0">
                 <p class="text-[10px] text-status-waiting font-bold uppercase tracking-wider font-display">Password Sementara</p>
                 <p class="text-lg font-bold text-ink dark:text-white font-mono tracking-widest" id="temp-password-display">{{ $tp['password'] }}</p>
                 <button onclick="copyTempPassword()" class="text-[10px] text-primary hover:text-primary-hover font-semibold mt-0.5 flex items-center gap-1 mx-auto cursor-pointer">
@@ -77,7 +56,7 @@
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
 
         {{-- Card: Total Pengguna --}}
-        <div class="bg-canvas dark:bg-surface-dark-elevated rounded-lg p-5 border border-hairline shadow-sm hover:shadow-md transition-shadow duration-200 flex items-center gap-4">
+        <div class="bg-canvas dark:bg-surface-dark-elevated rounded-lg p-5 border border-hairline dark:border-white/10 shadow-sm hover:shadow-md transition-shadow duration-200 flex items-center gap-4">
             <div class="w-12 h-12 bg-primary/10 dark:bg-primary/20 text-primary dark:text-accent-teal rounded-lg flex items-center justify-center shrink-0">
                 <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
@@ -91,7 +70,7 @@
         </div>
 
         {{-- Card: Staf Online --}}
-        <div class="bg-canvas dark:bg-surface-dark-elevated rounded-lg p-5 border border-hairline shadow-sm hover:shadow-md transition-shadow duration-200 flex items-center gap-4">
+        <div class="bg-canvas dark:bg-surface-dark-elevated rounded-lg p-5 border border-hairline dark:border-white/10 shadow-sm hover:shadow-md transition-shadow duration-200 flex items-center gap-4">
             <div class="relative w-12 h-12 bg-status-serving/10 dark:bg-status-serving/20 text-status-serving dark:text-green-400 rounded-lg flex items-center justify-center shrink-0">
                 <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M5.636 18.364a9 9 0 010-12.728m12.728 0a9 9 0 010 12.728m-9.9-2.829a5 5 0 010-7.07m7.072 0a5 5 0 010 7.07M13 12a1 1 0 11-2 0 1 1 0 012 0z" />
@@ -107,7 +86,7 @@
         </div>
 
         {{-- Card: Total Instansi --}}
-        <div class="bg-canvas dark:bg-surface-dark-elevated rounded-lg p-5 border border-hairline shadow-sm hover:shadow-md transition-shadow duration-200 flex items-center gap-4">
+        <div class="bg-canvas dark:bg-surface-dark-elevated rounded-lg p-5 border border-hairline dark:border-white/10 shadow-sm hover:shadow-md transition-shadow duration-200 flex items-center gap-4">
             <div class="w-12 h-12 bg-accent-teal/10 dark:bg-accent-teal/20 text-accent-teal rounded-lg flex items-center justify-center shrink-0">
                 <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
@@ -125,7 +104,7 @@
     {{-- ══════════════════════════════════════════
          FILTER & SEARCH BAR
     ══════════════════════════════════════════ --}}
-    <div class="bg-canvas dark:bg-surface-dark-elevated rounded-lg border border-hairline shadow-sm">
+    <div class="bg-canvas dark:bg-surface-dark-elevated rounded-lg border border-hairline dark:border-white/10 shadow-sm">
         <form method="GET" action="{{ route('users.index') }}" id="filter-form" class="p-5">
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
 
@@ -140,7 +119,7 @@
                         id="search-input"
                         value="{{ request('search') }}"
                         placeholder="Cari nama, email, atau NIK..."
-                        class="w-full pl-10 pr-4 h-12 text-sm bg-canvas text-ink border border-hairline rounded-md focus:border-primary focus:outline-none focus:ring-4 focus:ring-primary/12 transition-all"
+                        class="w-full pl-10 pr-4 h-12 text-sm bg-canvas dark:bg-white/5 text-ink dark:text-white border border-hairline dark:border-white/15 rounded-md focus:border-primary dark:focus:border-accent-teal focus:outline-none focus:ring-4 focus:ring-primary/12 dark:focus:ring-accent-teal/20 transition-all"
                     >
                 </div>
 
@@ -150,7 +129,7 @@
                         name="departments_id"
                         id="filter-instansi"
                         onchange="fetchUsers()"
-                        class="w-full h-12 px-3.5 text-sm bg-canvas text-ink border border-hairline rounded-md focus:border-primary focus:outline-none focus:ring-4 focus:ring-primary/12 transition-all appearance-none cursor-pointer"
+                        class="w-full h-12 px-3.5 text-sm bg-canvas dark:bg-white/5 text-ink dark:text-white border border-hairline dark:border-white/15 rounded-md focus:border-primary dark:focus:border-accent-teal focus:outline-none focus:ring-4 focus:ring-primary/12 dark:focus:ring-accent-teal/20 transition-all appearance-none cursor-pointer"
                     >
                         <option value="">Semua Instansi</option>
                         @foreach(\App\Models\Department::orderBy('name')->get() as $dept)
@@ -167,7 +146,7 @@
                         name="role"
                         id="filter-role"
                         onchange="fetchUsers()"
-                        class="w-full h-12 px-3.5 text-sm bg-canvas text-ink border border-hairline rounded-md focus:border-primary focus:outline-none focus:ring-4 focus:ring-primary/12 transition-all appearance-none cursor-pointer"
+                        class="w-full h-12 px-3.5 text-sm bg-canvas dark:bg-white/5 text-ink dark:text-white border border-hairline dark:border-white/15 rounded-md focus:border-primary dark:focus:border-accent-teal focus:outline-none focus:ring-4 focus:ring-primary/12 dark:focus:ring-accent-teal/20 transition-all appearance-none cursor-pointer"
                     >
                         <option value="">Semua Peran</option>
                         <option value="super_admin"  {{ request('role') === 'super_admin'  ? 'selected' : '' }}>Super Admin</option>
@@ -183,7 +162,7 @@
                         name="status"
                         id="filter-status"
                         onchange="fetchUsers()"
-                        class="flex-1 h-12 px-3.5 text-sm bg-canvas text-ink border border-hairline rounded-md focus:border-primary focus:outline-none focus:ring-4 focus:ring-primary/12 transition-all appearance-none cursor-pointer"
+                        class="flex-1 h-12 px-3.5 text-sm bg-canvas dark:bg-white/5 text-ink dark:text-white border border-hairline dark:border-white/15 rounded-md focus:border-primary dark:focus:border-accent-teal focus:outline-none focus:ring-4 focus:ring-primary/12 dark:focus:ring-accent-teal/20 transition-all appearance-none cursor-pointer"
                     >
                         <option value="">Semua Status</option>
                         <option value="aktif"    {{ request('status') === 'aktif'    ? 'selected' : '' }}>Aktif</option>
@@ -191,7 +170,7 @@
                     </select>
 
                     {{-- Tombol reset filter --}}
-                    <a href="{{ route('users.index') }}" id="btn-reset-filters" class="inline-flex items-center justify-center w-12 h-12 bg-surface-soft dark:bg-white/5 border border-hairline text-muted hover:text-ink hover:bg-surface-strong dark:hover:bg-white/10 rounded-md transition-colors text-xs font-semibold cursor-pointer" title="Reset Filter" style="display: {{ request()->hasAny(['search', 'instansi', 'departments_id', 'role', 'status']) ? 'inline-flex' : 'none' }};">
+                    <a href="{{ route('users.index') }}" id="btn-reset-filters" class="inline-flex items-center justify-center w-12 h-12 bg-surface-soft dark:bg-white/5 border border-hairline dark:border-white/10 text-muted hover:text-ink hover:bg-surface-strong dark:hover:bg-white/10 rounded-md transition-colors text-xs font-semibold cursor-pointer" title="Reset Filter" style="display: {{ request()->hasAny(['search', 'instansi', 'departments_id', 'role', 'status']) ? 'inline-flex' : 'none' }};">
                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
                     </a>
                 </div>
@@ -216,7 +195,7 @@
     {{-- ══════════════════════════════════════════
          TABEL PENGGUNA
     ══════════════════════════════════════════ --}}
-    <div class="bg-canvas dark:bg-surface-dark-elevated rounded-lg border border-hairline shadow-sm md:overflow-visible overflow-hidden relative transition-all duration-200" id="users-table-container">
+    <div class="bg-canvas dark:bg-surface-dark-elevated rounded-lg border border-hairline dark:border-white/10 shadow-sm md:overflow-visible overflow-hidden relative transition-all duration-200" id="users-table-container">
         @include('super_admin.users.table')
     </div>
 
@@ -227,28 +206,31 @@
 ════════════════════════════════════════════════════════════ --}}
 <div
     id="user-modal"
+    x-data="userModal()"
+    x-on:keydown.escape.window="handleDismiss()"
     class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 items-center justify-center p-4 hidden"
     aria-modal="true"
     role="dialog"
     aria-labelledby="modal-title"
+    @click.self="handleDismiss()"
 >
     <div
         id="user-modal-card"
-        class="bg-canvas dark:bg-surface-dark-elevated rounded-xl shadow-2xl w-full max-w-xl max-h-[90vh] overflow-y-auto border border-hairline transform scale-95 transition-all duration-200"
+        class="bg-canvas dark:bg-surface-dark-elevated rounded-xl shadow-2xl w-full max-w-xl max-h-[90vh] overflow-y-auto border border-hairline dark:border-white/15 transform scale-95 transition-all duration-200"
     >
         {{-- Modal Header --}}
-        <div class="sticky top-0 bg-canvas dark:bg-surface-dark-elevated flex items-center justify-between px-6 py-5 border-b border-hairline z-10">
+        <div class="sticky top-0 bg-canvas dark:bg-surface-dark-elevated flex items-center justify-between px-6 py-5 border-b border-hairline dark:border-white/10 z-10">
             <div>
                 <h2 class="text-lg font-bold font-display text-ink dark:text-white" id="modal-title">Tambah Pengguna Baru</h2>
                 <p class="text-xs text-muted dark:text-on-dark-soft mt-0.5" id="modal-subtitle">Isi formulir di bawah untuk membuat akun baru.</p>
             </div>
-            <button onclick="closeUserModal()" class="text-muted hover:text-ink dark:hover:text-white p-2 hover:bg-surface-soft dark:hover:bg-white/5 rounded-md transition-all cursor-pointer">
+            <button @click="handleDismiss()" class="text-muted hover:text-ink dark:hover:text-white p-2 hover:bg-surface-soft dark:hover:bg-white/5 rounded-md transition-all cursor-pointer">
                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
             </button>
         </div>
 
         {{-- Modal Body: Form --}}
-        <form id="user-form" method="POST" action="{{ route('users.store') }}" class="px-6 py-6 space-y-5" novalidate>
+        <form id="user-form" method="POST" action="{{ route('users.store') }}" class="px-6 py-6 space-y-5" novalidate @input="isDirty = true" @change="isDirty = true">
             @csrf
             <span id="form-method-spoofing"></span>
             <input type="hidden" id="f-user-id" name="user_id" value="">
@@ -265,7 +247,7 @@
                     required
                     autocomplete="name"
                     placeholder="Contoh: Budi Santoso, S.E."
-                    class="w-full px-4 h-12 text-sm border border-hairline rounded-md bg-canvas text-ink placeholder-muted-soft focus:outline-none focus:ring-4 focus:ring-primary/12 focus:border-primary transition-all"
+                    class="w-full px-4 h-12 text-sm border border-hairline dark:border-white/15 rounded-md bg-canvas dark:bg-white/5 text-ink dark:text-white placeholder-muted-soft focus:outline-none focus:ring-4 focus:ring-primary/12 dark:focus:ring-accent-teal/20 focus:border-primary dark:focus:border-accent-teal transition-all"
                 >
             </div>
 
@@ -281,7 +263,7 @@
                     required
                     autocomplete="email"
                     placeholder="nama@instansi.go.id"
-                    class="w-full px-4 h-12 text-sm border border-hairline rounded-md bg-canvas text-ink placeholder-muted-soft focus:outline-none focus:ring-4 focus:ring-primary/12 focus:border-primary transition-all"
+                    class="w-full px-4 h-12 text-sm border border-hairline dark:border-white/15 rounded-md bg-canvas dark:bg-white/5 text-ink dark:text-white placeholder-muted-soft focus:outline-none focus:ring-4 focus:ring-primary/12 dark:focus:ring-accent-teal/20 focus:border-primary dark:focus:border-accent-teal transition-all"
                 >
             </div>
 
@@ -296,7 +278,7 @@
                         maxlength="16"
                         pattern="\d{16}"
                         placeholder="1372XXXXXXXXXXXX"
-                        class="w-full px-4 h-12 text-sm border border-hairline rounded-md bg-canvas text-ink placeholder-muted-soft focus:outline-none focus:ring-4 focus:ring-primary/12 focus:border-primary transition-all font-mono"
+                        class="w-full px-4 h-12 text-sm border border-hairline dark:border-white/15 rounded-md bg-canvas dark:bg-white/5 text-ink dark:text-white placeholder-muted-soft focus:outline-none focus:ring-4 focus:ring-primary/12 dark:focus:ring-accent-teal/20 focus:border-primary dark:focus:border-accent-teal transition-all font-mono"
                     >
                 </div>
                 <div>
@@ -307,7 +289,7 @@
                         name="no_telp"
                         maxlength="15"
                         placeholder="08XXXXXXXXX"
-                        class="w-full px-4 h-12 text-sm border border-hairline rounded-md bg-canvas text-ink placeholder-muted-soft focus:outline-none focus:ring-4 focus:ring-primary/12 focus:border-primary transition-all"
+                        class="w-full px-4 h-12 text-sm border border-hairline dark:border-white/15 rounded-md bg-canvas dark:bg-white/5 text-ink dark:text-white placeholder-muted-soft focus:outline-none focus:ring-4 focus:ring-primary/12 dark:focus:ring-accent-teal/20 focus:border-primary dark:focus:border-accent-teal transition-all"
                     >
                 </div>
             </div>
@@ -322,7 +304,7 @@
                     name="role"
                     required
                     onchange="handleRoleChange(this.value)"
-                    class="w-full px-4 h-12 text-sm border border-hairline rounded-md bg-canvas text-ink focus:outline-none focus:ring-4 focus:ring-primary/12 focus:border-primary transition-all appearance-none cursor-pointer"
+                    class="w-full px-4 h-12 text-sm border border-hairline dark:border-white/15 rounded-md bg-canvas dark:bg-white/5 text-ink dark:text-white focus:outline-none focus:ring-4 focus:ring-primary/12 dark:focus:ring-accent-teal/20 focus:border-primary dark:focus:border-accent-teal transition-all appearance-none cursor-pointer"
                 >
                     <option value="">— Pilih Peran —</option>
                     <option value="super_admin">Super Admin</option>
@@ -347,7 +329,7 @@
                     <select
                         id="f-instansi"
                         name="departments_id"
-                        class="w-full px-4 h-12 text-sm border border-hairline rounded-md bg-canvas text-ink focus:outline-none focus:ring-4 focus:ring-primary/12 focus:border-primary transition-all appearance-none cursor-pointer"
+                        class="w-full px-4 h-12 text-sm border border-hairline dark:border-white/15 rounded-md bg-canvas dark:bg-white/5 text-ink dark:text-white focus:outline-none focus:ring-4 focus:ring-primary/12 dark:focus:ring-accent-teal/20 focus:border-primary dark:focus:border-accent-teal transition-all appearance-none cursor-pointer"
                     >
                         <option value="">— Pilih Instansi —</option>
                         @foreach(\App\Models\Department::orderBy('name')->get() as $dept)
@@ -370,7 +352,7 @@
                         name="password"
                         autocomplete="new-password"
                         placeholder="Masukkan password..."
-                        class="w-full px-4 pr-24 h-12 text-sm border border-hairline rounded-md bg-canvas text-ink placeholder-muted-soft focus:outline-none focus:ring-4 focus:ring-primary/12 focus:border-primary transition-all"
+                        class="w-full px-4 pr-24 h-12 text-sm border border-hairline dark:border-white/15 rounded-md bg-canvas dark:bg-white/5 text-ink dark:text-white placeholder-muted-soft focus:outline-none focus:ring-4 focus:ring-primary/12 dark:focus:ring-accent-teal/20 focus:border-primary dark:focus:border-accent-teal transition-all"
                     >
                     <button
                         type="button"
@@ -395,9 +377,8 @@
                 </div>
             @endif
 
-            {{-- Tombol Submit --}}
             <div class="flex items-center justify-end gap-3 pt-2">
-                <button type="button" onclick="closeUserModal()" class="px-5 h-11 text-sm font-semibold text-ink dark:text-white bg-canvas hover:bg-surface-soft dark:bg-white/5 dark:hover:bg-white/10 rounded-pill border border-hairline transition-all cursor-pointer">
+                <button type="button" @click="handleDismiss()" class="px-5 h-11 text-sm font-semibold text-ink dark:text-white bg-canvas hover:bg-surface-soft dark:bg-white/5 dark:hover:bg-white/10 rounded-pill border border-hairline dark:border-white/10 transition-all cursor-pointer">
                     Batal
                 </button>
                 <button type="submit" id="modal-submit-btn" class="inline-flex h-11 items-center justify-center gap-2 px-6 bg-primary hover:bg-primary-hover text-on-primary font-semibold rounded-pill shadow-md hover:shadow-primary/20 transition-all active:scale-95 cursor-pointer">
@@ -406,6 +387,129 @@
                 </button>
             </div>
         </form>
+    </div>
+
+    {{-- ═══════════════════════════════════════════
+         SECONDARY CONFIRMATION MODAL (Discard Changes?)
+    ═══════════════════════════════════════════ --}}
+    <div
+        x-show="showConfirm"
+        x-transition:enter="transition ease-out duration-200"
+        x-transition:enter-start="opacity-0"
+        x-transition:enter-end="opacity-100"
+        x-transition:leave="transition ease-in duration-150"
+        x-transition:leave-start="opacity-100"
+        x-transition:leave-end="opacity-0"
+        class="fixed inset-0 bg-slate-900/40 backdrop-blur-[2px] z-[60] flex items-center justify-center p-4"
+        style="display: none;"
+        @click.self="showConfirm = false"
+    >
+        <div
+            x-show="showConfirm"
+            x-transition:enter="transition ease-out duration-200"
+            x-transition:enter-start="opacity-0 scale-95 translate-y-2"
+            x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+            x-transition:leave="transition ease-in duration-150"
+            x-transition:leave-start="opacity-100 scale-100"
+            x-transition:leave-end="opacity-0 scale-95 translate-y-2"
+            class="bg-canvas dark:bg-surface-dark-elevated border border-hairline dark:border-white/10 text-ink dark:text-white rounded-xl shadow-2xl w-full max-w-sm overflow-hidden"
+            @click.stop
+        >
+            {{-- Confirm Header --}}
+            <div class="px-6 pt-6 pb-4 text-center">
+                <div class="mx-auto w-12 h-12 bg-status-waiting/10 dark:bg-status-waiting/20 rounded-full flex items-center justify-center mb-4">
+                    <svg class="w-6 h-6 text-status-waiting" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                    </svg>
+                </div>
+                <h3 class="text-base font-bold font-display text-ink dark:text-white">Buang Perubahan?</h3>
+                <p class="text-sm text-muted dark:text-on-dark-soft mt-2 leading-relaxed">
+                    Anda memiliki perubahan yang belum disimpan. Apakah Anda yakin ingin menutup formulir ini? Semua perubahan akan hilang.
+                </p>
+            </div>
+            {{-- Confirm Actions --}}
+            <div class="px-6 pb-6 flex items-center gap-3">
+                <button
+                    type="button"
+                    @click="showConfirm = false"
+                    class="flex-1 h-11 text-sm font-semibold text-ink dark:text-white bg-canvas hover:bg-surface-soft dark:bg-white/5 dark:hover:bg-white/10 rounded-pill border border-hairline dark:border-white/10 transition-all cursor-pointer"
+                >
+                    Kembali Mengedit
+                </button>
+                <button
+                    type="button"
+                    @click="confirmDiscard()"
+                    class="flex-1 h-11 text-sm font-semibold text-on-primary bg-status-skipped hover:bg-red-700 rounded-pill shadow-md transition-all active:scale-95 cursor-pointer"
+                >
+                    Buang Perubahan
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{-- ════════════════════════════════════════════════════════════
+     MODAL KONFIRMASI HAPUS PENGGUNA (Reusable)
+════════════════════════════════════════════════════════════ --}}
+<div
+    id="delete-confirm-modal"
+    x-data="deleteConfirmModal()"
+    x-show="open"
+    x-on:keydown.escape.window="open && (open = false)"
+    x-transition:enter="transition ease-out duration-200"
+    x-transition:enter-start="opacity-0"
+    x-transition:enter-end="opacity-100"
+    x-transition:leave="transition ease-in duration-150"
+    x-transition:leave-start="opacity-100"
+    x-transition:leave-end="opacity-0"
+    class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[70] flex items-center justify-center p-4"
+    style="display: none;"
+    @click.self="open = false"
+>
+    <div
+        x-show="open"
+        x-transition:enter="transition ease-out duration-200"
+        x-transition:enter-start="opacity-0 scale-95 translate-y-2"
+        x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+        x-transition:leave="transition ease-in duration-150"
+        x-transition:leave-start="opacity-100 scale-100"
+        x-transition:leave-end="opacity-0 scale-95 translate-y-2"
+        class="bg-canvas dark:bg-surface-dark-elevated border border-hairline dark:border-white/10 text-ink dark:text-white rounded-xl shadow-2xl w-full max-w-sm overflow-hidden"
+        @click.stop
+    >
+        {{-- Header --}}
+        <div class="px-6 pt-6 pb-4 text-center">
+            <div class="mx-auto w-12 h-12 bg-red-500/10 dark:bg-red-500/20 rounded-full flex items-center justify-center mb-4">
+                <svg class="w-6 h-6 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+            </div>
+            <h3 class="text-base font-bold font-display text-ink dark:text-white">Hapus Pengguna?</h3>
+            <p class="text-sm text-muted dark:text-on-dark-soft mt-2 leading-relaxed">
+                Anda akan menghapus <strong class="text-ink dark:text-white font-semibold" x-text="userName"></strong> secara permanen dari sistem. Tindakan ini tidak dapat dibatalkan.
+            </p>
+        </div>
+        {{-- Actions --}}
+        <div class="px-6 pb-6 flex items-center gap-3">
+            <button
+                type="button"
+                @click="open = false"
+                class="flex-1 h-11 text-sm font-semibold text-ink dark:text-white bg-canvas hover:bg-surface-soft dark:bg-white/5 dark:hover:bg-white/10 rounded-pill border border-hairline dark:border-white/10 transition-all cursor-pointer"
+            >
+                Batal
+            </button>
+            <form :action="actionUrl" method="POST" class="flex-1" x-ref="deleteForm">
+                @csrf
+                @method('DELETE')
+                <button
+                    type="submit"
+                    class="w-full h-11 inline-flex items-center justify-center gap-2 text-sm font-semibold text-on-primary bg-red-500 hover:bg-red-600 rounded-pill shadow-md transition-all active:scale-95 cursor-pointer"
+                >
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                    Hapus Permanen
+                </button>
+            </form>
+        </div>
     </div>
 </div>
 
@@ -617,9 +721,42 @@
         @endif
     });
 
+    // ── Alpine.js Modal Component ──────────────────────────────
+    function userModal() {
+        return {
+            isDirty: false,
+            showConfirm: false,
+
+            handleDismiss() {
+                if (this.isDirty) {
+                    this.showConfirm = true;
+                } else {
+                    closeUserModal();
+                }
+            },
+
+            confirmDiscard() {
+                this.showConfirm = false;
+                this.isDirty = false;
+                closeUserModal();
+            },
+
+            resetDirty() {
+                this.isDirty = false;
+                this.showConfirm = false;
+            }
+        };
+    }
+
     // ── Modal Management ──────────────────────────────────────
     let isEditMode = false;
     let editUserId = null;
+
+    /** Get the Alpine.js data proxy for the user-modal element */
+    function getModalAlpine() {
+        const el = document.getElementById('user-modal');
+        return el && window.Alpine ? Alpine.$data(el) : null;
+    }
 
     function openUserModal() {
         isEditMode = false;
@@ -670,8 +807,13 @@
     function showModal() {
         const overlay = document.getElementById('user-modal');
         const card    = document.getElementById('user-modal-card');
+
+        // Reset Alpine dirty state on every fresh open
+        const alpine = getModalAlpine();
+        if (alpine) alpine.resetDirty();
+
         overlay.classList.remove('hidden');
-        overlay.classList.add('flex');        // aktifkan flexbox setelah hidden dihapus
+        overlay.classList.add('flex');
         setTimeout(() => {
             overlay.style.opacity = '1';
             card.classList.remove('scale-95');
@@ -687,21 +829,34 @@
         card.classList.remove('scale-100');
         card.classList.add('scale-95');
         setTimeout(() => {
-            overlay.classList.remove('flex'); // hapus flex sebelum hidden ditambahkan
+            overlay.classList.remove('flex');
             overlay.classList.add('hidden');
             document.body.style.overflow = '';
         }, 200);
     }
 
-    // Tutup modal saat klik overlay
-    document.getElementById('user-modal').addEventListener('click', function (e) {
-        if (e.target === this) closeUserModal();
-    });
+    // ── Delete Confirmation Modal (Alpine Component) ─────────
+    function deleteConfirmModal() {
+        return {
+            open: false,
+            actionUrl: '',
+            userName: '',
 
-    // Tutup modal dengan ESC
-    document.addEventListener('keydown', function (e) {
-        if (e.key === 'Escape') closeUserModal();
-    });
+            show(url, name) {
+                this.actionUrl = url;
+                this.userName  = name;
+                this.open      = true;
+            }
+        };
+    }
+
+    /** Open the custom delete confirmation modal */
+    function openDeleteModal(url, name) {
+        const el = document.getElementById('delete-confirm-modal');
+        if (el && window.Alpine) {
+            Alpine.$data(el).show(url, name);
+        }
+    }
 
     // ── Role Change Handler ───────────────────────────────────
     function handleRoleChange(role, instansiVal = null) {

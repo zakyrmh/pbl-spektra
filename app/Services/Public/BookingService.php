@@ -81,6 +81,7 @@ class BookingService
                 'booking_date' => $bookingDate->toDateString(),
                 'queue_number' => null,
                 'status' => 'Booked',
+                'is_priority' => (bool) $user->is_priority,
             ]);
 
             // Save notifications for customer

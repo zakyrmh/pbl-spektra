@@ -6,7 +6,7 @@ namespace App\Data\SuperAdmin;
 
 use Illuminate\Support\Collection;
 
-class SuperAdminDashboardData
+final readonly class SuperAdminDashboardData
 {
     public function __construct(
         public int $todayKunjunganCount,

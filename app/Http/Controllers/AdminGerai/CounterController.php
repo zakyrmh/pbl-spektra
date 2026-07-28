@@ -138,7 +138,7 @@ final class CounterController extends Controller
             abort(403);
         }
 
-        if (! in_array(($queue->status->value ?? $queue->status), ['Checked-In', 'Skipped', 'Serving'], true)) {
+        if (! in_array($queue->status, [QueueStatus::CheckedIn, QueueStatus::Skipped, QueueStatus::Serving], true)) {
             return response()->json([
                 'success' => false,
                 'message' => 'Hanya antrean berstatus Checked-In, Skipped, atau Serving yang dapat dipanggil.',
@@ -164,7 +164,7 @@ final class CounterController extends Controller
             abort(403);
         }
 
-        if (($queue->status->value ?? $queue->status) !== 'Serving') {
+        if ($queue->status !== QueueStatus::Serving) {
             return response()->json([
                 'success' => false,
                 'message' => 'Hanya antrean berstatus Serving yang dapat diselesaikan.',
@@ -194,7 +194,7 @@ final class CounterController extends Controller
             abort(403);
         }
 
-        if (($queue->status->value ?? $queue->status) !== 'Serving') {
+        if ($queue->status !== QueueStatus::Serving) {
             return response()->json([
                 'success' => false,
                 'message' => 'Hanya antrean aktif yang sedang dilayani yang dapat dilewati.',

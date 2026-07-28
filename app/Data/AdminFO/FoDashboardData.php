@@ -6,7 +6,7 @@ namespace App\Data\AdminFO;
 
 use Illuminate\Support\Collection;
 
-class FoDashboardData
+final readonly class FoDashboardData
 {
     public function __construct(
         public Collection $departments,

@@ -88,6 +88,6 @@ class Queue extends Model
      */
     public function scopeExcludeCancelled($query)
     {
-        return $query->where('status', '!=', 'Cancelled');
+        return $query->where('status', '!=', QueueStatus::Cancelled);
     }
 }

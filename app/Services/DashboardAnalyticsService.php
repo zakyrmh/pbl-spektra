@@ -18,6 +18,7 @@ use Illuminate\Database\Eloquent\Builder;
 
 class DashboardAnalyticsService
 {
+    #[\NoDiscard]
     public function getSuperAdminDashboardData(string $today): SuperAdminDashboardData
     {
         // 1. Total Kunjungan Hari Ini
@@ -107,6 +108,7 @@ class DashboardAnalyticsService
         );
     }
 
+    #[\NoDiscard]
     public function getFoDashboardData(string $today): FoDashboardData
     {
         $departments = Department::all();
@@ -288,6 +290,7 @@ class DashboardAnalyticsService
     /**
      * Get dashboard data for Admin Gerai.
      */
+    #[\NoDiscard]
     public function getAdminGeraiDashboardData(?Department $department, string $today): AdminGeraiDashboardData
     {
         if (! $department) {
@@ -373,6 +376,7 @@ class DashboardAnalyticsService
     /**
      * Get dashboard data for Visitor (Pengunjung).
      */
+    #[\NoDiscard]
     public function getVisitorDashboardData(User $user, string $today): VisitorDashboardData
     {
         /** @var Builder $activeBookingQuery */

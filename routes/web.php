@@ -187,6 +187,7 @@ Route::middleware('auth')->group(function () {
 
         // Laporan (FO)
         Route::get('/fo/reports', [ReportController::class, 'foIndex'])->name('admin.fo.reports.index');
+        Route::get('/fo/reports/{report}', [ReportController::class, 'foShow'])->name('admin.fo.reports.show');
         Route::post('/fo/reports', [ReportController::class, 'foStore'])->name('admin.fo.reports.store');
         Route::put('/fo/reports/{report}', [ReportController::class, 'foUpdate'])->name('admin.fo.reports.update');
         Route::delete('/fo/reports/{report}', [ReportController::class, 'foDestroy'])->name('admin.fo.reports.destroy');

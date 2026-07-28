@@ -77,7 +77,11 @@
                         @forelse ($reports as $index => $report)
                             <tr class="hover:bg-surface-soft/40 dark:hover:bg-white/2 transition-colors">
                                 <td class="py-4 px-4 text-sm text-ink dark:text-white font-mono font-medium">{{ $index + 1 }}</td>
-                                <td class="py-4 px-4 text-sm font-semibold text-ink dark:text-white font-display">{{ $report->title }}</td>
+                                <td class="py-4 px-4 text-sm font-semibold text-ink dark:text-white font-display">
+                                    <a href="{{ route('admin.fo.reports.show', $report) }}" class="hover:underline hover:text-primary dark:hover:text-accent-teal transition-colors">
+                                        {{ $report->title }}
+                                    </a>
+                                </td>
                                 <td class="py-4 px-4 text-sm text-muted dark:text-on-dark-soft font-body">
                                     {{ $report->start_date->format('d M Y') }} s/d {{ $report->end_date->format('d M Y') }}
                                 </td>
@@ -97,6 +101,15 @@
                                 </td>
                                 <td class="py-4 px-4 text-xs text-muted dark:text-on-dark-soft font-body">{{ $report->created_at->format('d M Y H:i') }}</td>
                                 <td class="py-4 px-4 text-sm text-right space-x-1.5">
+                                    <a href="{{ route('admin.fo.reports.show', $report) }}" 
+                                       class="inline-flex items-center justify-center w-8 h-8 text-primary hover:bg-primary/10 dark:text-accent-teal dark:hover:bg-accent-teal/10 rounded-md transition-all cursor-pointer"
+                                       title="Lihat Detail Laporan">
+                                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                        </svg>
+                                    </a>
+
                                     @if ($report->status !== 'Terkirim')
                                         <button type="button" 
                                                 @click="openEdit({
@@ -137,7 +150,7 @@
                                             </button>
                                         </form>
                                     @else
-                                        <span class="text-xs text-muted dark:text-on-dark-soft italic flex items-center justify-end gap-1 select-none">
+                                        <span class="inline-flex items-center gap-1 text-xs text-muted dark:text-on-dark-soft italic select-none" title="Data Laporan Terkunci">
                                             <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                                             </svg>

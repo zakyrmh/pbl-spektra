@@ -44,6 +44,18 @@ final class ReportController extends Controller
     }
 
     /**
+     * Tampilkan detail visualisasi analitik laporan untuk Admin FO.
+     * GET /fo/reports/{report}
+     */
+    #[\NoDiscard]
+    public function foShow(Report $report): View
+    {
+        $queues = $this->analyticsService->getCompletedQueuesForReport($report);
+
+        return view('admin.fo.reports.show', compact('report', 'queues'));
+    }
+
+    /**
      * Simpan laporan baru yang digenerate oleh FO.
      * POST /fo/reports
      */

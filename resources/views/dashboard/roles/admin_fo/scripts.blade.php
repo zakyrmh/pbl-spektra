@@ -854,4 +854,41 @@
     // Start polling immediately and then every 5 seconds
     pollNotifications();
     setInterval(pollNotifications, 5000);
+
+    // ==================== REAL-TIME WEBSOCKET LISTENERS (REVERB / ECHO) ====================
+    document.addEventListener('DOMContentLoaded', () => {
+        if (typeof window.Echo !== 'undefined') {
+            console.log('[Reverb Echo] Initializing queue channel listeners...');
+            window.Echo.channel('queues')
+                .listen('.QueueCreated', (e) => {
+                    console.log('[Reverb Echo] QueueCreated:', e);
+                    const q = e.queue || e;
+                    if (q) {
+                        foStats.antreanFO++;
+                        const foStatElem = document.getElementById('foStatAntrean');
+                        if (foStatElem) foStatElem.innerText = foStats.antreanFO;
+
+                        createToast(
+                            'Antrean Baru Terbit',
+                            `Nomor ${q.queue_number || 'baru'} terdaftar untuk ${q.department_name || q.department?.name || 'instansi'}.`,
+                            'info'
+                        );
+                    }
+                })
+                .listen('.QueueCalled', (e) => {
+                    console.log('[Reverb Echo] QueueCalled:', e);
+                    const q = e.queue || e;
+                    if (q) {
+                        createToast(
+                            'Dipanggil ke Loket',
+                            `Nomor ${q.queue_number} dipanggil ke loket ${q.counter_name || q.department?.name || ''}.`,
+                            'success'
+                        );
+                    }
+                })
+                .listen('.QueueFinished', (e) => {
+                    console.log('[Reverb Echo] QueueFinished:', e);
+                });
+        }
+    });
 </script>

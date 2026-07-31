@@ -145,23 +145,26 @@ final class BoothOperationService
     }
 
     /**
-     * Memanggil antrean berikutnya secara otomatis (Next Queue).
+     * Memanggil antrean berikutnya secara otomatis (Next Queue) dengan DB Pessimistic Lock.
      */
     public function callNext(User $user, ?string $visitNotes = null): ?Queue
     {
-        $nextQueue = Queue::where('department_id', $user->departments_id)
-            ->whereDate('booking_date', Carbon::today())
-            ->where('status', QueueStatus::CheckedIn->value)
-            ->orderBy('is_priority', 'desc')
-            ->orderBy('is_waterfall_forwarded', 'desc')
-            ->orderBy('id', 'asc')
-            ->first();
+        return DB::transaction(function () use ($user, $visitNotes) {
+            $nextQueue = Queue::where('department_id', $user->departments_id)
+                ->whereDate('booking_date', Carbon::today())
+                ->where('status', QueueStatus::CheckedIn->value)
+                ->orderBy('is_priority', 'desc')
+                ->orderBy('is_waterfall_forwarded', 'desc')
+                ->orderBy('id', 'asc')
+                ->lockForUpdate()
+                ->first();
 
-        if (! $nextQueue) {
-            return null;
-        }
+            if (! $nextQueue) {
+                return null;
+            }
 
-        return $this->callQueueDirect($nextQueue, $user, $visitNotes);
+            return $this->callQueueDirect($nextQueue, $user, $visitNotes);
+        });
     }
 
     /**

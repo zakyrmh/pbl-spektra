@@ -12,11 +12,9 @@
         ];
     } elseif ($role === 'admin_fo') {
         $menu = [
-            ['title' => 'Dashboard', 'url' => route('admin_fo.dashboard'), 'icon' => 'home'],
-            ['title' => 'Monitor Antrean', 'url' => route('admin.fo.monitor'), 'icon' => 'tv'],
-            ['title' => 'Pencetakan Tiket', 'url' => route('admin.fo.ticket.create'), 'icon' => 'printer'],
-            ['title' => 'Verifikasi & Check-In', 'url' => route('admin.fo.checkin'), 'icon' => 'check-circle'],
-            ['title' => 'Kelola Laporan', 'url' => route('admin.fo.reports.index'), 'icon' => 'clipboard-list'],
+            ['title' => 'Dashboard Utama', 'url' => route('admin_fo.dashboard'), 'icon' => 'home'],
+            ['title' => 'Layar Display Monitor', 'url' => route('display.index'), 'icon' => 'tv'],
+            ['title' => 'Kelola Laporan FO', 'url' => route('admin.fo.reports.index'), 'icon' => 'clipboard-list'],
         ];
     } elseif ($role === 'admin_gerai') {
         $menu = [

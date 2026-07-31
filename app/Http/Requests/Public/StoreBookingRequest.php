@@ -26,6 +26,8 @@ final class StoreBookingRequest extends FormRequest
     {
         return [
             'department_id' => ['required', 'exists:departments,id'],
+            'next_department_ids' => ['nullable', 'array'],
+            'next_department_ids.*' => ['integer', 'exists:departments,id', 'different:department_id'],
             'keperluan' => ['required', 'string', 'min:5', 'max:255'],
             'booking_date' => ['required', 'date', 'after_or_equal:today'],
             'session_name' => [

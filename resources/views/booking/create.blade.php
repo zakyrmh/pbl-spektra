@@ -8,6 +8,7 @@
              departments: @js($departments),
              sessions: @js($sessions ?? ['Sesi 1', 'Sesi 2']),
              selectedDepartmentId: '{{ old('department_id', '') }}',
+             nextDepartmentIds: @js(old('next_department_ids', [])),
              keperluan: '{{ old('keperluan', '') }}',
              selectedDate: '{{ old('booking_date', '') }}',
              selectedSession: '{{ old('session_name', '') }}',
@@ -37,6 +38,24 @@
              get selectedDepartment() {
                  return this.departments.find(d => d.id == this.selectedDepartmentId) || null;
              },
+
+             get availableNextDepartments() {
+                 if (!this.selectedDepartmentId) return [];
+                 return this.departments.filter(d => d.id != this.selectedDepartmentId);
+             },
+
+             toggleNextDept(deptId) {
+                 const idStr = String(deptId);
+                 if (this.nextDepartmentIds.includes(idStr)) {
+                     this.nextDepartmentIds = this.nextDepartmentIds.filter(id => id !== idStr);
+                 } else {
+                     this.nextDepartmentIds.push(idStr);
+                 }
+             },
+
+             get selectedNextDepartments() {
+                 return this.departments.filter(d => this.nextDepartmentIds.includes(String(d.id)));
+             },
              
              formatDate(dateStr) {
                  if (!dateStr) return '';
@@ -57,6 +76,7 @@
              resetDate() {
                  this.selectedDate = '';
                  this.selectedSession = '';
+                 this.nextDepartmentIds = this.nextDepartmentIds.filter(id => id != this.selectedDepartmentId);
              },
              
              isSessionDisabled(sessionName) {
@@ -157,7 +177,34 @@
                             @error('department_id')
                                 <p class="text-xs text-status-skipped mt-1">{{ $message }}</p>
                             @enderror
-                            <p class="text-xs text-muted dark:text-on-dark-soft font-body">Instansi penyedia layanan publik di lingkungan MPP Kota Sawahlunto.</p>
+                            <p class="text-xs text-muted dark:text-on-dark-soft font-body">Instansi penyedia layanan publik utama di lingkungan MPP Kota Sawahlunto.</p>
+                        </div>
+
+                        {{-- Multi-Gerai Waterfall Section --}}
+                        <div class="space-y-2 pt-2 border-t border-dashed border-hairline dark:border-white/10" x-cloak x-show="selectedDepartmentId">
+                            <label class="text-sm font-bold text-ink dark:text-white font-display flex items-center justify-between">
+                                <span>Pilih Gerai Lanjutan (Waterfall Queue)</span>
+                                <span class="text-[11px] font-normal px-2 py-0.5 bg-blue-500/10 text-blue-600 dark:text-accent-teal rounded-full">Multi-Layanan</span>
+                            </label>
+                            <p class="text-xs text-muted dark:text-on-dark-soft font-body mb-2">
+                                Pilih gerai tambahan jika Anda butuh pelayanan di >1 gerai. Tiket ke gerai lanjutan akan <strong>diterbitkan otomatis</strong> setelah gerai pertama selesai.
+                            </p>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                <template x-for="dept in availableNextDepartments" :key="dept.id">
+                                    <label class="flex items-center gap-2.5 p-3 rounded-lg border border-hairline dark:border-white/10 bg-surface-soft/50 dark:bg-white/5 cursor-pointer hover:border-primary/50 dark:hover:border-accent-teal/50 transition-all"
+                                           :class="nextDepartmentIds.includes(String(dept.id)) ? 'border-primary dark:border-accent-teal bg-primary/5 dark:bg-accent-teal/10 font-bold' : ''">
+                                        <input type="checkbox" 
+                                               :value="dept.id" 
+                                               :checked="nextDepartmentIds.includes(String(dept.id))"
+                                               @change="toggleNextDept(dept.id)"
+                                               class="w-4 h-4 text-primary dark:text-accent-teal border-hairline rounded focus:ring-primary cursor-pointer">
+                                        <span class="text-xs text-ink dark:text-white" x-text="dept.name"></span>
+                                    </label>
+                                </template>
+                            </div>
+                            <template x-for="id in nextDepartmentIds" :key="id">
+                                <input type="hidden" name="next_department_ids[]" :value="id">
+                            </template>
                         </div>
 
                         {{-- Field 2: Keperluan --}}
@@ -278,7 +325,7 @@
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" />
                                     </svg>
                                 </div>
-                                <p class="text-xs text-muted dark:text-on-dark-soft font-body leading-relaxed max-w-[180px] mx-auto">Lengkapi pilihan formulir di sebelah kiri untuk melihat draf tiket Anda.</p>
+                                <p class="text-xs text-muted dark:text-on-dark-soft font-body leading-relaxed max-w-45 mx-auto">Lengkapi pilihan formulir di sebelah kiri untuk melihat draf tiket Anda.</p>
                             </div>
                         </template>
 
@@ -290,8 +337,26 @@
                                 </div>
 
                                 <div>
-                                    <span class="text-[10px] font-bold text-muted dark:text-on-dark-soft uppercase tracking-wider block font-display">Instansi</span>
+                                    <span class="text-[10px] font-bold text-muted dark:text-on-dark-soft uppercase tracking-wider block font-display">Instansi Utama</span>
                                     <span class="font-bold text-ink dark:text-white" x-text="selectedDepartment ? selectedDepartment.name : ''"></span>
+                                </div>
+
+                                <div x-show="selectedNextDepartments.length > 0" class="p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg space-y-1.5">
+                                    <span class="text-[10px] font-bold text-blue-600 dark:text-accent-teal uppercase tracking-wider block font-display">Alur Kunjungan Multi-Gerai</span>
+                                    <div class="text-xs text-ink dark:text-white space-y-1">
+                                        <div class="flex items-center gap-1.5 font-bold text-primary dark:text-accent-teal">
+                                            <span class="w-4 h-4 rounded-full bg-primary/20 text-primary text-[10px] flex items-center justify-center font-mono">1</span>
+                                            <span x-text="selectedDepartment ? selectedDepartment.name : ''"></span>
+                                            <span class="text-[9px] px-1.5 py-0.5 bg-primary/10 text-primary rounded font-mono">Pertama</span>
+                                        </div>
+                                        <template x-for="(dept, idx) in selectedNextDepartments" :key="dept.id">
+                                            <div class="flex items-center gap-1.5 text-muted dark:text-on-dark-soft pl-0.5">
+                                                <span class="w-4 h-4 rounded-full bg-gray-200 dark:bg-white/10 text-muted dark:text-white text-[10px] flex items-center justify-center font-mono" x-text="idx + 2"></span>
+                                                <span x-text="dept.name"></span>
+                                                <span class="text-[9px] px-1.5 py-0.5 bg-blue-500/10 text-blue-600 dark:text-accent-teal rounded font-mono">Terusan (On Hold)</span>
+                                            </div>
+                                        </template>
+                                    </div>
                                 </div>
                                 
                                 <div x-show="keperluan">

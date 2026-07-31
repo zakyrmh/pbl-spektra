@@ -7,10 +7,29 @@
          x-data="{
              departments: @js($departments),
              selectedDepartmentId: '{{ old('department_id', '') }}',
+             nextDepartmentIds: @js(old('next_department_ids', [])),
              isPriority: {{ old('is_priority') ? 'true' : 'false' }},
              
              get selectedDepartment() {
                  return this.departments.find(d => d.id == this.selectedDepartmentId) || null;
+             },
+
+             get availableNextDepartments() {
+                 if (!this.selectedDepartmentId) return [];
+                 return this.departments.filter(d => d.id != this.selectedDepartmentId);
+             },
+
+             toggleNextDept(deptId) {
+                 const idStr = String(deptId);
+                 if (this.nextDepartmentIds.includes(idStr)) {
+                     this.nextDepartmentIds = this.nextDepartmentIds.filter(id => id !== idStr);
+                 } else {
+                     this.nextDepartmentIds.push(idStr);
+                 }
+             },
+
+             get selectedNextDepartments() {
+                 return this.departments.filter(d => this.nextDepartmentIds.includes(String(d.id)));
              }
          }">
 
@@ -163,7 +182,7 @@
                                             <span id="btn-cari-text">Cari</span>
                                         </button>
                                         <button type="button" id="btn-reset-nik"
-                                                class="hidden px-4 bg-status-skipped/10 hover:bg-status-skipped/25 text-status-skipped text-xs font-bold rounded-md transition-all cursor-pointer flex items-center justify-center gap-1.5 h-11 border border-status-skipped/20 shadow-sm shrink-0">
+                                                class="hidden px-4 bg-status-skipped/10 hover:bg-status-skipped/25 text-status-skipped text-xs font-bold rounded-md transition-all cursor-pointer items-center justify-center gap-1.5 h-11 border border-status-skipped/20 shadow-sm shrink-0">
                                             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                             </svg>
@@ -215,7 +234,7 @@
                             
                             {{-- Department Select --}}
                             <div class="space-y-2">
-                                <label for="department_id" class="block text-sm font-bold text-ink dark:text-white font-display">Instansi / Lembaga</label>
+                                <label for="department_id" class="block text-sm font-bold text-ink dark:text-white font-display">Instansi / Lembaga Utama</label>
                                 <div class="relative">
                                     <select id="department_id" name="department_id" x-model="selectedDepartmentId" required
                                             class="w-full h-11 text-sm bg-canvas dark:bg-white/5 border border-hairline dark:border-white/15 text-ink dark:text-white rounded-md px-4 pr-10 focus:border-primary dark:focus:border-accent-teal focus:outline-none focus:ring-3 focus:ring-primary/12 dark:focus:ring-accent-teal/20 transition-all cursor-pointer">
@@ -225,6 +244,33 @@
                                         </template>
                                     </select>
                                 </div>
+                            </div>
+
+                            {{-- Multi-Gerai Waterfall Selection for FO --}}
+                            <div class="space-y-2 pt-2 border-t border-dashed border-hairline dark:border-white/10" x-cloak x-show="selectedDepartmentId">
+                                <label class="text-xs font-bold text-ink dark:text-white font-display flex items-center justify-between">
+                                    <span>Instansi Lanjutan (Multi-Gerai Waterfall Queue)</span>
+                                    <span class="text-[10px] font-normal px-2 py-0.5 bg-blue-500/10 text-blue-600 dark:text-accent-teal rounded-full">Kunjungan >1 Gerai</span>
+                                </label>
+                                <p class="text-[11px] text-muted dark:text-on-dark-soft font-body">
+                                    Nomor antrean gerai lanjutan akan <strong>diterbitkan otomatis</strong> begitu gerai sebelumnya menyelesaikan pelayanan.
+                                </p>
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                    <template x-for="dept in availableNextDepartments" :key="dept.id">
+                                        <label class="flex items-center gap-2 p-2.5 rounded-md border border-hairline dark:border-white/10 bg-surface-soft/50 dark:bg-white/5 cursor-pointer hover:border-primary/50 dark:hover:border-accent-teal/50 transition-all"
+                                               :class="nextDepartmentIds.includes(String(dept.id)) ? 'border-primary dark:border-accent-teal bg-primary/5 dark:bg-accent-teal/10 font-bold' : ''">
+                                            <input type="checkbox" 
+                                                   :value="dept.id" 
+                                                   :checked="nextDepartmentIds.includes(String(dept.id))"
+                                                   @change="toggleNextDept(dept.id)"
+                                                   class="w-3.5 h-3.5 text-primary dark:text-accent-teal border-hairline rounded focus:ring-primary cursor-pointer">
+                                            <span class="text-xs text-ink dark:text-white" x-text="dept.name"></span>
+                                        </label>
+                                    </template>
+                                </div>
+                                <template x-for="id in nextDepartmentIds" :key="id">
+                                    <input type="hidden" name="next_department_ids[]" :value="id">
+                                </template>
                             </div>
                         </div>
 
@@ -259,7 +305,7 @@
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" />
                                     </svg>
                                 </div>
-                                <p class="text-xs text-muted dark:text-on-dark-soft font-body leading-relaxed max-w-[180px] mx-auto">Lengkapi destinasi gerai untuk melihat draf karcis.</p>
+                                <p class="text-xs text-muted dark:text-on-dark-soft font-body leading-relaxed max-w-45 mx-auto">Lengkapi destinasi gerai untuk melihat draf karcis.</p>
                             </div>
                         </template>
  

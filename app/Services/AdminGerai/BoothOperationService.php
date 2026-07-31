@@ -8,6 +8,7 @@ use App\Data\AdminGerai\BoothDashboardData;
 use App\Enums\QueueStatus;
 use App\Enums\UserRole;
 use App\Events\QueueCalled;
+use App\Events\QueueCreated;
 use App\Events\QueueFinished;
 use App\Models\ActivityLog;
 use App\Models\Department;
@@ -56,6 +57,7 @@ final class BoothOperationService
             ->where('status', QueueStatus::CheckedIn->value)
             ->with(['user'])
             ->orderBy('is_priority', 'desc')
+            ->orderBy('is_waterfall_forwarded', 'desc')
             ->orderBy('id', 'asc')
             ->get();
 
@@ -151,6 +153,7 @@ final class BoothOperationService
             ->whereDate('booking_date', Carbon::today())
             ->where('status', QueueStatus::CheckedIn->value)
             ->orderBy('is_priority', 'desc')
+            ->orderBy('is_waterfall_forwarded', 'desc')
             ->orderBy('id', 'asc')
             ->first();
 
@@ -170,25 +173,20 @@ final class BoothOperationService
     }
 
     /**
-     * Menyelesaikan pelayanan antrean.
+     * Menyelesaikan pelayanan antrean dan meneruskan ke gerai berikutnya jika ada (Waterfall Queue).
+     *
+     * @return Queue|null Antrean gerai lanjutan yang terbit otomatis, atau null jika kunjungan selesai.
      */
-    public function finishService(Queue $queue, User $user, ?string $visitNotes = null): void
+    public function finishService(Queue $queue, User $user, ?string $visitNotes = null): ?Queue
     {
-        DB::transaction(function () use ($queue, $user, $visitNotes) {
+        $nextQueueCreated = null;
+
+        DB::transaction(function () use ($queue, $user, $visitNotes, &$nextQueueCreated) {
             $queue->update([
                 'status' => QueueStatus::Completed->value,
                 'completed_at' => now(),
                 'visit_notes' => $visitNotes,
             ]);
-
-            // Kirim notifikasi ke warga menggunakan model Notification custom proyek ini
-            if ($queue->user_id) {
-                Notification::create([
-                    'user_id' => $queue->user_id,
-                    'title' => 'Pelayanan Selesai',
-                    'message' => "Pelayanan untuk nomor antrean {$queue->queue_number} telah selesai. Silakan isi ulasan dan berikan feedback Anda di menu Dashboard.",
-                ]);
-            }
 
             ActivityLog::record(
                 action: 'COMPLETE_QUEUE',
@@ -197,11 +195,93 @@ final class BoothOperationService
                 description: "Operator menyelesaikan pelayanan untuk antrean {$queue->queue_number}.",
                 actorUserId: $user->id
             );
+
+            // Alur Waterfall Queue: Cek apakah ada gerai berikutnya
+            $nextDeptIds = $queue->next_department_ids;
+            if (is_array($nextDeptIds) && count($nextDeptIds) > 0) {
+                $targetDeptId = (int) array_shift($nextDeptIds);
+                $targetDepartment = Department::find($targetDeptId);
+
+                if ($targetDepartment) {
+                    $today = Carbon::today();
+                    $isPriority = (bool) $queue->is_priority;
+                    $prefix = $isPriority ? 'P' : ($targetDepartment->inisial ?: 'Q');
+
+                    // Ambil nomor urut berikutnya di gerai tujuan
+                    $queueNumbers = Queue::where('department_id', $targetDepartment->id)
+                        ->whereDate('booking_date', $today)
+                        ->where('is_priority', $isPriority)
+                        ->whereNotNull('queue_number')
+                        ->lockForUpdate()
+                        ->pluck('queue_number')
+                        ->map(function ($num) {
+                            $parts = explode('-', $num);
+
+                            return (int) end($parts);
+                        });
+
+                    $nextNumber = $queueNumbers->isEmpty() ? 1 : $queueNumbers->max() + 1;
+                    $newQueueNumber = $prefix.'-'.str_pad((string) $nextNumber, 3, '0', STR_PAD_LEFT);
+                    $rootId = $queue->parent_queue_id ?? $queue->id;
+                    $nextSeq = ($queue->sequence_order ?? 1) + 1;
+
+                    $rootBookingCode = Str::before($queue->booking_code, '-S');
+                    $stepBookingCode = $rootBookingCode.'-S'.$nextSeq;
+
+                    $nextQueueCreated = Queue::create([
+                        'user_id' => $queue->user_id,
+                        'parent_queue_id' => $rootId,
+                        'department_id' => $targetDepartment->id,
+                        'next_department_ids' => count($nextDeptIds) > 0 ? array_values($nextDeptIds) : null,
+                        'booking_code' => $stepBookingCode,
+                        'purpose' => $queue->purpose,
+                        'session_name' => $queue->session_name,
+                        'booking_date' => $today->toDateString(),
+                        'queue_number' => $newQueueNumber,
+                        'sequence_order' => $nextSeq,
+                        'status' => QueueStatus::CheckedIn->value,
+                        'is_priority' => $isPriority,
+                        'is_waterfall_forwarded' => true,
+                        'checked_in_at' => now(),
+                    ]);
+
+                    if (class_exists(QueueCreated::class)) {
+                        event(new QueueCreated($nextQueueCreated));
+                    }
+
+                    if ($queue->user_id) {
+                        Notification::create([
+                            'user_id' => $queue->user_id,
+                            'title' => 'Antrean Diteruskan (Multi-Gerai)',
+                            'message' => "Pelayanan Anda di {$queue->department?->name} telah selesai. Antrean Anda otomatis diteruskan ke instansi {$targetDepartment->name} dengan nomor antrean {$newQueueNumber} (Prioritas Lanjutan).",
+                        ]);
+                    }
+
+                    ActivityLog::record(
+                        action: 'WATERFALL_FORWARD_QUEUE',
+                        modelType: 'Queue',
+                        modelId: $nextQueueCreated->id,
+                        description: "Sistem meneruskan antrean multi-gerai secara otomatis dari '{$queue->department?->name}' ke '{$targetDepartment->name}' ({$newQueueNumber}).",
+                        actorUserId: $user->id
+                    );
+                }
+            } else {
+                // Notifikasi penyelesaian akhir jika tidak ada gerai lanjutan
+                if ($queue->user_id) {
+                    Notification::create([
+                        'user_id' => $queue->user_id,
+                        'title' => 'Pelayanan Selesai',
+                        'message' => "Pelayanan untuk nomor antrean {$queue->queue_number} telah selesai. Silakan isi ulasan dan berikan feedback Anda di menu Dashboard.",
+                    ]);
+                }
+            }
         });
 
         if (class_exists(QueueFinished::class)) {
             event(new QueueFinished($queue));
         }
+
+        return $nextQueueCreated;
     }
 
     /**

@@ -175,11 +175,19 @@ final class CounterController extends Controller
             'visit_notes' => ['nullable', 'string', 'max:5000'],
         ]);
 
-        $this->boothService->finishService($queue, $user, $request->input('visit_notes'));
+        $nextQueue = $this->boothService->finishService($queue, $user, $request->input('visit_notes'));
+
+        $message = 'Status antrean berhasil diselesaikan.';
+        if ($nextQueue) {
+            $nextDeptName = $nextQueue->department?->name ?? 'gerai berikutnya';
+            $message = "Pelayanan selesai & antrean otomatis diteruskan ke {$nextDeptName} dengan nomor antrean {$nextQueue->queue_number}.";
+        }
 
         return response()->json([
             'success' => true,
-            'message' => 'Status antrean berhasil diperbarui.',
+            'message' => $message,
+            'waterfall_forwarded' => $nextQueue !== null,
+            'next_queue_number' => $nextQueue?->queue_number,
         ]);
     }
 

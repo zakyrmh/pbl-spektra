@@ -132,11 +132,13 @@ class WalkInTicketService
             $queue = Queue::create([
                 'user_id' => $user->id,
                 'department_id' => $department->id,
+                'next_department_ids' => $data->nextDepartmentIds,
                 'booking_code' => $bookingCode,
                 'purpose' => $data->purpose,
                 'session_name' => 'Walk-In',
                 'booking_date' => $today,
                 'queue_number' => $queueNumber,
+                'sequence_order' => 1,
                 'status' => QueueStatus::CheckedIn->value,
                 'is_priority' => $data->isPriority,
                 'checked_in_at' => now(),

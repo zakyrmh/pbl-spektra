@@ -26,6 +26,8 @@ class StoreWalkInTicketRequest extends FormRequest
     {
         return [
             'department_id' => ['required', 'integer', 'exists:departments,id'],
+            'next_department_ids' => ['nullable', 'array'],
+            'next_department_ids.*' => ['integer', 'exists:departments,id', 'different:department_id'],
             'name' => ['required', 'string', 'min:3', 'max:255'],
             'nik' => ['nullable', 'string', 'digits:16'],
             'phone' => ['required', 'string', 'min:8', 'max:15'],

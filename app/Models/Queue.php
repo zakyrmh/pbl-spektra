@@ -12,14 +12,18 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 
 #[Fillable([
     'user_id',
+    'parent_queue_id',
     'department_id',
+    'next_department_ids',
     'booking_code',
     'purpose',
     'session_name',
     'booking_date',
     'queue_number',
+    'sequence_order',
     'status',
     'is_priority',
+    'is_waterfall_forwarded',
     'cancel_reason',
     'visit_notes',
     'checked_in_at',
@@ -39,6 +43,9 @@ class Queue extends Model
             'cancelled_at' => 'datetime',
             'completed_at' => 'datetime',
             'is_priority' => 'boolean',
+            'is_waterfall_forwarded' => 'boolean',
+            'next_department_ids' => 'array',
+            'sequence_order' => 'integer',
         ];
     }
 
@@ -52,6 +59,34 @@ class Queue extends Model
         }
 
         return null;
+    }
+
+    /**
+     * Get the parent queue (initial step) of this waterfall visit.
+     *
+     * @return BelongsTo<Queue, $this>
+     */
+    public function parentQueue(): BelongsTo
+    {
+        return $this->belongsTo(self::class, 'parent_queue_id');
+    }
+
+    /**
+     * Get the child queues (subsequent steps) of this waterfall visit.
+     */
+    public function childQueues()
+    {
+        return $this->hasMany(self::class, 'parent_queue_id');
+    }
+
+    /**
+     * Get all queue steps related to this visit.
+     */
+    public function allVisitQueues()
+    {
+        $rootId = $this->parent_queue_id ?? $this->id;
+
+        return self::where('id', $rootId)->orWhere('parent_queue_id', $rootId)->orderBy('sequence_order', 'asc');
     }
 
     /**

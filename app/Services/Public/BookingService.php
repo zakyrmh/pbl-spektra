@@ -67,6 +67,11 @@ class BookingService
 
             $prefix = $department->inisial ?: 'Q';
 
+            // Clean next_department_ids array if present
+            $nextDeptIds = isset($data['next_department_ids']) && is_array($data['next_department_ids'])
+                ? array_values(array_unique(array_filter(array_map('intval', $data['next_department_ids']), fn ($id) => $id > 0 && $id !== $department->id)))
+                : null;
+
             // Generate structured booking code
             $dateStr = $bookingDate->format('Ymd');
             $bookingCode = 'BK-'.$prefix.'-'.$dateStr.'-'.strtoupper(Str::random(6));
@@ -75,6 +80,7 @@ class BookingService
             $booking = Queue::create([
                 'user_id' => $user->id,
                 'department_id' => $department->id,
+                'next_department_ids' => $nextDeptIds,
                 'booking_code' => $bookingCode,
                 'purpose' => $data['keperluan'],
                 'session_name' => $data['session_name'],
@@ -82,6 +88,7 @@ class BookingService
                 'queue_number' => null,
                 'status' => 'Booked',
                 'is_priority' => (bool) $user->is_priority,
+                'sequence_order' => 1,
             ]);
 
             // Save notifications for customer

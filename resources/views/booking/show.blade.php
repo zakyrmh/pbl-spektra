@@ -152,6 +152,72 @@
                         <span class="text-muted dark:text-on-dark-soft font-medium">Sesi</span>
                         <span class="font-bold text-ink dark:text-white text-right">{{ $booking->session_name ?? '-' }}</span>
                     </div>
+
+                    {{-- Multi-Gerai Waterfall Route Timeline --}}
+                    @php
+                        $allQueues = $booking->allVisitQueues()->with('department')->get();
+                    @endphp
+                    @if($allQueues->count() > 1 || !empty($booking->next_department_ids))
+                        <div class="space-y-3 border-t border-dashed border-hairline dark:border-white/15 pt-5 font-body">
+                            <h4 class="text-xs font-bold text-ink dark:text-white uppercase tracking-wider font-display flex items-center justify-between">
+                                <span>Alur Multi-Gerai (Waterfall)</span>
+                                <span class="text-[10px] px-2 py-0.5 bg-blue-500/10 text-blue-600 dark:text-accent-teal rounded-full font-mono font-normal">Kunjungan Terintegrasi</span>
+                            </h4>
+                            <div class="space-y-2">
+                                @foreach($allQueues as $step)
+                                    <div class="flex items-center justify-between p-3 rounded-lg border border-hairline dark:border-white/10 bg-surface-soft/50 dark:bg-white/5">
+                                        <div class="flex items-center gap-2.5">
+                                            <span class="w-5 h-5 rounded-full bg-primary/10 text-primary dark:text-accent-teal font-mono font-bold text-xs flex items-center justify-center shrink-0">
+                                                {{ $loop->iteration }}
+                                            </span>
+                                            <div class="min-w-0">
+                                                <p class="text-xs font-bold text-ink dark:text-white truncate">{{ $step->department?->name }}</p>
+                                                <p class="text-[11px] text-muted dark:text-on-dark-soft font-mono">
+                                                    {{ $step->queue_number ? 'Nomor: ' . $step->queue_number : 'Menunggu nomor' }}
+                                                    @if($step->is_waterfall_forwarded)
+                                                        <span class="text-[10px] text-blue-600 dark:text-accent-teal font-sans">(Prioritas Lanjutan)</span>
+                                                    @endif
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div class="shrink-0 ml-2">
+                                            @if(($step->status->value ?? $step->status) === 'Completed')
+                                                <span class="px-2.5 py-1 bg-green-500/10 text-green-700 dark:text-green-400 rounded-full text-[10px] font-bold">Selesai</span>
+                                            @elseif(($step->status->value ?? $step->status) === 'Serving')
+                                                <span class="px-2.5 py-1 bg-blue-500/10 text-blue-600 dark:text-accent-teal rounded-full text-[10px] font-bold animate-pulse">Dilayani</span>
+                                            @elseif(($step->status->value ?? $step->status) === 'Checked-In')
+                                                <span class="px-2.5 py-1 bg-amber-500/10 text-amber-700 dark:text-amber-400 rounded-full text-[10px] font-bold">Menunggu</span>
+                                            @else
+                                                <span class="px-2.5 py-1 bg-gray-500/10 text-gray-600 dark:text-gray-400 rounded-full text-[10px] font-bold">{{ $step->status->value ?? $step->status }}</span>
+                                            @endif
+                                        </div>
+                                    </div>
+                                @endforeach
+
+                                {{-- Remaining Pending Waterfall Departments --}}
+                                @if(is_array($booking->next_department_ids) && count($booking->next_department_ids) > 0)
+                                    @php
+                                        $pendingDepts = \App\Models\Department::whereIn('id', $booking->next_department_ids)->get();
+                                        $startIndex = $allQueues->count() + 1;
+                                    @endphp
+                                    @foreach($pendingDepts as $idx => $pDept)
+                                        <div class="flex items-center justify-between p-3 rounded-lg border border-dashed border-hairline dark:border-white/10 bg-gray-50 dark:bg-white/2 opacity-75">
+                                            <div class="flex items-center gap-2.5">
+                                                <span class="w-5 h-5 rounded-full bg-gray-200 dark:bg-white/10 text-muted dark:text-gray-300 font-mono font-bold text-xs flex items-center justify-center shrink-0">
+                                                    {{ $startIndex + $idx }}
+                                                </span>
+                                                <div class="min-w-0">
+                                                    <p class="text-xs font-semibold text-ink dark:text-white truncate">{{ $pDept->name }}</p>
+                                                    <p class="text-[10px] text-muted dark:text-on-dark-soft italic">Diterbitkan otomatis setelah gerai sebelumnya selesai</p>
+                                                </div>
+                                            </div>
+                                            <span class="px-2.5 py-1 bg-gray-200/50 dark:bg-white/5 text-gray-500 dark:text-gray-400 rounded-full text-[10px] font-medium shrink-0 ml-2">On Hold</span>
+                                        </div>
+                                    @endforeach
+                                @endif
+                            </div>
+                        </div>
+                    @endif
                     
                     @if(($booking->status->value ?? $booking->status) !== 'Cancelled' && !$booking->queue_number)
                     <div class="flex justify-between gap-4 pt-3 border-t border-hairline dark:border-white/10">

@@ -716,6 +716,13 @@
                                     🌟 PRIORITAS (KELOMPOK RENTAN)
                                 </span>
                             </div>
+                            <div class="grid grid-cols-3 gap-1" id="citizenWaterfallRow" style="{{ ($activeQueue && $activeQueue->is_waterfall_forwarded) ? '' : 'display: none;' }}">
+                                <span class="text-muted dark:text-on-dark-soft">Status Alur:</span>
+                                <span id="citizenWaterfallBadge"
+                                    class="col-span-2 text-right font-extrabold text-blue-600 dark:text-accent-teal uppercase tracking-wider">
+                                    🔄 PRIORITAS LANJUTAN (MULTI-GERAI)
+                                </span>
+                            </div>
                             <div class="grid grid-cols-3 gap-1">
                                 <span class="text-muted dark:text-on-dark-soft">Nama Warga:</span>
                                 <span id="citizenName"

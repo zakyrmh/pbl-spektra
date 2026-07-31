@@ -182,7 +182,7 @@
 
                         {{-- Multi-Gerai Waterfall Section --}}
                         <div class="space-y-2 pt-2 border-t border-dashed border-hairline dark:border-white/10" x-cloak x-show="selectedDepartmentId">
-                            <label class="block text-sm font-bold text-ink dark:text-white font-display flex items-center justify-between">
+                            <label class="text-sm font-bold text-ink dark:text-white font-display flex items-center justify-between">
                                 <span>Pilih Gerai Lanjutan (Waterfall Queue)</span>
                                 <span class="text-[11px] font-normal px-2 py-0.5 bg-blue-500/10 text-blue-600 dark:text-accent-teal rounded-full">Multi-Layanan</span>
                             </label>
@@ -325,7 +325,7 @@
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" />
                                     </svg>
                                 </div>
-                                <p class="text-xs text-muted dark:text-on-dark-soft font-body leading-relaxed max-w-[180px] mx-auto">Lengkapi pilihan formulir di sebelah kiri untuk melihat draf tiket Anda.</p>
+                                <p class="text-xs text-muted dark:text-on-dark-soft font-body leading-relaxed max-w-45 mx-auto">Lengkapi pilihan formulir di sebelah kiri untuk melihat draf tiket Anda.</p>
                             </div>
                         </template>
 

@@ -29,6 +29,8 @@ class ApiStoreWalkInTicketRequest extends FormRequest
             'name' => ['required', 'string', 'max:255'],
             'purpose' => ['required', 'string', 'max:255'],
             'department_id' => ['required', 'exists:departments,id'],
+            'next_department_ids' => ['nullable', 'array'],
+            'next_department_ids.*' => ['integer', 'exists:departments,id', 'different:department_id'],
             'phone' => ['required', 'string', 'regex:/^(08[0-9]{8,13}|\+628[0-9]{8,11})$/'],
             'is_priority' => ['nullable', 'boolean'],
         ];

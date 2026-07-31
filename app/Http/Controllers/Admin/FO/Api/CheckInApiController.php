@@ -86,14 +86,22 @@ final class CheckInApiController extends Controller
     public function walkIn(ApiStoreWalkInTicketRequest $request): JsonResponse
     {
         try {
+            $nextDeptIds = $request->input('next_department_ids');
+            if (is_array($nextDeptIds)) {
+                $nextDeptIds = array_values(array_unique(array_filter(array_map('intval', $nextDeptIds), fn ($id) => $id > 0 && $id !== (int) $request->input('department_id'))));
+            } else {
+                $nextDeptIds = null;
+            }
+
             // Map request parameters to WalkInTicketData DTO
             $dto = new WalkInTicketData(
+                departmentId: (int) $request->input('department_id'),
                 name: $request->input('name'),
                 nik: $request->input('nik'),
                 phone: $request->input('phone', '00000000000'),
                 purpose: $request->input('purpose'),
-                departmentId: (int) $request->input('department_id'),
-                isPriority: (bool) $request->input('is_priority', false)
+                isPriority: (bool) $request->input('is_priority', false),
+                nextDepartmentIds: $nextDeptIds
             );
 
             $queue = $this->ticketService->issueTicket($dto);

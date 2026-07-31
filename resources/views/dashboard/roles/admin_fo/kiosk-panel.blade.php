@@ -77,18 +77,38 @@
                         oninput="this.value = this.value.replace(/[^0-9+]/g, '')">
                 </div>
 
-                <!-- Instansi Tujuan -->
-                <div class="space-y-1.5">
+                <!-- Instansi Utama & Multi-Gerai Waterfall Selection -->
+                <div class="space-y-1.5" x-data="{ selectedWalkInDept: '' }">
                     <label for="selWalkInDept" class="block text-xs font-bold text-ink dark:text-white uppercase tracking-wider font-display">
                         Instansi Utama <span class="text-rose-500">*</span>
                     </label>
-                    <select id="selWalkInDept"
+                    <select id="selWalkInDept" x-model="selectedWalkInDept"
                         class="w-full h-11 bg-surface-soft dark:bg-surface-dark border border-hairline dark:border-white/10 text-ink dark:text-white rounded-md px-3.5 font-bold focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-accent-teal cursor-pointer">
-                        <option value="">-- Pilih Instansi Tujuan --</option>
+                        <option value="">-- Pilih Instansi Utama --</option>
                         @foreach ($departments as $dept)
                             <option value="{{ $dept->id }}">{{ $dept->name }}</option>
                         @endforeach
                     </select>
+
+                    <!-- Multi-Gerai Waterfall Selection (Gerai Lanjutan: Gerai 2, 3, 4, dst) -->
+                    <div class="space-y-2 pt-3 border-t border-dashed border-hairline dark:border-white/10 mt-3" x-show="selectedWalkInDept" x-cloak>
+                        <label class="text-xs font-bold text-ink dark:text-white font-display flex items-center justify-between">
+                            <span>Instansi Lanjutan (Multi-Gerai Waterfall Queue)</span>
+                            <span class="text-[10px] font-normal px-2 py-0.5 bg-blue-500/10 text-blue-600 dark:text-accent-teal rounded-full font-mono">Gerai 2, 3, 4...</span>
+                        </label>
+                        <p class="text-[11px] text-muted dark:text-on-dark-soft font-body leading-relaxed">
+                            Nomor antrean gerai lanjutan akan <strong>diterbitkan otomatis</strong> ("Selesai Dulu Baru Antre") begitu gerai sebelumnya menekan Selesai.
+                        </p>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-40 overflow-y-auto pr-1">
+                            @foreach ($departments as $dept)
+                                <label class="flex items-center gap-2 p-2 rounded-md border border-hairline dark:border-white/10 bg-surface-soft/50 dark:bg-white/5 cursor-pointer hover:border-primary/50 dark:hover:border-accent-teal/50 transition-all text-xs"
+                                    x-show="selectedWalkInDept != '{{ $dept->id }}'">
+                                    <input type="checkbox" value="{{ $dept->id }}" class="chk-next-dept w-3.5 h-3.5 text-primary dark:text-accent-teal border-hairline rounded focus:ring-primary cursor-pointer">
+                                    <span class="text-xs font-medium text-ink dark:text-white">{{ $dept->name }}</span>
+                                </label>
+                            @endforeach
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Keperluan / Layanan -->

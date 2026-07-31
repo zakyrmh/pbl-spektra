@@ -579,6 +579,7 @@
         phoneInput.value = '';
         phoneInput.disabled = true;
         document.getElementById('selWalkInDept').value = '';
+        document.querySelectorAll('.chk-next-dept').forEach(cb => cb.checked = false);
         document.getElementById('txtWalkInPurpose').value = '';
         const chkPriority = document.getElementById('chkWalkInPriority');
         if (chkPriority) chkPriority.checked = false;
@@ -590,6 +591,10 @@
         const phone = document.getElementById('txtWalkInPhone').value.trim();
         const deptId = document.getElementById('selWalkInDept').value;
         const purpose = document.getElementById('txtWalkInPurpose').value.trim();
+
+        // Collect Multi-Gerai Waterfall Queue (next_department_ids)
+        const nextDeptCheckboxes = document.querySelectorAll('.chk-next-dept:checked');
+        const nextDeptIds = Array.from(nextDeptCheckboxes).map(cb => parseInt(cb.value)).filter(id => id > 0 && id !== parseInt(deptId));
 
         if (nik.length !== 16) {
             createToast('Peringatan', 'NIK harus 16 digit.', 'warning');
@@ -610,7 +615,7 @@
             return;
         }
         if (!deptId) {
-            createToast('Peringatan', 'Silakan pilih Instansi Tujuan.', 'warning');
+            createToast('Peringatan', 'Silakan pilih Instansi Utama.', 'warning');
             return;
         }
         if (!purpose) {
@@ -630,6 +635,7 @@
                     name: name,
                     phone: phone,
                     department_id: deptId,
+                    next_department_ids: nextDeptIds,
                     purpose: purpose,
                     is_priority: document.getElementById('chkWalkInPriority').checked ? 1 : 0
                 })

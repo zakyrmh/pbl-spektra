@@ -1,8 +1,14 @@
 <?php
 
+use App\Enums\QueueStatus;
+use App\Exports\QueuesExport;
+use App\Models\Department;
+use App\Models\Notification;
+use App\Models\Queue;
 use App\Models\Report;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Bus;
 
 uses(RefreshDatabase::class);
 
@@ -83,4 +89,101 @@ test('guest cannot view fo report detail', function () {
     $response = $this->get(route('admin.fo.reports.show', $report));
 
     $response->assertRedirect(route('login'));
+});
+
+test('super admin can download report excel directly without notification or job', function () {
+    Bus::fake();
+
+    $superAdmin = User::factory()->create([
+        'role' => 'super_admin',
+    ]);
+
+    $visitor = User::factory()->create([
+        'role' => 'pengunjung',
+        'no_telp' => '081234567890',
+    ]);
+
+    $department = Department::create([
+        'name' => 'Layanan Kependudukan',
+        'inisial' => 'LK',
+        'nomor_loket' => '01',
+    ]);
+
+    $startDate = now()->subDays(3)->toDateString();
+    $endDate = now()->toDateString();
+
+    Queue::create([
+        'user_id' => $visitor->id,
+        'department_id' => $department->id,
+        'booking_code' => 'BK-EXPORT-1',
+        'purpose' => 'KTP',
+        'session_name' => 'Pagi',
+        'booking_date' => now()->subDay()->toDateString(),
+        'queue_number' => 'LK-001',
+        'status' => QueueStatus::Completed->value,
+        'called_at' => now()->subDay()->setTime(9, 0),
+        'completed_at' => now()->subDay()->setTime(9, 15),
+    ]);
+
+    $report = Report::create([
+        'created_by' => $superAdmin->id,
+        'title' => 'Laporan Kinerja Export Test',
+        'start_date' => $startDate,
+        'end_date' => $endDate,
+        'data_summary' => [
+            'total_visitors' => 1,
+            'completed_count' => 1,
+            'skipped_count' => 0,
+            'attendance_rate' => 100.0,
+            'avg_service_time' => 15.0,
+            'avg_waiting_time' => 0.0,
+            'per_department' => [],
+            'daily_series' => [],
+        ],
+        'status' => 'Terkirim',
+    ]);
+
+    $filename = 'rekap-kunjungan-mpp-'.$startDate.'-to-'.$endDate.'.xlsx';
+
+    $response = $this->actingAs($superAdmin)->get(route('admin.reports.export.excel', $report));
+
+    $response->assertSuccessful();
+    $response->assertDownload($filename);
+
+    expect(Notification::query()->count())->toBe(0);
+    Bus::assertNothingDispatched();
+});
+
+test('queues export includes visitor phone number column', function () {
+    $visitor = User::factory()->create([
+        'role' => 'pengunjung',
+        'no_telp' => '081298765432',
+        'nik' => '1371010101010001',
+    ]);
+
+    $department = Department::create([
+        'name' => 'Dinas Sosial',
+        'inisial' => 'DS',
+        'nomor_loket' => '02',
+    ]);
+
+    $queue = Queue::create([
+        'user_id' => $visitor->id,
+        'department_id' => $department->id,
+        'booking_code' => 'BK-EXPORT-2',
+        'purpose' => 'SKTM',
+        'session_name' => 'Siang',
+        'booking_date' => now()->toDateString(),
+        'queue_number' => 'DS-001',
+        'status' => QueueStatus::Completed->value,
+        'called_at' => now()->setTime(13, 0),
+        'completed_at' => now()->setTime(13, 20),
+    ]);
+
+    $queue->load(['user', 'department']);
+
+    $export = new QueuesExport(now()->toDateString(), now()->toDateString());
+
+    expect($export->headings())->toContain('Nomor HP Pengunjung')
+        ->and($export->map($queue))->toContain('081298765432');
 });

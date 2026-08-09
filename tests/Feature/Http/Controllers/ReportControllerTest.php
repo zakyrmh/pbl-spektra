@@ -187,3 +187,131 @@ test('queues export includes visitor phone number column', function () {
     expect($export->headings())->toContain('Nomor HP Pengunjung')
         ->and($export->map($queue))->toContain('081298765432');
 });
+
+test('fo report detail table shows visitor phone number', function () {
+    $adminFo = User::factory()->create([
+        'role' => 'admin_fo',
+        'email_verified_at' => now(),
+    ]);
+
+    $visitor = User::factory()->create([
+        'role' => 'pengunjung',
+        'name' => 'Budi Santoso',
+        'no_telp' => '081355512345',
+    ]);
+
+    $department = Department::create([
+        'name' => 'Layanan Kependudukan',
+        'inisial' => 'LK',
+        'nomor_loket' => '01',
+    ]);
+
+    $startDate = now()->subDays(2)->toDateString();
+    $endDate = now()->toDateString();
+
+    Queue::create([
+        'user_id' => $visitor->id,
+        'department_id' => $department->id,
+        'booking_code' => 'BK-DETAIL-1',
+        'purpose' => 'KTP',
+        'session_name' => 'Pagi',
+        'booking_date' => now()->subDay()->toDateString(),
+        'queue_number' => 'LK-010',
+        'status' => QueueStatus::Completed->value,
+        'called_at' => now()->subDay()->setTime(10, 0),
+        'completed_at' => now()->subDay()->setTime(10, 20),
+    ]);
+
+    $report = Report::create([
+        'created_by' => $adminFo->id,
+        'title' => 'Laporan Detail Nomor HP',
+        'start_date' => $startDate,
+        'end_date' => $endDate,
+        'data_summary' => [
+            'total_visitors' => 1,
+            'completed_count' => 1,
+            'skipped_count' => 0,
+            'attendance_rate' => 100.0,
+            'avg_service_time' => 20.0,
+            'avg_waiting_time' => 0.0,
+            'per_department' => [],
+            'daily_series' => [],
+        ],
+        'status' => 'Belum Dikirim',
+    ]);
+
+    $response = $this->actingAs($adminFo)->get(route('admin.fo.reports.show', $report));
+
+    $response->assertSuccessful();
+    $response->assertSee('Nomor HP');
+    $response->assertSee('081355512345');
+    $response->assertSee('Budi Santoso');
+});
+
+test('super admin pdf export includes full visitor phone number', function () {
+    $superAdmin = User::factory()->create([
+        'role' => 'super_admin',
+    ]);
+
+    $visitor = User::factory()->create([
+        'role' => 'pengunjung',
+        'name' => 'Siti Aminah',
+        'no_telp' => '081299988877',
+    ]);
+
+    $department = Department::create([
+        'name' => 'Dinas Kesehatan',
+        'inisial' => 'DK',
+        'nomor_loket' => '03',
+    ]);
+
+    $startDate = now()->subDays(2)->toDateString();
+    $endDate = now()->toDateString();
+
+    $queue = Queue::create([
+        'user_id' => $visitor->id,
+        'department_id' => $department->id,
+        'booking_code' => 'BK-PDF-1',
+        'purpose' => 'Surat Sehat',
+        'session_name' => 'Siang',
+        'booking_date' => now()->subDay()->toDateString(),
+        'queue_number' => 'DK-005',
+        'status' => QueueStatus::Completed->value,
+        'called_at' => now()->subDay()->setTime(14, 0),
+        'completed_at' => now()->subDay()->setTime(14, 25),
+    ]);
+    $queue->load(['user', 'department']);
+
+    $report = Report::create([
+        'created_by' => $superAdmin->id,
+        'title' => 'Laporan PDF Nomor HP',
+        'start_date' => $startDate,
+        'end_date' => $endDate,
+        'data_summary' => [
+            'total_visitors' => 1,
+            'completed_count' => 1,
+            'skipped_count' => 0,
+            'attendance_rate' => 100.0,
+            'avg_service_time' => 25.0,
+            'avg_waiting_time' => 0.0,
+            'per_department' => [],
+            'daily_series' => [],
+        ],
+        'status' => 'Terkirim',
+    ]);
+
+    $filename = 'laporan-antrean-'.$startDate.'-to-'.$endDate.'.pdf';
+
+    $response = $this->actingAs($superAdmin)->get(route('admin.reports.export.pdf', $report));
+
+    $response->assertSuccessful();
+    $response->assertDownload($filename);
+
+    $this->view('super_admin.reports.pdf', [
+        'report' => $report,
+        'queues' => collect([$queue]),
+    ])
+        ->assertSee('Nomor HP')
+        ->assertSee('081299988877')
+        ->assertSee('Siti Aminah');
+});

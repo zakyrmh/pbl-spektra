@@ -173,6 +173,7 @@
                 <th style="width: 60px;">No. Antrean</th>
                 <th style="width: 85px;">NIK</th>
                 <th>Nama Lengkap</th>
+                <th style="width: 85px;">Nomor HP</th>
                 <th>Instansi/Gerai</th>
                 <th>Layanan</th>
                 <th style="width: 50px;">Panggil</th>
@@ -184,6 +185,7 @@
                 @php
                     $name = $q->user?->name ?? '-';
                     $nik = $q->user?->nik ?? '-';
+                    $phone = $q->user?->no_telp ?? '-';
                     $deptName = $q->department?->name ?? '-';
                 @endphp
                 <tr>
@@ -192,6 +194,7 @@
                     <td style="font-weight: bold; color: #1B4FA8;">{{ $q->queue_number }}</td>
                     <td>{{ $nik }}</td>
                     <td style="font-weight: bold;">{{ $name }}</td>
+                    <td>{{ $phone }}</td>
                     <td>{{ $deptName }}</td>
                     <td>{{ $q->purpose ?? '-' }}</td>
                     <td>{{ $q->called_at ? \Carbon\Carbon::parse($q->called_at)->format('H:i:s') : '—' }}</td>
@@ -199,7 +202,7 @@
                 </tr>
             @empty
                 <tr>
-                    <td colspan="9" style="text-align: center; color: #888888;">
+                    <td colspan="10" style="text-align: center; color: #888888;">
                         Tidak ada data transaksi antrean untuk laporan ini.
                     </td>
                 </tr>

@@ -174,6 +174,7 @@
                             <th class="py-3 px-4 text-xs font-bold text-ink dark:text-white uppercase font-display tracking-wider">No. Antrean</th>
                             <th class="py-3 px-4 text-xs font-bold text-ink dark:text-white uppercase font-display tracking-wider">NIK</th>
                             <th class="py-3 px-4 text-xs font-bold text-ink dark:text-white uppercase font-display tracking-wider">Nama Lengkap</th>
+                            <th class="py-3 px-4 text-xs font-bold text-ink dark:text-white uppercase font-display tracking-wider">Nomor HP</th>
                             <th class="py-3 px-4 text-xs font-bold text-ink dark:text-white uppercase font-display tracking-wider">Instansi/Gerai</th>
                             <th class="py-3 px-4 text-xs font-bold text-ink dark:text-white uppercase font-display tracking-wider">Layanan</th>
                             <th class="py-3 px-4 text-xs font-bold text-ink dark:text-white uppercase font-display tracking-wider">Panggil</th>
@@ -185,6 +186,7 @@
                             @php
                                 $name = $q->user?->name ?? '-';
                                 $nik = $q->user?->nik ?? '-';
+                                $phone = $q->user?->no_telp ?? '-';
                                 $deptName = $q->department?->name ?? '-';
                             @endphp
                             <tr class="hover:bg-surface-soft/40 dark:hover:bg-white/2 transition-colors text-sm">
@@ -193,6 +195,7 @@
                                 <td class="py-3.5 px-4 font-bold text-primary dark:text-accent-teal font-mono">{{ $q->queue_number }}</td>
                                 <td class="py-3.5 px-4 text-muted dark:text-on-dark-soft font-mono">{{ $nik }}</td>
                                 <td class="py-3.5 px-4 font-semibold text-ink dark:text-white font-display">{{ $name }}</td>
+                                <td class="py-3.5 px-4 text-muted dark:text-on-dark-soft font-mono whitespace-nowrap">{{ $phone }}</td>
                                 <td class="py-3.5 px-4 text-muted dark:text-on-dark-soft font-body">{{ $deptName }}</td>
                                 <td class="py-3.5 px-4 text-muted dark:text-on-dark-soft font-body">{{ $q->purpose ?? '-' }}</td>
                                 <td class="py-3.5 px-4 text-muted dark:text-on-dark-soft font-mono whitespace-nowrap">{{ $q->called_at ? \Carbon\Carbon::parse($q->called_at)->format('H:i:s') : '—' }}</td>
@@ -200,7 +203,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="9" class="py-10 text-center text-muted dark:text-on-dark-soft font-body select-none">
+                                <td colspan="10" class="py-10 text-center text-muted dark:text-on-dark-soft font-body select-none">
                                     Tidak ada data transaksi antrean untuk laporan ini.
                                 </td>
                             </tr>

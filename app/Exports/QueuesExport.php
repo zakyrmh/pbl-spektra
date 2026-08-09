@@ -44,11 +44,14 @@ class QueuesExport implements FromQuery, WithHeadings, WithMapping, WithTitle
         $nik = $queue->user?->nik ?? '-';
         $departmentName = $queue->department?->name ?? '-';
 
+        $phone = $queue->user?->no_telp ?? '-';
+
         return [
             $queue->booking_date instanceof Carbon ? $queue->booking_date->toDateString() : (string) $queue->booking_date,
             $queue->queue_number,
             $nik,
             $name,
+            $phone,
             $departmentName,
             $queue->purpose ?? '-',
             $queue->called_at ? (Carbon::parse($queue->called_at)->format('H:i:s')) : '—',
@@ -66,6 +69,7 @@ class QueuesExport implements FromQuery, WithHeadings, WithMapping, WithTitle
             'Nomor Antrean',
             'NIK',
             'Nama Lengkap',
+            'Nomor HP Pengunjung',
             'Instansi/Gerai',
             'Layanan',
             'Jam Dipanggil',
